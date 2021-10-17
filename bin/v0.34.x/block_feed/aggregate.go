@@ -9,12 +9,11 @@ import (
 var _ BlockFeed = (*AggregateSubscription)(nil)
 
 type AggregateSubscription struct {
-	lastKnownBlock            int64
 	ws                        *WSSubscription
-	wsEndpoints               []string
 	rpc                       *RPCSubscription
-	aggregateBlockChannel     chan *BlockResult
+	lastKnownBlock            int64
 	lastKnownWSEndpointsIndex int
+	aggregateBlockChannel     chan *BlockResult
 	isSynced                  bool
 }
 
@@ -41,6 +40,8 @@ func NewAggregateBlockFeed(
 		rpc:                       rpc,
 		lastKnownBlock:            currentBlock,
 		lastKnownWSEndpointsIndex: 0,
+		aggregateBlockChannel:     make(chan *BlockResult),
+		isSynced:                  false,
 	}
 }
 
