@@ -1,7 +1,6 @@
 package tx
 
 import (
-	"encoding/json"
 	"fmt"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
@@ -20,6 +19,7 @@ var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, bloc
 
 	txHashes := make([]string, len(block.Txs))
 	txRecords := make([]TxRecord, len(block.Txs))
+	byHeightPayload := make([]TxByHeightRecord, len(block.Txs))
 
 	// by hash
 	for txIndex, txByte := range block.Txs {
@@ -49,6 +49,18 @@ var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, bloc
 
 		txHashes[txIndex] = fmt.Sprintf("%X", hash)
 		txRecords[txIndex] = txRecord
+
+		// byHeightRecord
+		byHeightPayload[txIndex].Code = response.Code
+		byHeightPayload[txIndex].Codespace = response.Codespace
+		byHeightPayload[txIndex].GasUsed = response.GasUsed
+		byHeightPayload[txIndex].GasWanted = response.GasWanted
+		byHeightPayload[txIndex].Height = block.Height
+		byHeightPayload[txIndex].RawLog = response.Log
+		byHeightPayload[txIndex].Logs = []byte(response.Log)
+		byHeightPayload[txIndex].TxHash = fmt.Sprintf("%X", hash)
+		byHeightPayload[txIndex].Timestamp = block.Time
+		byHeightPayload[txIndex].Tx = txJSON
 	}
 
 	// 1. byHash -- matching the interface for /cosmos/tx/v1beta1/txs/{hash}
@@ -64,16 +76,13 @@ var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, bloc
 		}
 	}
 
-	// 2. byHeight -- custom endpoint (use tx_response only)
-	byHeightPayload := make([]json.RawMessage, len(txRecords))
-	for txIndex, txRecord := range txRecords {
-		byHeightPayload[txIndex] = txRecord.TxResponse
+	// 2. byHeight -- custom endpoint
+	byHeightJSON, byHeightErr := tmjson.Marshal(byHeightPayload)
+	if byHeightErr != nil {
+		return byHeightErr
 	}
-	txByHeightJSON, marshalErr := tmjson.Marshal(byHeightPayload)
-	if marshalErr != nil {
-		return marshalErr
-	}
-	batchSetErr := batch.Set(getByHeightKey(uint64(block.Height)), txByHeightJSON)
+
+	batchSetErr := batch.Set(getByHeightKey(uint64(block.Height)), byHeightJSON)
 	if batchSetErr != nil {
 		return batchSetErr
 	}

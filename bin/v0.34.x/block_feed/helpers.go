@@ -1,6 +1,7 @@
 package block_feed
 
 import (
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
@@ -30,4 +31,18 @@ func ExtractBlockFromRPCResponse(message []byte) (*BlockResult, error) {
 	}
 
 	return data.Result, nil
+}
+
+func ExtractBlockResultFromRPCResponse(message []byte) ([]abci.TxResult, error) {
+	data := new(struct {
+		Result struct {
+			TxsResult []abci.TxResult `json:"txs_results"`
+		} `json:"result"`
+	})
+
+	if err := tmjson.Unmarshal(message, data); err != nil {
+		return nil, err
+	}
+
+	return data.Result.TxsResult, nil
 }

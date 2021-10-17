@@ -13,6 +13,8 @@ import (
 )
 
 func TestIndexTx(t *testing.T) {
+	os.Setenv("INDEXER_SIDESYNC_PORT", "6065")
+
 	db := tmdb.NewMemDB()
 	block := &tendermint.Block{}
 	blockFile, _ := os.Open("../fixtures/block_4814775.json")

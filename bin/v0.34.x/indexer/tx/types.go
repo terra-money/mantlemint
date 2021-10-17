@@ -4,11 +4,25 @@ import (
 	"encoding/json"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/terra-money/mantlemint/lib"
+	"time"
 )
 
 type TxRecord struct {
 	Tx         json.RawMessage `json:"tx"`
 	TxResponse json.RawMessage `json:"tx_response"`
+}
+
+type TxByHeightRecord struct {
+	Code      uint32             `json:"code"`
+	Codespace string          `json:"codespace"`
+	GasUsed   int64           `json:"gas_used"`
+	GasWanted int64           `json:"gas_wanted"`
+	Height    int64           `json:"height"`
+	RawLog    string          `json:"raw_log"`
+	Logs      json.RawMessage `json:"logs"`
+	TxHash    string          `json:"txhash"`
+	Timestamp time.Time       `json:"timestamp"`
+	Tx        json.RawMessage `json:"tx"`
 }
 
 var txPrefix = []byte("tx/hash:")

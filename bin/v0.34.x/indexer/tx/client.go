@@ -8,6 +8,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/config"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"io/ioutil"
@@ -28,6 +29,7 @@ func txsByHeightHandler(indexerDB tmdb.DB, height string) ([]byte, error) {
 }
 
 var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRouter *mux.Router, indexerDB tmdb.DB) {
+	var mantlemintConfig = config.NewConfig()
 	router.HandleFunc("/index/tx/by_hash/{hash}", func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
 		hash, ok := vars["hash"]
@@ -58,7 +60,25 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 			http.Error(writer, err.Error(), 400)
 			return
 		} else if txns == nil {
-			http.Error(writer, fmt.Errorf("invalid height; you may be requesting for a block not seen yet").Error(), 204)
+			// block not seen;
+			heightInInt, err := strconv.Atoi(height)
+			if err != nil {
+				http.Error(writer, fmt.Errorf("invalid height: %v", err).Error(), 400)
+				return
+			}
+			if _, lazySyncErr := LazySync(int64(heightInInt), mantlemintConfig.RPCEndpoints[0], indexerDB); lazySyncErr != nil {
+				http.Error(writer, lazySyncErr.Error(), 400)
+				return
+			} else {
+				txns, err := txsByHeightHandler(indexerDB, height)
+				if err != nil {
+					http.Error(writer, err.Error(), 400)
+					return
+				} else {
+					writer.WriteHeader(200)
+					writer.Write(txns)
+				}
+			}
 			return
 		} else {
 			writer.WriteHeader(200)
