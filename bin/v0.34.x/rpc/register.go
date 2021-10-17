@@ -58,13 +58,6 @@ func StartRPC(
 	// register custom routes to default api server
 	registerCustomRoutes(apiSrv.Router)
 
-	// caching middleware
-	apiSrv.Router.Use(func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			cache.HandleCachedHTTP(writer, request, handler)
-		})
-	})
-
 	// custom healthcheck endpoint
 	apiSrv.Router.Handle("/health", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		isSynced := getIsSynced()
@@ -75,12 +68,19 @@ func StartRPC(
 			writer.WriteHeader(http.StatusServiceUnavailable)
 			writer.Write([]byte("NOK"))
 		}
-	}))
+	})).Methods("GET")
 
 	// register all default GET routers...
 	app.RegisterAPIRoutes(apiSrv, cfg.API)
 	app.RegisterTendermintService(context)
 	errCh := make(chan error)
+
+	//// caching middleware
+	//apiSrv.Router.Use(func(next http.Handler) http.Handler {
+	//	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	//		cache.HandleCachedHTTP(writer, request, next)
+	//	})
+	//})
 
 	// start api server in goroutine
 	go func() {
