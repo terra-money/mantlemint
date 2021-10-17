@@ -138,7 +138,7 @@ func main() {
 	cacheInvalidateChan := make(chan int64)
 
 	// start RPC server
-	go rpc.StartRPC(
+	rpcErr := rpc.StartRPC(
 		app,
 		rpccli,
 		mantlemintConfig.ChainID,
@@ -159,6 +159,10 @@ func main() {
 		// inject flag checker for synced
 		blockFeed.IsSynced,
 	)
+
+	if rpcErr != nil {
+		panic(rpcErr)
+	}
 
 	// start subscribing to block
 	if mantlemintConfig.DisableSync {
