@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	terra "github.com/terra-money/core/app"
 	"os"
 	"strconv"
@@ -64,4 +65,8 @@ func NewConfig() Config {
 			return disableSync == "true"
 		}(),
 	}
+}
+
+func (cfg Config) Print() {
+	fmt.Println(cfg)
 }

@@ -34,6 +34,7 @@ import (
 // initialize mantlemint for v0.34.x
 func main() {
 	mantlemintConfig := config.NewConfig()
+	mantlemintConfig.Print()
 
 	viper.SetConfigType("toml")
 	viper.SetConfigName("app")
@@ -136,30 +137,32 @@ func main() {
 	cacheInvalidateChan := make(chan int64)
 
 	// start RPC server
-	rpcErr := rpc.StartRPC(
-		app,
-		rpccli,
-		mantlemintConfig.ChainID,
-		codec,
-		cacheInvalidateChan,
+	go func() {
+		rpcErr := rpc.StartRPC(
+			app,
+			rpccli,
+			mantlemintConfig.ChainID,
+			codec,
+			cacheInvalidateChan,
 
-		// register custom routers; primarily for indexers
-		func(router *mux.Router) {
-			// create new post router. It would panic on error
-			indexerInstance.
-				WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
-					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
-					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
-				}).
-				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
-		},
+			// register custom routers; primarily for indexers
+			func(router *mux.Router) {
+				// create new post router. It would panic on error
+				indexerInstance.
+					WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
+						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
+						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
+					}).
+					StartSideSync(mantlemintConfig.IndexerSideSyncPort)
+			},
 
-		// inject flag checker for synced
-		blockFeed.IsSynced,
-	)
-	if rpcErr != nil {
-		panic(rpcErr)
-	}
+			// inject flag checker for synced
+			blockFeed.IsSynced,
+		)
+		if rpcErr != nil {
+			panic(rpcErr)
+		}
+	}()
 
 	// start subscribing to block
 	if mantlemintConfig.DisableSync {
