@@ -68,7 +68,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	if firstBlock := <-cWS; firstBlock.Block.Header.Height != ags.lastKnownBlock+1 {
 		log.Printf("[block_feed/aggregate] received the first block(%d), but local blockchain is at (%d)\n", firstBlock.Block.Header.Height, ags.lastKnownBlock)
 		go func() {
-			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height+1, rpcIndex)
+			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height, rpcIndex)
 			for {
 				r := <-cRpc
 				if r != done {
@@ -77,6 +77,8 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 					break
 				}
 			}
+
+			fmt.Println("[block_feed/aggregate] switching to ws...")
 
 			// patch ws to aggregate
 			for {
