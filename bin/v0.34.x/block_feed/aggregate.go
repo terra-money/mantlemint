@@ -14,6 +14,7 @@ type AggregateSubscription struct {
 	lastKnownBlock            int64
 	lastKnownWSEndpointsIndex int
 	aggregateBlockChannel     chan *BlockResult
+	wsEndpointsLength         int
 	isSynced                  bool
 }
 
@@ -41,6 +42,7 @@ func NewAggregateBlockFeed(
 		lastKnownBlock:            currentBlock,
 		lastKnownWSEndpointsIndex: 0,
 		aggregateBlockChannel:     make(chan *BlockResult),
+		wsEndpointsLength:         len(wsEndpoints),
 		isSynced:                  false,
 	}
 }
@@ -112,7 +114,7 @@ func (ags *AggregateSubscription) Close() error {
 func (ags *AggregateSubscription) Reconnect() {
 	ags.isSynced = false
 	ags.lastKnownWSEndpointsIndex++
-	ags.lastKnownWSEndpointsIndex = ags.lastKnownWSEndpointsIndex % len(ags.wsEndpoints)
+	ags.lastKnownWSEndpointsIndex = ags.lastKnownWSEndpointsIndex % ags.wsEndpointsLength
 	time.Sleep(time.Second)
 
 	log.Printf("[block_feed/aggregate] reconnecting with rpcIndex of %d\n", ags.lastKnownWSEndpointsIndex)
