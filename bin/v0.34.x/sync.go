@@ -138,32 +138,27 @@ func main() {
 	cacheInvalidateChan := make(chan int64)
 
 	// start RPC server
-	go func() {
-		rpcErr := rpc.StartRPC(
-			app,
-			rpccli,
-			mantlemintConfig.ChainID,
-			codec,
-			cacheInvalidateChan,
+	go rpc.StartRPC(
+		app,
+		rpccli,
+		mantlemintConfig.ChainID,
+		codec,
+		cacheInvalidateChan,
 
-			// register custom routers; primarily for indexers
-			func(router *mux.Router) {
-				// create new post router. It would panic on error
-				go indexerInstance.
-					WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
-						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
-						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
-					}).
-					StartSideSync(mantlemintConfig.IndexerSideSyncPort)
-			},
+		// register custom routers; primarily for indexers
+		func(router *mux.Router) {
+			// create new post router. It would panic on error
+			go indexerInstance.
+				WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
+					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
+					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
+				}).
+				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
+		},
 
-			// inject flag checker for synced
-			blockFeed.IsSynced,
-		)
-		if rpcErr != nil {
-			panic(rpcErr)
-		}
-	}()
+		// inject flag checker for synced
+		blockFeed.IsSynced,
+	)
 
 	// start subscribing to block
 	if mantlemintConfig.DisableSync {
