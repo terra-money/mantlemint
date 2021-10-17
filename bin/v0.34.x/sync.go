@@ -149,7 +149,7 @@ func main() {
 			// register custom routers; primarily for indexers
 			func(router *mux.Router) {
 				// create new post router. It would panic on error
-				indexerInstance.
+				go indexerInstance.
 					WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
 						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
 						indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
