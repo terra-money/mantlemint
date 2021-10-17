@@ -14,7 +14,7 @@ import (
 
 var (
 	EndpointGETBlocksHeight = "/index/blocks/{height}"
-	EndpointPOSTBlock      = "/index/block"
+	EndpointPOSTBlock       = "/index/block"
 )
 
 func blockByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, error) {
@@ -38,6 +38,9 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 		if block, err := blockByHeightHandler(indexerDB, height); err != nil {
 			writer.WriteHeader(400)
 			writer.Write([]byte(err.Error()))
+			return
+		} else if block == nil {
+			http.Error(writer, fmt.Errorf("invalid height; you may be requesting for a block not seen yet").Error(), 204)
 			return
 		} else {
 			writer.WriteHeader(200)

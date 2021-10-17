@@ -57,6 +57,9 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 		if txns, err := txsByHeightHandler(indexerDB, height); err != nil {
 			http.Error(writer, err.Error(), 400)
 			return
+		} else if txns == nil {
+			http.Error(writer, fmt.Errorf("invalid height; you may be requesting for a block not seen yet").Error(), 204)
+			return
 		} else {
 			writer.WriteHeader(200)
 			writer.Write(txns)
