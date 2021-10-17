@@ -33,10 +33,10 @@ func ExtractBlockFromRPCResponse(message []byte) (*BlockResult, error) {
 	return data.Result, nil
 }
 
-func ExtractBlockResultFromRPCResponse(message []byte) ([]abci.TxResult, error) {
+func ExtractBlockResultFromRPCResponse(message []byte) ([]abci.ResponseDeliverTx, error) {
 	data := new(struct {
 		Result struct {
-			TxsResult []abci.TxResult `json:"txs_results"`
+			TxsResult []abci.ResponseDeliverTx `json:"txs_results"`
 		} `json:"result"`
 	})
 

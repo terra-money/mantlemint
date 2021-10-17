@@ -3,7 +3,6 @@ package tx
 import (
 	"encoding/json"
 	"fmt"
-	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/block_feed"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
@@ -45,9 +44,7 @@ func LazySync(height int64, rpcEndpoint string, indexerDB tmdb.DB) (json.RawMess
 
 	evc := mantlemint.NewMantlemintEventCollector()
 	for _, result := range blockResults {
-		_ = evc.PublishEventTx(tendermint.EventDataTx{
-			TxResult: result,
-		})
+		evc.ResponseDeliverTxs = append(evc.ResponseDeliverTxs, &result)
 	}
 
 	batch := indexerDB.NewBatch()
