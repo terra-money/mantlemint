@@ -63,7 +63,8 @@ var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, bloc
 			if response.Code == 0 {
 				return []byte(response.Log)
 			} else {
-				return []byte("[]")
+				out, _ := json.Marshal([]string{})
+				return out
 			}
 		}()
 		byHeightPayload[txIndex].TxHash = fmt.Sprintf("%X", hash)

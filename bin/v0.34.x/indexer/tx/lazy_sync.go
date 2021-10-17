@@ -30,7 +30,6 @@ func LazySync(height int64, rpcEndpoint string, indexerDB tmdb.DB) (json.RawMess
 		return nil, err
 	}
 
-
 	// get results
 	results, err := http.Get(fmt.Sprintf("%v/block_results?height=%d", rpcEndpoint, height))
 	if err != nil {
