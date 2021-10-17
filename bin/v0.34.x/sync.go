@@ -189,6 +189,7 @@ func main() {
 
 				// run indexer
 				if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
+					debug.PrintStack()
 					panic(indexerErr)
 				}
 
