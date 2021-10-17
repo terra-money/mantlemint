@@ -120,6 +120,7 @@ func main() {
 	blockFeed := blockFeeder.NewAggregateBlockFeed(
 		mm.GetCurrentHeight(),
 		mantlemintConfig.RPCEndpoints,
+		mantlemintConfig.WSEndpoints,
 	)
 
 	// create indexer service

@@ -13,6 +13,7 @@ type Config struct {
 	Home                string
 	ChainID             string
 	RPCEndpoints        []string
+	WSEndpoints			[]string
 	MantlemintDB        string
 	IndexerDB           string
 	IndexerSideSyncPort int64
@@ -31,9 +32,15 @@ func NewConfig() Config {
 		// ChainID sets expected chain id for this mantlemint instance
 		ChainID: os.Getenv("CHAIN_ID"),
 
-		// RPCEndpoint is where to pull txs from when fast-syncing
+		// RPCEndpoints is where to pull txs from when fast-syncing
 		RPCEndpoints: func() []string {
 			endpoints := os.Getenv("RPC_ENDPOINTS")
+			return strings.Split(endpoints, ",")
+		}(),
+
+		// WSEndpoints is where to pull txs from when normal syncing
+		WSEndpoints: func() []string {
+			endpoints := os.Getenv("WS_ENDPOINTS")
 			return strings.Split(endpoints, ",")
 		}(),
 
