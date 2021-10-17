@@ -1,6 +1,7 @@
 package tx
 
 import (
+	"encoding/json"
 	"fmt"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
@@ -51,13 +52,20 @@ var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, bloc
 		txRecords[txIndex] = txRecord
 
 		// byHeightRecord
+		// handle non-successful case first
 		byHeightPayload[txIndex].Code = response.Code
 		byHeightPayload[txIndex].Codespace = response.Codespace
 		byHeightPayload[txIndex].GasUsed = response.GasUsed
 		byHeightPayload[txIndex].GasWanted = response.GasWanted
 		byHeightPayload[txIndex].Height = block.Height
 		byHeightPayload[txIndex].RawLog = response.Log
-		byHeightPayload[txIndex].Logs = []byte(response.Log)
+		byHeightPayload[txIndex].Logs = func() json.RawMessage {
+			if response.Code == 0 {
+				return []byte(response.Log)
+			} else {
+				return []byte("[]")
+			}
+		}()
 		byHeightPayload[txIndex].TxHash = fmt.Sprintf("%X", hash)
 		byHeightPayload[txIndex].Timestamp = block.Time
 		byHeightPayload[txIndex].Tx = txJSON

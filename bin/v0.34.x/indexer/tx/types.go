@@ -13,7 +13,7 @@ type TxRecord struct {
 }
 
 type TxByHeightRecord struct {
-	Code      uint32             `json:"code"`
+	Code      uint32          `json:"code"`
 	Codespace string          `json:"codespace"`
 	GasUsed   int64           `json:"gas_used"`
 	GasWanted int64           `json:"gas_wanted"`
