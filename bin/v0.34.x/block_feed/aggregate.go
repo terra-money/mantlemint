@@ -68,11 +68,12 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	if firstBlock := <-cWS; firstBlock.Block.Header.Height != ags.lastKnownBlock+1 {
 		log.Printf("[block_feed/aggregate] received the first block(%d), but local blockchain is at (%d)\n", firstBlock.Block.Header.Height, ags.lastKnownBlock)
 		go func() {
-			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height+1, rpcIndex)
+			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height, rpcIndex)
 			for {
 				r := <-cRpc
 				if r != done {
 					ags.aggregateBlockChannel <- r
+					ags.lastKnownBlock = r.Block.Height
 				} else {
 					break
 				}
@@ -94,7 +95,8 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 					// if block feeder got upto this point,
 					// it is relatively safe that mantle is synced
 					ags.isSynced = true
-					ags.aggregateBlockChannel <- <-cWS
+					ags.aggregateBlockChannel <- r
+					ags.lastKnownBlock = r.Block.Height
 				}
 			}
 		}()
