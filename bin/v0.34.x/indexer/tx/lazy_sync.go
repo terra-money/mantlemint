@@ -44,7 +44,8 @@ func LazySync(height int64, rpcEndpoint string, indexerDB tmdb.DB) (json.RawMess
 
 	evc := mantlemint.NewMantlemintEventCollector()
 	for _, result := range blockResults {
-		evc.ResponseDeliverTxs = append(evc.ResponseDeliverTxs, &result)
+		resultBuf := result
+		evc.ResponseDeliverTxs = append(evc.ResponseDeliverTxs, &resultBuf)
 	}
 
 	batch := indexerDB.NewBatch()
