@@ -4,6 +4,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"runtime/debug"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,23 +18,19 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/core/app"
 	core "github.com/terra-money/core/types"
 	wasmconfig "github.com/terra-money/core/x/wasm/config"
 	blockFeeder "github.com/terra-money/mantlemint-provider-v0.34.x/block_feed"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/config"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/heleveldb"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/safe_batch"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer/block"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer/tx"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/rpc"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"runtime/debug"
 )
 
 // initialize mantlemint for v0.34.x
@@ -53,12 +55,19 @@ func main() {
 	sdkConfig.SetAddressVerifier(core.AddressVerifier)
 	sdkConfig.Seal()
 
-	ldb, ldbErr := tmdb.NewGoLevelDB(mantlemintConfig.MantlemintDB, mantlemintConfig.Home)
+	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{mantlemintConfig.MantlemintDB, mantlemintConfig.Home})
 	if ldbErr != nil {
 		panic(ldbErr)
 	}
 
-	batched := safe_batch.NewSafeBatchDB(ldb)
+	var hldb = hld.ApplyHeightLimitedDB(
+		ldb,
+		&hld.HeightLimitedDBConfig{
+			Debug: true,
+		},
+	)
+
+	batched := safe_batch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safe_batch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
 	codec := terra.MakeEncodingConfig()
@@ -175,6 +184,8 @@ func main() {
 				feed := <-cBlockFeed
 
 				// open db batch
+				hldb.SetReadHeight(feed.Block.Height)
+				hldb.SetWriteHeight(feed.Block.Height)
 				batchedOrigin.Open()
 				if injectErr := mm.Inject(feed.Block); injectErr != nil {
 					debug.PrintStack()
@@ -186,6 +197,9 @@ func main() {
 					debug.PrintStack()
 					panic(flushErr)
 				}
+
+				hldb.ClearReadHeight()
+				hldb.ClearWriteHeight()
 
 				// run indexer
 				if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {

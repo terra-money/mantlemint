@@ -2,7 +2,9 @@ package safe_batch
 
 import (
 	"fmt"
+
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/common"
 )
 
 var _ tmdb.DB = (*SafeBatchDB)(nil)
@@ -15,7 +17,7 @@ type SafeBatchDBCloser interface {
 }
 
 type SafeBatchDB struct {
-	db    tmdb.DB
+	db    common.DB
 	batch tmdb.Batch
 }
 
@@ -34,7 +36,7 @@ func (s *SafeBatchDB) Flush() error {
 	return s.batch.WriteSync()
 }
 
-func NewSafeBatchDB(db tmdb.DB) tmdb.DB {
+func NewSafeBatchDB(db common.DB) tmdb.DB {
 	return &SafeBatchDB{
 		db:    db,
 		batch: nil,
