@@ -1,9 +1,11 @@
 package hld
 
-import "github.com/terra-money/mantlemint-provider-v0.34.x/db/common"
+import (
+	tmdb "github.com/tendermint/tm-db"
+)
 
 type HLD interface {
-	common.DB
+	tmdb.DB
 	SetReadHeight(int64)
 	ClearReadHeight() int64
 	SetWriteHeight(int64)
@@ -61,10 +63,9 @@ type HeightLimitEnabledDB interface {
 }
 
 type HeightLimitEnabledIterator interface {
-	common.Iterator
+	tmdb.Iterator
 }
 
 type HeightLimitEnabledBatch interface {
-	common.Batch
+	tmdb.Batch
 }
-

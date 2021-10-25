@@ -3,9 +3,11 @@ package hld
 import (
 	"bytes"
 	"fmt"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/common"
-	"github.com/terra-money/mantlemint/lib"
 	"sync"
+
+	"github.com/terra-money/mantlemint/lib"
+
+	tmdb "github.com/tendermint/tm-db"
 )
 
 const (
@@ -143,7 +145,7 @@ func (hld *HeightLimitedDB) DeleteSync(key []byte) error {
 // from the first key, and a nil end iterates to the last key (inclusive).
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
-func (hld *HeightLimitedDB) Iterator(start, end []byte) (common.Iterator, error) {
+func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
 	if bytes.Compare(start, end) == 0 {
 		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
 	}
@@ -156,7 +158,7 @@ func (hld *HeightLimitedDB) Iterator(start, end []byte) (common.Iterator, error)
 // iterates from the last key (inclusive), and a nil start iterates to the first key (inclusive).
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
-func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (common.Iterator, error) {
+func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
 	if bytes.Compare(start, end) == 0 {
 		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
 	}
@@ -170,7 +172,7 @@ func (hld *HeightLimitedDB) Close() error {
 }
 
 // NewBatch creates a batch for atomic updates. The caller must call Batch.Close.
-func (hld *HeightLimitedDB) NewBatch() common.Batch {
+func (hld *HeightLimitedDB) NewBatch() tmdb.Batch {
 	// if hld.writeBatch != nil {
 	// 	// TODO: fix me
 	// 	return hld.writeBatch
@@ -179,10 +181,9 @@ func (hld *HeightLimitedDB) NewBatch() common.Batch {
 	// 	hld.writeBatch = hld.odb.NewBatch(hld.GetCurrentWriteHeight())
 	// 	return hld.writeBatch
 	// }
-	// 
+	//
 	return hld.odb.NewBatch(hld.GetCurrentWriteHeight())
 }
-
 
 //
 // func (hld *HeightLimitedDB) FlushBatch() error {
