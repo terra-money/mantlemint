@@ -121,9 +121,20 @@ func main() {
 	)
 
 	// initialize using provided genesis
-	if initErr := mm.Init(getGenesisDoc(mantlemintConfig.GenesisPath)); initErr != nil {
+	genesisDoc := getGenesisDoc(mantlemintConfig.GenesisPath)
+	initialHeight := genesisDoc.InitialHeight
+	hldb.SetReadHeight(initialHeight)
+	hldb.SetWriteHeight(initialHeight)
+	batchedOrigin.Open()
+	if initErr := mm.Init(genesisDoc); initErr != nil {
 		panic(initErr)
 	}
+	if flushErr := batchedOrigin.Flush(); flushErr != nil {
+		debug.PrintStack()
+		panic(flushErr)
+	}
+	hldb.ClearReadHeight()
+	hldb.ClearWriteHeight()
 
 	// get blocks over some sort of transport, inject to mantlemint
 	blockFeed := blockFeeder.NewAggregateBlockFeed(
