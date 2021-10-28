@@ -106,6 +106,7 @@ func receiveBlockEvents(ws *websocket.Conn, c chan *BlockResult) {
 
 			// "reconnect" message!
 			c <- nil
+			return
 		}
 
 		var unmarshalErr error
