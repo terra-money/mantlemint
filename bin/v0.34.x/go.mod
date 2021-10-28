@@ -96,7 +96,7 @@ require (
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tendermint/tendermint v0.34.13
 	github.com/tendermint/tm-db v0.6.4
-	github.com/terra-money/core v0.5.7
+	github.com/terra-money/core v0.5.9
 	github.com/terra-money/mantlemint v0.0.0
 	github.com/zondax/hid v0.9.0 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
