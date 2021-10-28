@@ -8,6 +8,7 @@ import (
 type Mantlemint interface {
 	Inject(*tendermint.Block) error
 	Init(*tendermint.GenesisDoc) error
+	LoadInitialState() error
 	GetCurrentHeight() int64
 	GetCurrentBlock() *tendermint.Block
 	GetCurrentState() state.State

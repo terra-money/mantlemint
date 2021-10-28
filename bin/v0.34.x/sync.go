@@ -123,16 +123,23 @@ func main() {
 	// initialize using provided genesis
 	genesisDoc := getGenesisDoc(mantlemintConfig.GenesisPath)
 	initialHeight := genesisDoc.InitialHeight
-	hldb.SetReadHeight(initialHeight)
+	hldb.SetReadHeight(math.MaxInt64)
 	hldb.SetWriteHeight(initialHeight)
 	batchedOrigin.Open()
+
 	if initErr := mm.Init(genesisDoc); initErr != nil {
 		panic(initErr)
 	}
+
 	if flushErr := batchedOrigin.Flush(); flushErr != nil {
 		debug.PrintStack()
 		panic(flushErr)
 	}
+
+	if loadErr := mm.LoadInitialState(); loadErr != nil {
+		panic(loadErr)
+	}
+
 	hldb.ClearReadHeight()
 	hldb.ClearWriteHeight()
 

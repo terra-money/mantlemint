@@ -10,10 +10,11 @@ import (
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 
-	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 	"log"
 	"sync"
+
+	tendermint "github.com/tendermint/tendermint/types"
+	tmdb "github.com/tendermint/tm-db"
 )
 
 var _ Mantlemint = (*Instance)(nil)
@@ -103,15 +104,21 @@ func (mm *Instance) Init(genesis *tendermint.GenesisDoc) error {
 			return err
 		}
 
-		if lastState, err := mm.stateStore.Load(); err != nil {
-			return err
-		} else {
-			mm.lastState = lastState
-		}
-
-		mm.lastState.LastResultsHash = merkle.HashFromByteSlices(nil)
 	}
 
+	return nil
+}
+
+func (mm *Instance) LoadInitialState() error {
+	if lastState, err := mm.stateStore.Load(); err != nil {
+		return err
+	} else {
+		mm.lastState = lastState
+	}
+
+	if mm.lastHeight == 0 {
+		mm.lastState.LastResultsHash = merkle.HashFromByteSlices(nil)
+	}
 	return nil
 }
 
@@ -202,5 +209,5 @@ func (mm *Instance) safeRunAfter(block *tendermint.Block, events *EventCollector
 }
 
 // ----
-func NopRunBefore(block *tendermint.Block) error { return nil }
+func NopRunBefore(block *tendermint.Block) error                        { return nil }
 func NopRunAfter(block *tendermint.Block, events *EventCollector) error { return nil }
