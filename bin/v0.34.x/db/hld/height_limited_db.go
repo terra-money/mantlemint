@@ -163,7 +163,7 @@ func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (tmdb.Iterator, e
 		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
 	}
 
-	return hld.odb.Iterator(hld.GetCurrentReadHeight(), start, end)
+	return hld.odb.ReverseIterator(hld.GetCurrentReadHeight(), start, end)
 }
 
 // Close closes the database connection.

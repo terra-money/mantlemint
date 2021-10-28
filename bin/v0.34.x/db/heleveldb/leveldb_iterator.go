@@ -34,7 +34,7 @@ func NewLevelDBIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterato
 }
 func NewLevelDBReverseIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterator, error) {
 	pdb := tmdb.NewPrefixDB(d.session, []byte(cOriginalDataPrefix))
-	iter, err := pdb.Iterator(start, end)
+	iter, err := pdb.ReverseIterator(start, end)
 	if err != nil {
 		return nil, err
 	}
