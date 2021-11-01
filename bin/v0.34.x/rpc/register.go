@@ -2,6 +2,10 @@ package rpc
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -13,9 +17,6 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	terra "github.com/terra-money/core/app"
 	"github.com/terra-money/core/app/params"
-	"io/ioutil"
-	"net/http"
-	"time"
 )
 
 func StartRPC(
@@ -25,6 +26,7 @@ func StartRPC(
 	codec params.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
+	handleUserQuery func(handler http.Handler) http.Handler,
 	getIsSynced func() bool,
 ) error {
 	vp := viper.GetViper()
@@ -81,6 +83,7 @@ func StartRPC(
 	//		cache.HandleCachedHTTP(writer, request, next)
 	//	})
 	//})
+	apiSrv.Router.Use(handleUserQuery)
 
 	// start api server in goroutine
 	go func() {

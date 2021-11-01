@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -31,6 +34,7 @@ import (
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer/tx"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/rpc"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/store/rootmulti"
 )
 
 // initialize mantlemint for v0.34.x
@@ -72,6 +76,8 @@ func main() {
 	logger := tmlog.NewTMLogger(os.Stdout)
 	codec := terra.MakeEncodingConfig()
 
+	cms := rootmulti.NewStore(hldb)
+
 	var app = terra.NewTerraApp(
 		logger,
 		batched,
@@ -90,6 +96,9 @@ func main() {
 			NumReadVMs:             64,
 		},
 		fauxMerkleModeOpt,
+		func(ba *baseapp.BaseApp) {
+			ba.SetCMS(cms)
+		},
 	)
 
 	// create app...
@@ -181,6 +190,34 @@ func main() {
 					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
 				}).
 				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
+		},
+		func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				// request.Context().Value()
+
+				// request.WithContext()
+				// fmt.Println("handler run")
+				// query := request.URL.Query()
+				// if height, heightExists := query["height"]; heightExists {
+				// 	if validHeight, validHeightErr := strconv.ParseInt(height[0], 10, 64); validHeightErr != nil {
+				// 		panic(validHeightErr)
+				// 	} else {
+				// 		fmt.Println(validHeight, "limit")
+				// 		hldb.SetReadHeight(validHeight)
+				// 		// time.Sleep(time.Second * 2)
+				// 		defer fmt.Println("limit end")
+				// 		defer hldb.ClearReadHeight()
+
+				// 		// strip height from URL
+				// 		queries := request.URL.Query()
+				// 		queries.Del("height")
+				// 		request.URL.RawQuery = queries.Encode()
+				// 		fmt.Println(request.URL)
+				// 	}
+				// }
+
+				handler.ServeHTTP(writer, request)
+			})
 		},
 
 		// inject flag checker for synced

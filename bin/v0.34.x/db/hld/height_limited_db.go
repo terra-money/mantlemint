@@ -57,6 +57,14 @@ func ApplyHeightLimitedDB(db HeightLimitEnabledDB, config *HeightLimitedDBConfig
 	}
 }
 
+func (hld *HeightLimitedDB) Another(height int64) *HeightLimitedDB {
+
+	fmt.Println("?!?!?!?!?!", height)
+	newOne := ApplyHeightLimitedDB(hld.odb, &HeightLimitedDBConfig{Debug: true})
+	newOne.SetReadHeight(height)
+	return newOne
+}
+
 // SetReadHeight sets a target read height in the db driver.
 // It acts differently if the db mode is writer or reader:
 // - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
