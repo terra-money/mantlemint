@@ -76,7 +76,7 @@ func main() {
 	logger := tmlog.NewTMLogger(os.Stdout)
 	codec := terra.MakeEncodingConfig()
 
-	cms := rootmulti.NewStore(hldb)
+	cms := rootmulti.NewStore(batched, hldb)
 
 	var app = terra.NewTerraApp(
 		logger,

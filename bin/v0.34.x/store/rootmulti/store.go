@@ -46,7 +46,8 @@ const (
 // cacheMultiStore which is used for branching other MultiStores. It implements
 // the CommitMultiStore interface.
 type Store struct {
-	db             *hld.HeightLimitedDB
+	db             dbm.DB
+	hldb           *hld.HeightLimitedDB
 	lastCommitInfo *types.CommitInfo
 	pruningOpts    types.PruningOptions
 	storesParams   map[types.StoreKey]storeParams
@@ -64,10 +65,6 @@ type Store struct {
 	listeners map[types.StoreKey][]types.WriteListener
 }
 
-type WrappedStore struct {
-	Store
-}
-
 var (
 	_ types.CommitMultiStore = (*Store)(nil)
 	_ types.Queryable        = (*Store)(nil)
@@ -77,9 +74,10 @@ var (
 // store will be created with a PruneNothing pruning strategy by default. After
 // a store is created, KVStores must be mounted and finally LoadLatestVersion or
 // LoadVersion must be called.
-func NewStore(db *hld.HeightLimitedDB) *Store {
+func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 	return &Store{
 		db:           db,
+		hldb:         hldb,
 		pruningOpts:  types.PruneNothing,
 		storesParams: make(map[types.StoreKey]storeParams),
 		stores:       make(map[types.StoreKey]types.CommitKVStore),
@@ -467,6 +465,8 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 
 // rs.store.stores
 func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStore, error) {
+	var hldb = rs.hldb.Another(version)
+
 	cachedStores := make(map[types.StoreKey]types.CacheWrapper)
 	for key, store := range rs.stores {
 		switch store.GetStoreType() {
@@ -484,14 +484,16 @@ func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStor
 
 			cachedStores[key] = iavlStore
 
+		case types.StoreTypeDB:
+			s := rs.GetCommitKVStore(key).(commitDBStoreAdapter)
+
+			cachedStores[key] = s.Test(hldb)
+
 		default:
 			cachedStores[key] = store
 		}
 	}
 
-	// rs.interBlockCache.Reset()
-	var hldb = rs.db.Another(version)
-	// var hldb = rs.db
 	return cachemulti.NewStore(hldb, cachedStores, rs.keysByName, rs.traceWriter, rs.traceContext, rs.listeners), nil
 }
 
@@ -870,11 +872,13 @@ func (rs *Store) Restore(
 func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID, params storeParams) (types.CommitKVStore, error) {
 	var db dbm.DB
 
+	var prefix []byte
 	if params.db != nil {
-		db = dbm.NewPrefixDB(params.db, []byte("s/_/"))
+		prefix = []byte("s/_/")
+		db = dbm.NewPrefixDB(params.db, prefix)
 	} else {
-		prefix := "s/k:" + params.key.Name() + "/"
-		db = dbm.NewPrefixDB(rs.db, []byte(prefix))
+		prefix = []byte("s/k:" + params.key.Name() + "/")
+		db = dbm.NewPrefixDB(rs.db, prefix)
 	}
 
 	switch params.typ {
@@ -905,7 +909,8 @@ func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID
 		return store, err
 
 	case types.StoreTypeDB:
-		return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}}, nil
+		da := commitDBStoreAdapter{Store: dbadapter.Store{DB: db}, prefix: prefix}
+		return da, nil
 
 	case types.StoreTypeTransient:
 		_, ok := key.(*types.TransientStoreKey)

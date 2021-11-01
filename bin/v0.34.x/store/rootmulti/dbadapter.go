@@ -3,6 +3,7 @@ package rootmulti
 import (
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
 	"github.com/cosmos/cosmos-sdk/store/types"
+	dbm "github.com/tendermint/tm-db"
 )
 
 var commithash = []byte("FAKE_HASH")
@@ -14,6 +15,7 @@ var commithash = []byte("FAKE_HASH")
 // Wrapper type for dbm.Db with implementation of KVStore
 type commitDBStoreAdapter struct {
 	dbadapter.Store
+	prefix []byte
 }
 
 func (cdsa commitDBStoreAdapter) Commit() types.CommitID {
@@ -35,3 +37,11 @@ func (cdsa commitDBStoreAdapter) SetPruning(_ types.PruningOptions) {}
 // GetPruning is a no-op as pruning options cannot be directly set on this store.
 // They must be set on the root commit multi-store.
 func (cdsa commitDBStoreAdapter) GetPruning() types.PruningOptions { return types.PruningOptions{} }
+
+func (cdsa *commitDBStoreAdapter) Test(hldb dbm.DB) types.CommitKVStore {
+	println("hello world")
+
+	var db = dbm.NewPrefixDB(hldb, cdsa.prefix)
+
+	return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}, prefix: cdsa.prefix}
+}
