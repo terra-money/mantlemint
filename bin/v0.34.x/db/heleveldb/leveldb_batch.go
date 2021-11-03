@@ -1,9 +1,6 @@
 package heleveldb
 
 import (
-	"bytes"
-	"encoding/gob"
-
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 	"github.com/terra-money/mantlemint/lib"
@@ -29,44 +26,27 @@ func NewLevelDBBatch(atHeight int64, driver *Driver) *LevelBatch {
 
 func (b *LevelBatch) Set(key, value []byte) error {
 	newKey := b.keyBytesWithHeight(key)
-	item := Item{
-		Key:      key,
-		Value:    value,
-		AtHeight: b.height,
-		Deleted:  false,
-	}
 
-	var buff bytes.Buffer
-	enc := gob.NewEncoder(&buff)
-	if err := enc.Encode(item); err != nil {
+	// make fixed size byte slice for performance
+	buf := make([]byte, 0, len(value)+1)
+	buf = append(buf, byte(0)) // 0 => not deleted
+	buf = append(buf, value...)
+
+	if err := b.batch.Set(prefixOriginalDataKey(key), buf); err != nil {
 		return err
 	}
-
-	if err := b.batch.Set(prefixOriginalDataKey(key), buff.Bytes()); err != nil {
-		return err
-	}
-	return b.batch.Set(newKey, buff.Bytes())
+	return b.batch.Set(newKey, buf)
 }
 
 func (b *LevelBatch) Delete(key []byte) error {
 	newKey := b.keyBytesWithHeight(key)
-	item := Item{
-		Key:      key,
-		Value:    []byte{},
-		AtHeight: b.height,
-		Deleted:  true,
-	}
 
-	var buff bytes.Buffer
-	enc := gob.NewEncoder(&buff)
-	if err := enc.Encode(item); err != nil {
+	buf := []byte{1}
+
+	if err := b.batch.Set(prefixOriginalDataKey(key), buf); err != nil {
 		return err
 	}
-
-	if err := b.batch.Set(prefixOriginalDataKey(key), buff.Bytes()); err != nil {
-		return err
-	}
-	return b.batch.Set(newKey, buff.Bytes())
+	return b.batch.Set(newKey, buf)
 }
 
 func (b *LevelBatch) Write() error {

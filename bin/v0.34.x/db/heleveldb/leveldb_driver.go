@@ -1,8 +1,6 @@
 package heleveldb
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 
 	tmdb "github.com/tendermint/tm-db"
@@ -39,9 +37,6 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid height")
 	}
 
-	// retrieve!
-	var item Item
-
 	pdb := tmdb.NewPrefixDB(d.session, prefixHeightSnapshotKey(key))
 
 	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
@@ -53,17 +48,15 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 		return nil, nil
 	}
 
-	buff := bytes.NewBuffer(iter.Value())
-	dec := gob.NewDecoder(buff)
-	dec.Decode(&item)
-
-	if item.Deleted {
+	value := iter.Value()
+	deleted := value[0]
+	if deleted == 1 {
 		return nil, nil
 	} else {
-		if item.Value == nil {
-			item.Value = []byte{}
+		if len(value) > 1 {
+			return value[1:], nil
 		}
-		return item.Value, nil
+		return []byte{}, nil
 	}
 }
 
@@ -76,9 +69,6 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 		return false, fmt.Errorf("invalid height")
 	}
 
-	// retrieve!
-	var item Item
-
 	pdb := tmdb.NewPrefixDB(d.session, prefixHeightSnapshotKey(key))
 
 	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
@@ -90,11 +80,9 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 		return false, nil
 	}
 
-	buff := bytes.NewBuffer(iter.Value())
-	dec := gob.NewDecoder(buff)
-	dec.Decode(&item)
+	deleted := iter.Value()[0]
 
-	if item.Deleted {
+	if deleted == 1 {
 		return false, nil
 	} else {
 		return true, nil
