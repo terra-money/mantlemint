@@ -78,7 +78,7 @@ func main() {
 			ContractDebugMode:      false,
 			WriteVMMemoryCacheSize: 1024,
 			ReadVMMemoryCacheSize:  512,
-			NumReadVMs:             16,
+			NumReadVMs:             64,
 		},
 		fauxMerkleModeOpt,
 	)
