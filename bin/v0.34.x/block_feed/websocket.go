@@ -11,6 +11,7 @@ var _ BlockFeed = (*WSSubscription)(nil)
 type WSSubscription struct {
 	wsEndpoints []string
 	ws          *websocket.Conn
+	c           chan *BlockResult
 }
 
 type handshake struct {
@@ -67,6 +68,7 @@ func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 
 	// create channel
 	c := make(chan *BlockResult)
+	ws.c = c
 
 	go receiveBlockEvents(ws.ws, c)
 
@@ -93,6 +95,7 @@ func handleInitialHandhake(ws *websocket.Conn) error {
 
 // TODO: handle errors here
 func receiveBlockEvents(ws *websocket.Conn, c chan *BlockResult) {
+	defer close(c)
 	for {
 		_, message, err := ws.ReadMessage()
 
