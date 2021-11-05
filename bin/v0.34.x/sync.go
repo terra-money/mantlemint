@@ -74,9 +74,11 @@ func main() {
 		codec,
 		simapp.EmptyAppOptions{},
 		&wasmconfig.Config{
-			ContractQueryGasLimit:   3000000,
-			ContractDebugMode:       false,
-			ContractMemoryCacheSize: 100,
+			ContractQueryGasLimit:  3000000,
+			ContractDebugMode:      false,
+			WriteVMMemoryCacheSize: 1024,
+			ReadVMMemoryCacheSize:  512,
+			NumReadVMs:             16,
 		},
 		fauxMerkleModeOpt,
 	)

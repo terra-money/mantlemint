@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/tendermint v0.34.13
 	github.com/tendermint/tm-db v0.6.4
-	github.com/terra-money/core v0.5.10
+	github.com/terra-money/core v0.5.7
 	github.com/terra-money/mantlemint v0.0.0
 
 )
