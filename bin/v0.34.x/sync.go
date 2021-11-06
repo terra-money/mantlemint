@@ -84,7 +84,6 @@ func main() {
 	)
 
 	// create app...
-	// var globalMutex = new(tmsync.Mutex)
 	var appCreator = proxy.NewLocalClientCreator(app)
 	appConns := proxy.NewAppConns(appCreator)
 	appConns.SetLogger(logger)

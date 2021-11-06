@@ -29,9 +29,11 @@ func NewCacheBackend(cacheSize int) *CacheBackend {
 	}
 
 	return &CacheBackend{
-		lru:           cache,
-		evictionCount: 0,
-		mtx:           new(sync.Mutex),
+		lru:             cache,
+		evictionCount:   0,
+		cacheServeCount: 0,
+		serveCount:      0,
+		mtx:             new(sync.Mutex),
 	}
 }
 
@@ -76,10 +78,12 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	cb.serveCount++
 	cb.mtx.Unlock()
 
+	// set response type as json
+	writer.Header().Set("Content-Type", "application/json")
+
 	cached := cb.Get(request.URL.String())
 	// if cached, return as is
 	if cached != nil {
-		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(cached.status)
 		writer.Write(cached.body)
 
@@ -98,9 +102,6 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
 
 	// write
-	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(recorder.Code)
 	writer.Write(recorder.Body.Bytes())
-
-	fmt.Println("???", recorder.Body.String())
 }
