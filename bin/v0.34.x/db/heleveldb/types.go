@@ -8,9 +8,14 @@ type Item struct {
 }
 
 var (
+	cAliveDataPrefix      = []byte("aliveData/")
 	cOriginalDataPrefix   = []byte("originalData/")
 	cHeightSnapShotPrefix = []byte("heightSnapshot/")
 )
+
+func prefixAliveKey(key []byte) []byte {
+	return append(cAliveDataPrefix, key...)
+}
 
 func prefixOriginalDataKey(key []byte) []byte {
 	return append(cOriginalDataPrefix, key...)

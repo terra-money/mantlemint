@@ -32,7 +32,10 @@ func (b *LevelBatch) Set(key, value []byte) error {
 	buf = append(buf, byte(0)) // 0 => not deleted
 	buf = append(buf, value...)
 
-	if err := b.batch.Set(prefixOriginalDataKey(key), buf); err != nil {
+	if err := b.batch.Set(prefixAliveKey(key), buf[1:]); err != nil {
+		return err
+	}
+	if err := b.batch.Set(prefixOriginalDataKey(key), []byte{}); err != nil {
 		return err
 	}
 	return b.batch.Set(newKey, buf)
@@ -43,6 +46,9 @@ func (b *LevelBatch) Delete(key []byte) error {
 
 	buf := []byte{1}
 
+	if err := b.batch.Delete(prefixAliveKey(key)); err != nil {
+		return err
+	}
 	if err := b.batch.Set(prefixOriginalDataKey(key), buf); err != nil {
 		return err
 	}

@@ -29,6 +29,9 @@ func NewLevelDBDriver(config *DriverConfig) (*Driver, error) {
 }
 
 func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
+	if maxHeight == 0 {
+		return d.session.Get(prefixAliveKey(key))
+	}
 	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
 	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
 
@@ -61,6 +64,9 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 }
 
 func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
+	if maxHeight == 0 {
+		return d.session.Has(prefixAliveKey(key))
+	}
 	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
 	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
 
@@ -109,10 +115,18 @@ func (d *Driver) DeleteSync(atHeight int64, key []byte) error {
 }
 
 func (d *Driver) Iterator(maxHeight int64, start, end []byte) (hld.HeightLimitEnabledIterator, error) {
+	if maxHeight == 0 {
+		pdb := tmdb.NewPrefixDB(d.session, cAliveDataPrefix)
+		return pdb.Iterator(start, end)
+	}
 	return NewLevelDBIterator(d, maxHeight, start, end)
 }
 
 func (d *Driver) ReverseIterator(maxHeight int64, start, end []byte) (hld.HeightLimitEnabledIterator, error) {
+	if maxHeight == 0 {
+		pdb := tmdb.NewPrefixDB(d.session, cAliveDataPrefix)
+		return pdb.ReverseIterator(start, end)
+	}
 	return NewLevelDBReverseIterator(d, maxHeight, start, end)
 }
 

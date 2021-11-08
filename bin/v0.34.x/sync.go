@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/debug"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -132,7 +130,6 @@ func main() {
 	// initialize using provided genesis
 	genesisDoc := getGenesisDoc(mantlemintConfig.GenesisPath)
 	initialHeight := genesisDoc.InitialHeight
-	hldb.SetReadHeight(math.MaxInt64)
 	hldb.SetWriteHeight(initialHeight)
 	batchedOrigin.Open()
 
@@ -149,7 +146,6 @@ func main() {
 		panic(loadErr)
 	}
 
-	hldb.ClearReadHeight()
 	hldb.ClearWriteHeight()
 
 	// get blocks over some sort of transport, inject to mantlemint
@@ -239,7 +235,6 @@ func main() {
 				feed := <-cBlockFeed
 
 				// open db batch
-				hldb.SetReadHeight(feed.Block.Height)
 				hldb.SetWriteHeight(feed.Block.Height)
 				batchedOrigin.Open()
 				if injectErr := mm.Inject(feed.Block); injectErr != nil {
@@ -253,7 +248,6 @@ func main() {
 					panic(flushErr)
 				}
 
-				hldb.ClearReadHeight()
 				hldb.ClearWriteHeight()
 
 				// run indexer
