@@ -12,11 +12,6 @@ type Driver struct {
 	session *tmdb.GoLevelDB
 }
 
-//TODO: remove it!
-func (d *Driver) Session() tmdb.DB {
-	return d.session
-}
-
 func NewLevelDBDriver(config *DriverConfig) (*Driver, error) {
 	ldb, err := tmdb.NewGoLevelDB(config.Name, config.Dir)
 	if err != nil {
