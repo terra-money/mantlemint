@@ -26,7 +26,6 @@ func StartRPC(
 	codec params.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
-	handleUserQuery func(handler http.Handler) http.Handler,
 	getIsSynced func() bool,
 ) error {
 	vp := viper.GetViper()
@@ -83,7 +82,6 @@ func StartRPC(
 	//		cache.HandleCachedHTTP(writer, request, next)
 	//	})
 	//})
-	apiSrv.Router.Use(handleUserQuery)
 
 	// start api server in goroutine
 	go func() {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -187,35 +186,6 @@ func main() {
 				}).
 				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
 		},
-		func(handler http.Handler) http.Handler {
-			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-				// request.Context().Value()
-
-				// request.WithContext()
-				// fmt.Println("handler run")
-				// query := request.URL.Query()
-				// if height, heightExists := query["height"]; heightExists {
-				// 	if validHeight, validHeightErr := strconv.ParseInt(height[0], 10, 64); validHeightErr != nil {
-				// 		panic(validHeightErr)
-				// 	} else {
-				// 		fmt.Println(validHeight, "limit")
-				// 		hldb.SetReadHeight(validHeight)
-				// 		// time.Sleep(time.Second * 2)
-				// 		defer fmt.Println("limit end")
-				// 		defer hldb.ClearReadHeight()
-
-				// 		// strip height from URL
-				// 		queries := request.URL.Query()
-				// 		queries.Del("height")
-				// 		request.URL.RawQuery = queries.Encode()
-				// 		fmt.Println(request.URL)
-				// 	}
-				// }
-
-				handler.ServeHTTP(writer, request)
-			})
-		},
-
 		// inject flag checker for synced
 		blockFeed.IsSynced,
 	)
