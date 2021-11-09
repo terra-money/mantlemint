@@ -111,7 +111,7 @@ func (d *Driver) DeleteSync(atHeight int64, key []byte) error {
 
 func (d *Driver) Iterator(maxHeight int64, start, end []byte) (hld.HeightLimitEnabledIterator, error) {
 	if maxHeight == 0 {
-		pdb := tmdb.NewPrefixDB(d.session, cAliveDataPrefix)
+		pdb := tmdb.NewPrefixDB(d.session, cCurrentDataPrefix)
 		return pdb.Iterator(start, end)
 	}
 	return NewLevelDBIterator(d, maxHeight, start, end)
@@ -119,7 +119,7 @@ func (d *Driver) Iterator(maxHeight int64, start, end []byte) (hld.HeightLimitEn
 
 func (d *Driver) ReverseIterator(maxHeight int64, start, end []byte) (hld.HeightLimitEnabledIterator, error) {
 	if maxHeight == 0 {
-		pdb := tmdb.NewPrefixDB(d.session, cAliveDataPrefix)
+		pdb := tmdb.NewPrefixDB(d.session, cCurrentDataPrefix)
 		return pdb.ReverseIterator(start, end)
 	}
 	return NewLevelDBReverseIterator(d, maxHeight, start, end)

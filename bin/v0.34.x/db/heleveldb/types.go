@@ -8,22 +8,22 @@ type Item struct {
 }
 
 var (
-	cAliveDataPrefix      = []byte("aliveData/")
-	cOriginalDataPrefix   = []byte("originalData/")
-	cHeightSnapShotPrefix = []byte("heightSnapshot/")
+	cCurrentDataPrefix     = []byte("currentData/")
+	cKeysForIteratorPrefix = []byte("keysForIterator/")
+	cDataWithHeightPrefix  = []byte("dataWithHeight/")
 )
 
 func prefixAliveKey(key []byte) []byte {
-	return append(cAliveDataPrefix, key...)
+	return append(cCurrentDataPrefix, key...)
 }
 
 func prefixOriginalDataKey(key []byte) []byte {
-	return append(cOriginalDataPrefix, key...)
+	return append(cKeysForIteratorPrefix, key...)
 }
 
 func prefixHeightSnapshotKey(key []byte) []byte {
-	result := make([]byte, 0, len(cHeightSnapShotPrefix)+len(key)+1)
-	result = append(result, cHeightSnapShotPrefix...)
+	result := make([]byte, 0, len(cDataWithHeightPrefix)+len(key)+1)
+	result = append(result, cDataWithHeightPrefix...)
 	result = append(result, key...)
 	result = append(result, byte(':'))
 	return result
