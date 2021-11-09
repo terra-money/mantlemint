@@ -57,10 +57,8 @@ func ApplyHeightLimitedDB(db HeightLimitEnabledDB, config *HeightLimitedDBConfig
 	}
 }
 
-func (hld *HeightLimitedDB) Another(height int64) *HeightLimitedDB {
-
-	fmt.Println("?!?!?!?!?!", height)
-	newOne := ApplyHeightLimitedDB(hld.odb, &HeightLimitedDBConfig{Debug: true})
+func (hld *HeightLimitedDB) BranchHeightLimitedDB(height int64) *HeightLimitedDB {
+	newOne := ApplyHeightLimitedDB(hld.odb, hld.config)
 	newOne.SetReadHeight(height)
 	return newOne
 }

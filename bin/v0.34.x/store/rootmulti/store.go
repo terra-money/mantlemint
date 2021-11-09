@@ -465,7 +465,7 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 
 // rs.store.stores
 func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStore, error) {
-	var hldb = rs.hldb.Another(version)
+	var hldb = rs.hldb.BranchHeightLimitedDB(version)
 
 	cachedStores := make(map[types.StoreKey]types.CacheWrapper)
 	for key, store := range rs.stores {
