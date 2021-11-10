@@ -1,12 +1,5 @@
 package heleveldb
 
-type Item struct {
-	Key      []byte
-	Value    []byte
-	AtHeight int64
-	Deleted  bool
-}
-
 var (
 	cCurrentDataPrefix     = []byte("currentData/")
 	cKeysForIteratorPrefix = []byte("keysForIterator/")
