@@ -8,8 +8,8 @@ import (
 var _ hld.HeightLimitEnabledIterator = (*Iterator)(nil)
 
 type Iterator struct {
-	driver   *Driver
-	iterator tmdb.Iterator
+	driver *Driver
+	tmdb.Iterator
 
 	maxHeight int64
 	start     []byte
@@ -25,7 +25,7 @@ func NewLevelDBIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterato
 
 	return &Iterator{
 		driver:   d,
-		iterator: iter,
+		Iterator: iter,
 
 		maxHeight: maxHeight,
 		start:     start,
@@ -41,7 +41,7 @@ func NewLevelDBReverseIterator(d *Driver, maxHeight int64, start, end []byte) (*
 
 	return &Iterator{
 		driver:   d,
-		iterator: iter,
+		Iterator: iter,
 
 		maxHeight: maxHeight,
 		start:     start,
@@ -59,7 +59,7 @@ func (i *Iterator) Valid() bool {
 	// otherwise iterator has reached the end without finding any record
 	// with Delete = false, return false in such case.
 
-	for ; i.iterator.Valid(); i.iterator.Next() {
+	for ; i.Iterator.Valid(); i.Iterator.Next() {
 		if exist, _ := i.driver.Has(i.maxHeight, i.Key()); exist {
 			return true
 		}
@@ -68,26 +68,10 @@ func (i *Iterator) Valid() bool {
 
 }
 
-func (i *Iterator) Next() {
-	i.iterator.Next()
-}
-
-func (i *Iterator) Key() (key []byte) {
-	return i.iterator.Key()
-}
-
 func (i *Iterator) Value() (value []byte) {
 	val, err := i.driver.Get(i.maxHeight, i.Key())
 	if err != nil {
 		panic(err)
 	}
 	return val
-}
-
-func (i *Iterator) Error() error {
-	return i.iterator.Error()
-}
-
-func (i *Iterator) Close() error {
-	return i.iterator.Close()
 }
