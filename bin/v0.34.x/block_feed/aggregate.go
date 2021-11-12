@@ -9,13 +9,13 @@ import (
 var _ BlockFeed = (*AggregateSubscription)(nil)
 
 type AggregateSubscription struct {
-	ws                        *WSSubscription
-	rpc                       *RPCSubscription
-	lastKnownBlock            int64
-	lastKnownWSEndpointsIndex int
-	aggregateBlockChannel     chan *BlockResult
-	wsEndpointsLength         int
-	isSynced                  bool
+	ws                    *WSSubscription
+	rpc                   *RPCSubscription
+	lastKnownBlock        int64
+	lastKnownEndpointIdx  int
+	aggregateBlockChannel chan *BlockResult
+	wsEndpointsLength     int
+	isSynced              bool
 }
 
 var done *BlockResult = nil
@@ -37,13 +37,13 @@ func NewAggregateBlockFeed(
 	}
 
 	return &AggregateSubscription{
-		ws:                        ws,
-		rpc:                       rpc,
-		lastKnownBlock:            currentBlock,
-		lastKnownWSEndpointsIndex: 0,
-		aggregateBlockChannel:     make(chan *BlockResult),
-		wsEndpointsLength:         len(wsEndpoints),
-		isSynced:                  false,
+		ws:                    ws,
+		rpc:                   rpc,
+		lastKnownBlock:        currentBlock,
+		lastKnownEndpointIdx:  0,
+		aggregateBlockChannel: make(chan *BlockResult),
+		wsEndpointsLength:     len(wsEndpoints),
+		isSynced:              false,
 	}
 }
 
@@ -61,7 +61,10 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	}
 
 	// start with isSynced flag false
-	ags.isSynced = false
+	ags.setSyncState(false)
+
+	// read the first cWS
+	<-cWS
 
 	// check if the first block received from ws is the right block (currentHeight + 1)
 	// if not, the local blockchain is behind, in such case we would need to sync from Rpc.
@@ -79,7 +82,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				}
 			}
 
-			fmt.Println("[block_feed/aggregate] switching to ws...")
+			log.Printf("[block_feed/aggregate] switching to ws...")
 
 			// patch ws to aggregate
 			for {
@@ -89,12 +92,14 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				// handle reconnection here
 				if r == done {
 					log.Printf("[block_feed/aggregate] websocket done signal received, reconnecting...")
+					ags.setSyncState(false)
+					ags.Close()
 					ags.Reconnect()
 					break
 				} else {
 					// if block feeder got upto this point,
 					// it is relatively safe that mantle is synced
-					ags.isSynced = true
+					ags.setSyncState(true)
 					ags.aggregateBlockChannel <- r
 					ags.lastKnownBlock = r.Block.Height
 				}
@@ -116,17 +121,26 @@ func (ags *AggregateSubscription) Close() error {
 // On any reconnection, it is likely that the underlying RPC is having some problem.
 // To mitigate this,
 func (ags *AggregateSubscription) Reconnect() {
-	ags.isSynced = false
-	ags.lastKnownWSEndpointsIndex++
-	ags.lastKnownWSEndpointsIndex = ags.lastKnownWSEndpointsIndex % ags.wsEndpointsLength
+	endpointIndex := ags.nextWSEndpoint()
 	time.Sleep(time.Second)
 
-	log.Printf("[block_feed/aggregate] reconnecting with rpcIndex of %d\n", ags.lastKnownWSEndpointsIndex)
-	if _, err := ags.Subscribe(ags.lastKnownWSEndpointsIndex); err != nil {
+	log.Printf("[block_feed/aggregate] reconnecting with rpcIndex of %d\n", endpointIndex)
+	if _, err := ags.Subscribe(endpointIndex); err != nil {
 		ags.Reconnect()
 	}
 }
 
 func (ags *AggregateSubscription) IsSynced() bool {
 	return ags.isSynced
+}
+
+func (ags *AggregateSubscription) setSyncState(state bool) {
+	ags.isSynced = state
+}
+
+func (ags *AggregateSubscription) nextWSEndpoint() int {
+	ags.lastKnownEndpointIdx++
+	ags.lastKnownEndpointIdx = ags.lastKnownEndpointIdx % ags.wsEndpointsLength
+
+	return ags.lastKnownEndpointIdx
 }

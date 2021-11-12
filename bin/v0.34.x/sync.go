@@ -86,11 +86,9 @@ func main() {
 		codec,
 		simapp.EmptyAppOptions{},
 		&wasmconfig.Config{
-			ContractQueryGasLimit:  3000000,
-			ContractDebugMode:      false,
-			WriteVMMemoryCacheSize: 1024,
-			ReadVMMemoryCacheSize:  512,
-			NumReadVMs:             64,
+			ContractQueryGasLimit:   3000000,
+			ContractDebugMode:       false,
+			ContractMemoryCacheSize: 2048,
 		},
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
@@ -99,7 +97,6 @@ func main() {
 	)
 
 	// create app...
-	// var globalMutex = new(tmsync.Mutex)
 	var appCreator = proxy.NewLocalClientCreator(app)
 	appConns := proxy.NewAppConns(appCreator)
 	appConns.SetLogger(logger)
@@ -197,6 +194,7 @@ func main() {
 	// start subscribing to block
 	if mantlemintConfig.DisableSync {
 		fmt.Println("running without sync...")
+		forever()
 	} else {
 		if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
 			panic(blockFeedErr)
@@ -250,5 +248,10 @@ func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
 		panic(genesisErr)
 	} else {
 		return genesis
+	}
+}
+
+func forever() {
+	for {
 	}
 }
