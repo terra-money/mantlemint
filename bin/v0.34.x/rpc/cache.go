@@ -18,10 +18,11 @@ type CacheBackend struct {
 	evictionCount   uint64
 	cacheServeCount uint64
 	serveCount      uint64
+	cacheType       string
 	mtx             *sync.Mutex
 }
 
-func NewCacheBackend(cacheSize int) *CacheBackend {
+func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
 	// lru.New
 	cache, err := lru.New(cacheSize)
 	if err != nil {
@@ -33,6 +34,7 @@ func NewCacheBackend(cacheSize int) *CacheBackend {
 		evictionCount:   0,
 		cacheServeCount: 0,
 		serveCount:      0,
+		cacheType:       cacheType,
 		mtx:             new(sync.Mutex),
 	}
 }
@@ -56,21 +58,23 @@ func (cb *CacheBackend) Get(cacheKey string) *ResponseCache {
 	return data
 }
 
-func (cb *CacheBackend) Purge() int {
-	fmt.Printf("[rpc/cache] cache eviction count %d, serveCount %d, cacheServeCount %d\n",
+func (cb *CacheBackend) Metric() {
+	fmt.Printf("[rpc/%s] cache length %d, eviction count %d, serveCount %d, cacheServeCount %d\n",
+		cb.cacheType,
+		cb.lru.Len(),
 		cb.evictionCount,
 		cb.serveCount,
 		cb.cacheServeCount,
 	)
+}
 
+func (cb *CacheBackend) Purge() {
 	cb.mtx.Lock()
-	cacheLen := cb.lru.Len()
 	cb.lru.Purge()
 	cb.evictionCount = 0
 	cb.cacheServeCount = 0
 	cb.serveCount = 0
 	cb.mtx.Unlock()
-	return cacheLen
 }
 
 func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *http.Request, handler http.Handler) {

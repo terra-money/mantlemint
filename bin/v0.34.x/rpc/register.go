@@ -43,13 +43,23 @@ func StartRPC(
 		WithHomeDir(terra.DefaultNodeHome).
 		WithChainID(chainId)
 
-	cache := NewCacheBackend(1024000)
+	// create backends for response cache
+	// - cache: used for latest states without `height` parameter
+	// - archivalCache: used for historical states with `height` parameter; never flushed
+	cache := NewCacheBackend(16384, "latest")
+	archivalCache := NewCacheBackend(16384, "archival")
 
 	// register cache invalidator
 	go func() {
 		for {
 			height := <-invalidateTrigger
-			fmt.Printf("[cache-middleware] purging cache at height %d, lastLength=%d\n", height, cache.Purge())
+			fmt.Printf("[cache-middleware] purging cache at height %d\n", height)
+
+			cache.Metric()
+			archivalCache.Metric()
+
+			// only purge latest cache
+			cache.Purge()
 		}
 	}()
 
@@ -79,7 +89,14 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			cache.HandleCachedHTTP(writer, request, next)
+			vars := mux.Vars(request)
+			_, heightExists := vars["height"]
+
+			if heightExists {
+				archivalCache.HandleCachedHTTP(writer, request, next)
+			} else {
+				cache.HandleCachedHTTP(writer, request, next)
+			}
 		})
 	})
 
