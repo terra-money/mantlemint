@@ -487,7 +487,7 @@ func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStor
 		case types.StoreTypeDB:
 			s := rs.GetCommitKVStore(key).(commitDBStoreAdapter)
 
-			cachedStores[key] = s.Test(hldb)
+			cachedStores[key] = s.BranchStoreWithHeightLimitedDB(hldb)
 
 		default:
 			cachedStores[key] = store
