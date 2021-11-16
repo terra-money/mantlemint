@@ -4,6 +4,8 @@ go 1.17
 
 require (
 	github.com/cosmos/cosmos-sdk v0.44.2
+	github.com/cosmos/iavl v0.17.1
+	github.com/gogo/protobuf v1.3.3
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/golang-lru v0.5.4
