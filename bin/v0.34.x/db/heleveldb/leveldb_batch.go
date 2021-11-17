@@ -1,6 +1,8 @@
 package heleveldb
 
 import (
+	"math"
+
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 	"github.com/terra-money/mantlemint/lib"
@@ -11,16 +13,23 @@ var _ hld.HeightLimitEnabledBatch = (*LevelBatch)(nil)
 type LevelBatch struct {
 	height int64
 	batch  tmdb.Batch
+	mode   int
 }
 
 func (b *LevelBatch) keyBytesWithHeight(key []byte) []byte {
-	return append(prefixHeightSnapshotKey(key), lib.UintToBigEndian(uint64(b.height))...)
+	if b.mode == DriverModeKeySuffixAsc {
+		return append(prefixHeightSnapshotKey(key), lib.UintToBigEndian(uint64(b.height))...)
+	} else {
+		return append(prefixHeightSnapshotKey(key), lib.UintToBigEndian(math.MaxUint64-uint64(b.height))...)
+	}
+
 }
 
 func NewLevelDBBatch(atHeight int64, driver *Driver) *LevelBatch {
 	return &LevelBatch{
 		height: atHeight,
 		batch:  driver.session.NewBatch(),
+		mode:   driver.mode,
 	}
 }
 

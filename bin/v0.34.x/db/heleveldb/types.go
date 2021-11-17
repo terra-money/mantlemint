@@ -1,5 +1,10 @@
 package heleveldb
 
+const (
+	DriverModeKeySuffixAsc = iota
+	DriverModeKeySuffixDesc
+)
+
 var (
 	cCurrentDataPrefix     = []byte{0}
 	cKeysForIteratorPrefix = []byte{1}

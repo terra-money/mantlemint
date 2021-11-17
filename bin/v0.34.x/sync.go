@@ -56,7 +56,7 @@ func main() {
 	sdkConfig.SetAddressVerifier(core.AddressVerifier)
 	sdkConfig.Seal()
 
-	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{mantlemintConfig.MantlemintDB, mantlemintConfig.Home})
+	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{mantlemintConfig.MantlemintDB, mantlemintConfig.Home, heleveldb.DriverModeKeySuffixDesc})
 	if ldbErr != nil {
 		panic(ldbErr)
 	}
