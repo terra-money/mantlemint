@@ -1,6 +1,8 @@
 package heleveldb
 
 import (
+	"bytes"
+
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 )
@@ -14,6 +16,8 @@ type Iterator struct {
 	maxHeight int64
 	start     []byte
 	end       []byte
+
+	lastValidKey []byte
 }
 
 func NewLevelDBIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterator, error) {
@@ -60,7 +64,11 @@ func (i *Iterator) Valid() bool {
 	// with Delete = false, return false in such case.
 
 	for ; i.Iterator.Valid(); i.Iterator.Next() {
+		if bytes.Equal(i.lastValidKey, i.Key()) {
+			return true
+		}
 		if exist, _ := i.driver.Has(i.maxHeight, i.Key()); exist {
+			i.lastValidKey = i.Key()
 			return true
 		}
 	}
