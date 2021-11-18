@@ -38,9 +38,7 @@ func (cdsa commitDBStoreAdapter) SetPruning(_ types.PruningOptions) {}
 // They must be set on the root commit multi-store.
 func (cdsa commitDBStoreAdapter) GetPruning() types.PruningOptions { return types.PruningOptions{} }
 
-func (cdsa *commitDBStoreAdapter) Test(hldb dbm.DB) types.CommitKVStore {
-	println("hello world")
-
+func (cdsa *commitDBStoreAdapter) BranchStoreWithHeightLimitedDB(hldb dbm.DB) types.CommitKVStore {
 	var db = dbm.NewPrefixDB(hldb, cdsa.prefix)
 
 	return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}, prefix: cdsa.prefix}

@@ -252,6 +252,5 @@ func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
 }
 
 func forever() {
-	for {
-	}
+	<-(chan int)(nil)
 }
