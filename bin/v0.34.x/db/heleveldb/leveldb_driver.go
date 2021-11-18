@@ -2,6 +2,7 @@ package heleveldb
 
 import (
 	"fmt"
+	"math"
 
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
@@ -10,6 +11,7 @@ import (
 
 type Driver struct {
 	session *tmdb.GoLevelDB
+	mode    int
 }
 
 func NewLevelDBDriver(config *DriverConfig) (*Driver, error) {
@@ -20,7 +22,18 @@ func NewLevelDBDriver(config *DriverConfig) (*Driver, error) {
 
 	return &Driver{
 		session: ldb,
+		mode:    config.Mode,
 	}, nil
+}
+
+func (d *Driver) newInnerIterator(requestHeight int64, pdb *tmdb.PrefixDB) (tmdb.Iterator, error) {
+	if d.mode == DriverModeKeySuffixAsc {
+		heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
+		return pdb.ReverseIterator(nil, heightEnd)
+	} else {
+		heightStart := lib.UintToBigEndian(math.MaxUint64 - uint64(requestHeight))
+		return pdb.Iterator(heightStart, nil)
+	}
 }
 
 func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
@@ -37,8 +50,7 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 
 	pdb := tmdb.NewPrefixDB(d.session, prefixDataWithHeightKey(key))
 
-	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
-	iter, _ := pdb.ReverseIterator(nil, heightEnd)
+	iter, _ := d.newInnerIterator(requestHeight, pdb)
 	defer iter.Close()
 
 	// in tm-db@v0.6.4, key not found is NOT an error
@@ -72,8 +84,7 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 
 	pdb := tmdb.NewPrefixDB(d.session, prefixDataWithHeightKey(key))
 
-	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
-	iter, _ := pdb.ReverseIterator(nil, heightEnd)
+	iter, _ := d.newInnerIterator(requestHeight, pdb)
 	defer iter.Close()
 
 	// in tm-db@v0.6.4, key not found is NOT an error

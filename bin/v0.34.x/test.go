@@ -11,14 +11,10 @@ import (
 // initialize mantlemint for v0.34.x
 func main() {
 
-	var ldb, ldbErr = heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{"test", "./testdb"})
+	var ldb, ldbErr = heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{"test", "./testdb", heleveldb.DriverModeKeySuffixDesc})
 	if ldbErr != nil {
 		panic(ldbErr)
 	}
-
-	// simple test
-	write(ldb.Session(), "k", "v")
-	print(ldb.Session(), "k")
 
 	var hldb = hld.ApplyHeightLimitedDB(
 		ldb,
@@ -26,13 +22,6 @@ func main() {
 			Debug: true,
 		},
 	)
-
-	dd, err := ldb.Get(1, []byte("k"))
-	if err == nil {
-		println(dd)
-	} else {
-		println(err)
-	}
 
 	batched := safe_batch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safe_batch.SafeBatchDBCloser)
