@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -89,10 +90,10 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			vars := mux.Vars(request)
-			_, heightExists := vars["height"]
+			height, err := strconv.ParseInt(request.URL.Query().Get("height"), 10, 64)
 
-			if heightExists {
+			// don't use archival cache if height is 0 or error
+			if err == nil && height > 0 {
 				archivalCache.HandleCachedHTTP(writer, request, next)
 			} else {
 				cache.HandleCachedHTTP(writer, request, next)
