@@ -25,7 +25,7 @@ func NewLevelDBDriver(config *DriverConfig) (*Driver, error) {
 
 func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 	if maxHeight == 0 {
-		return d.session.Get(prefixAliveKey(key))
+		return d.session.Get(prefixCurrentDataKey(key))
 	}
 	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
 	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
@@ -35,7 +35,7 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid height")
 	}
 
-	pdb := tmdb.NewPrefixDB(d.session, prefixHeightSnapshotKey(key))
+	pdb := tmdb.NewPrefixDB(d.session, prefixDataWithHeightKey(key))
 
 	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
 	iter, _ := pdb.ReverseIterator(nil, heightEnd)
@@ -60,7 +60,7 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 
 func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 	if maxHeight == 0 {
-		return d.session.Has(prefixAliveKey(key))
+		return d.session.Has(prefixCurrentDataKey(key))
 	}
 	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
 	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
@@ -70,7 +70,7 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 		return false, fmt.Errorf("invalid height")
 	}
 
-	pdb := tmdb.NewPrefixDB(d.session, prefixHeightSnapshotKey(key))
+	pdb := tmdb.NewPrefixDB(d.session, prefixDataWithHeightKey(key))
 
 	heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
 	iter, _ := pdb.ReverseIterator(nil, heightEnd)
