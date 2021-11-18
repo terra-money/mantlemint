@@ -73,6 +73,7 @@ func main() {
 	logger := tmlog.NewTMLogger(os.Stdout)
 	codec := terra.MakeEncodingConfig()
 
+	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
 
 	var app = terra.NewTerraApp(

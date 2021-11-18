@@ -17,6 +17,8 @@ type Iterator struct {
 	start     []byte
 	end       []byte
 
+	// caching last validated key and value
+	// since Valid and Value functions are expensive but called repeatedly
 	lastValidKey   []byte
 	lastValidValue []byte
 }

@@ -462,8 +462,6 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 // attempts to load stores at a given version (height). An error is returned if
 // any store cannot be loaded. This should only be used for querying and
 // iterating at past heights.
-
-// rs.store.stores
 func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStore, error) {
 	var hldb = rs.hldb.BranchHeightLimitedDB(version)
 
@@ -489,6 +487,7 @@ func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStor
 				cachedStores[key] = store
 			} else {
 				s := rs.GetCommitKVStore(key).(commitDBStoreAdapter)
+				// connect new adapter with height limited
 				cachedStores[key] = s.BranchStoreWithHeightLimitedDB(hldb)
 			}
 
