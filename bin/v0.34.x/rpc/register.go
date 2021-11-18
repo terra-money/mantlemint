@@ -2,6 +2,11 @@ package rpc
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -13,9 +18,6 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	terra "github.com/terra-money/core/app"
 	"github.com/terra-money/core/app/params"
-	"io/ioutil"
-	"net/http"
-	"time"
 )
 
 func StartRPC(
@@ -42,13 +44,23 @@ func StartRPC(
 		WithHomeDir(terra.DefaultNodeHome).
 		WithChainID(chainId)
 
-	cache := NewCacheBackend(1024000)
+	// create backends for response cache
+	// - cache: used for latest states without `height` parameter
+	// - archivalCache: used for historical states with `height` parameter; never flushed
+	cache := NewCacheBackend(16384, "latest")
+	archivalCache := NewCacheBackend(16384, "archival")
 
 	// register cache invalidator
 	go func() {
 		for {
 			height := <-invalidateTrigger
-			fmt.Printf("[cache-middleware] purging cache at height %d, lastLength=%d\n", height, cache.Purge())
+			fmt.Printf("[cache-middleware] purging cache at height %d\n", height)
+
+			cache.Metric()
+			archivalCache.Metric()
+
+			// only purge latest cache
+			cache.Purge()
 		}
 	}()
 
@@ -78,7 +90,14 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			cache.HandleCachedHTTP(writer, request, next)
+			height, err := strconv.ParseInt(request.URL.Query().Get("height"), 10, 64)
+
+			// don't use archival cache if height is 0 or error
+			if err == nil && height > 0 {
+				archivalCache.HandleCachedHTTP(writer, request, next)
+			} else {
+				cache.HandleCachedHTTP(writer, request, next)
+			}
 		})
 	})
 

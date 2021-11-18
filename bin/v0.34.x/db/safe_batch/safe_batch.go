@@ -2,6 +2,7 @@ package safe_batch
 
 import (
 	"fmt"
+
 	tmdb "github.com/tendermint/tm-db"
 )
 

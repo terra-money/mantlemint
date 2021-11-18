@@ -4,6 +4,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"runtime/debug"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,23 +18,20 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/core/app"
 	core "github.com/terra-money/core/types"
 	wasmconfig "github.com/terra-money/core/x/wasm/config"
 	blockFeeder "github.com/terra-money/mantlemint-provider-v0.34.x/block_feed"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/config"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/heleveldb"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/safe_batch"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer/block"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer/tx"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/rpc"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"runtime/debug"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/store/rootmulti"
 )
 
 // initialize mantlemint for v0.34.x
@@ -53,15 +56,25 @@ func main() {
 	sdkConfig.SetAddressVerifier(core.AddressVerifier)
 	sdkConfig.Seal()
 
-	ldb, ldbErr := tmdb.NewGoLevelDB(mantlemintConfig.MantlemintDB, mantlemintConfig.Home)
+	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{mantlemintConfig.MantlemintDB, mantlemintConfig.Home, heleveldb.DriverModeKeySuffixDesc})
 	if ldbErr != nil {
 		panic(ldbErr)
 	}
 
-	batched := safe_batch.NewSafeBatchDB(ldb)
+	var hldb = hld.ApplyHeightLimitedDB(
+		ldb,
+		&hld.HeightLimitedDBConfig{
+			Debug: true,
+		},
+	)
+
+	batched := safe_batch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safe_batch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
 	codec := terra.MakeEncodingConfig()
+
+	// customize CMS to limit kv store's read height on query
+	cms := rootmulti.NewStore(batched, hldb)
 
 	var app = terra.NewTerraApp(
 		logger,
@@ -79,6 +92,9 @@ func main() {
 			ContractMemoryCacheSize: 2048,
 		},
 		fauxMerkleModeOpt,
+		func(ba *baseapp.BaseApp) {
+			ba.SetCMS(cms)
+		},
 	)
 
 	// create app...
@@ -109,9 +125,25 @@ func main() {
 	)
 
 	// initialize using provided genesis
-	if initErr := mm.Init(getGenesisDoc(mantlemintConfig.GenesisPath)); initErr != nil {
+	genesisDoc := getGenesisDoc(mantlemintConfig.GenesisPath)
+	initialHeight := genesisDoc.InitialHeight
+	hldb.SetWriteHeight(initialHeight)
+	batchedOrigin.Open()
+
+	if initErr := mm.Init(genesisDoc); initErr != nil {
 		panic(initErr)
 	}
+
+	if flushErr := batchedOrigin.Flush(); flushErr != nil {
+		debug.PrintStack()
+		panic(flushErr)
+	}
+
+	if loadErr := mm.LoadInitialState(); loadErr != nil {
+		panic(loadErr)
+	}
+
+	hldb.ClearWriteHeight()
 
 	// get blocks over some sort of transport, inject to mantlemint
 	blockFeed := blockFeeder.NewAggregateBlockFeed(
@@ -152,7 +184,6 @@ func main() {
 				}).
 				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
 		},
-
 		// inject flag checker for synced
 		blockFeed.IsSynced,
 	)
@@ -173,6 +204,7 @@ func main() {
 				feed := <-cBlockFeed
 
 				// open db batch
+				hldb.SetWriteHeight(feed.Block.Height)
 				batchedOrigin.Open()
 				if injectErr := mm.Inject(feed.Block); injectErr != nil {
 					debug.PrintStack()
@@ -184,6 +216,8 @@ func main() {
 					debug.PrintStack()
 					panic(flushErr)
 				}
+
+				hldb.ClearWriteHeight()
 
 				// run indexer
 				if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
@@ -219,6 +253,5 @@ func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
 }
 
 func forever() {
-	for {
-	}
+	<-(chan int)(nil)
 }

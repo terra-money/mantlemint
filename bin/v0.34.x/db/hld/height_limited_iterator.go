@@ -1,17 +1,17 @@
 package hld
 
-import "github.com/terra-money/mantlemint-provider-v0.34.x/db/common"
+import tmdb "github.com/tendermint/tm-db"
 
-var _ common.Iterator = (*HeightLimitedDBIterator)(nil)
+var _ tmdb.Iterator = (*HeightLimitedDBIterator)(nil)
 
 type HeightLimitedDBIterator struct {
-	oit common.Iterator
+	oit      tmdb.Iterator
 	atHeight int64
 }
 
-func NewHeightLimitedIterator(atHeight int64, oit common.Iterator) common.Iterator {
+func NewHeightLimitedIterator(atHeight int64, oit tmdb.Iterator) tmdb.Iterator {
 	return &HeightLimitedDBIterator{
-		oit: oit,
+		oit:      oit,
 		atHeight: atHeight,
 	}
 }
