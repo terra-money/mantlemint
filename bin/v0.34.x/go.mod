@@ -6,6 +6,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.44.2
 	github.com/cosmos/iavl v0.17.1
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/snappy v0.0.4
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/golang-lru v0.5.4
@@ -52,10 +53,8 @@ require (
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/gateway v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/orderedcode v0.0.1 // indirect
-	github.com/google/snappy v0.0.0-20211114220942-65dc7b383985 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
