@@ -98,7 +98,7 @@ func main() {
 	)
 
 	// create app...
-	var appCreator = proxy.NewLocalClientCreator(app)
+	var appCreator = mantlemint.NewConcurrentQueryClientCreator(app)
 	appConns := proxy.NewAppConns(appCreator)
 	appConns.SetLogger(logger)
 	if startErr := appConns.OnStart(); startErr != nil {
