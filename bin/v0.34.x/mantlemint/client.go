@@ -10,26 +10,28 @@ import (
 var _ abcicli.Client = (*UnmutexedClient)(nil)
 
 type UnmutexedClient struct {
-	service.BaseService
-	localClient
-
-	mtx *tmsync.RWMutex
-	app types.Application
-	abcicli.Callback
+	*localClient
 }
 
 func NewConcurrentQueryClient(mtx *tmsync.RWMutex, app types.Application) abcicli.Client {
-	cli := &UnmutexedClient{
-		mtx: mtx,
-		app: app,
+	if mtx == nil {
+		mtx = &tmsync.RWMutex{}
+	}
+
+	cli := &localClient{
+		mtx:         mtx,
+		Application: app,
 	}
 
 	cli.BaseService = *service.NewBaseService(nil, "localClient", cli)
-	return cli
+
+	return &UnmutexedClient{
+		localClient: cli,
+	}
 }
 
 func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
-	res := uc.app.Query(req)
+	res := uc.Application.Query(req)
 	return uc.callback(
 		types.ToRequestQuery(req),
 		types.ToResponseQuery(res),
@@ -37,6 +39,6 @@ func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
 }
 
 func (uc *UnmutexedClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
-	res := uc.app.Query(req)
+	res := uc.Application.Query(req)
 	return &res, nil
 }
