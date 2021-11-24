@@ -30,6 +30,8 @@ func NewSnappyDB(db tmdb.DB) *SnappyDB {
 func (s *SnappyDB) Get(key []byte) ([]byte, error) {
 	if item, err := s.db.Get(key); err != nil {
 		return nil, err
+	} else if item == nil && err == nil {
+		return nil, nil
 	} else {
 		return snappy.Decode(nil, item)
 	}
