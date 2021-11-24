@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/snappy"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"net/http"
 	"time"
@@ -23,8 +24,10 @@ func NewIndexer(dbName, path string) (*Indexer, error) {
 		return nil, indexerDBError
 	}
 
+	indexerDBCompressed := snappy.NewSnappyDB(indexerDB, snappy.CompatModeEnabled)
+
 	return &Indexer{
-		db:          indexerDB,
+		db:          indexerDBCompressed,
 		indexerTags: []string{},
 		indexers:    []IndexFunc{},
 	}, nil
