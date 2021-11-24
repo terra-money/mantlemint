@@ -24,7 +24,7 @@ func NewIndexer(dbName, path string) (*Indexer, error) {
 		return nil, indexerDBError
 	}
 
-	indexerDBCompressed := snappy.NewSnappyDB(indexerDB)
+	indexerDBCompressed := snappy.NewSnappyDB(indexerDB, snappy.CompatModeEnabled)
 
 	return &Indexer{
 		db:          indexerDBCompressed,

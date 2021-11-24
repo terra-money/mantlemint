@@ -2,12 +2,16 @@ package snappy
 
 import (
 	"github.com/stretchr/testify/assert"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	tendermint "github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
 func TestSnappyDB(t *testing.T) {
-	snappy := NewSnappyDB(db.NewMemDB())
+	snappy := NewSnappyDB(db.NewMemDB(), CompatModeEnabled)
 
 	assert.Nil(t, snappy.Set([]byte("test"), []byte("testValue")))
 
@@ -57,4 +61,32 @@ func TestSnappyDB(t *testing.T) {
 	v, err = snappy.Get([]byte("key"))
 	assert.Nil(t, v)
 	assert.Nil(t, err)
+}
+
+func TestSnappyDBCompat(t *testing.T) {
+	mdb := db.NewMemDB()
+	testKey := []byte("testKey")
+
+	nocompat := NewSnappyDB(mdb, CompatModeDisabled)
+	indexSampleTx(nocompat, testKey)
+
+	nocompatResult, _ := nocompat.Get(testKey)
+
+	compat := NewSnappyDB(mdb, CompatModeEnabled)
+	compatResult, _ := compat.Get(testKey)
+	assert.Equal(t, nocompatResult, compatResult)
+
+	nocompatResult2, _ := nocompat.Get(testKey)
+	assert.Equal(t, compatResult, nocompatResult2)
+}
+
+func indexSampleTx(mdb db.DB, key []byte) {
+	block := &tendermint.Block{}
+	blockFile, _ := os.Open("../../indexer/fixtures/block_4814775.json")
+	blockJSON, _ := ioutil.ReadAll(blockFile)
+	if err := tmjson.Unmarshal(blockJSON, block); err != nil {
+		panic(err)
+	}
+
+	_ = mdb.Set(key, blockJSON)
 }

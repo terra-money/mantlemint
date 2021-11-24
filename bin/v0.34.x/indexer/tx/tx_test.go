@@ -49,5 +49,4 @@ func TestIndexTx(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, txns)
 	fmt.Println(string(txns))
-
 }

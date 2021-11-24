@@ -4,10 +4,16 @@ import (
 	"github.com/golang/snappy"
 	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
+	"sync"
 )
 
 var (
 	errIteratorNotSupported = errors.New("iterator unsupported")
+)
+
+const (
+	CompatModeEnabled = iota
+	CompatModeDisabled
 )
 
 var _ tmdb.DB = (*SnappyDB)(nil)
@@ -18,12 +24,16 @@ var _ tmdb.DB = (*SnappyDB)(nil)
 // NOTE: implement when needed
 // NOTE2: monitor mem pressure, optimize by pre-allocating dst buf when there is bottleneck
 type SnappyDB struct {
-	db tmdb.DB
+	db         tmdb.DB
+	mtx        *sync.Mutex
+	compatMode int
 }
 
-func NewSnappyDB(db tmdb.DB) *SnappyDB {
+func NewSnappyDB(db tmdb.DB, compatMode int) *SnappyDB {
 	return &SnappyDB{
-		db: db,
+		mtx:        new(sync.Mutex),
+		db:         db,
+		compatMode: compatMode,
 	}
 }
 
@@ -33,7 +43,25 @@ func (s *SnappyDB) Get(key []byte) ([]byte, error) {
 	} else if item == nil && err == nil {
 		return nil, nil
 	} else {
-		return snappy.Decode(nil, item)
+
+		// if compat is enabled, try to see if this blob is snappy
+		// (by checking if the first byte is '{')
+		if s.compatMode == CompatModeEnabled {
+			var isSnappyBlob = item[0] != '{'
+			if isSnappyBlob {
+				return snappy.Decode(nil, item)
+			} else {
+				s.mtx.Lock()
+				// run item by Set() to encode & replace
+				_ = s.db.Set(key, item)
+				defer s.mtx.Unlock()
+
+				return item, nil
+			}
+
+		} else {
+			return snappy.Decode(nil, item)
+		}
 	}
 }
 
