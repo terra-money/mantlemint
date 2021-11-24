@@ -1,19 +1,21 @@
 package snappy
 
 import (
+	"encoding/json"
 	"github.com/golang/snappy"
 	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
 	"sync"
 )
 
-var (
-	errIteratorNotSupported = errors.New("iterator unsupported")
-)
-
 const (
 	CompatModeEnabled = iota
 	CompatModeDisabled
+)
+
+var (
+	errIteratorNotSupported = errors.New("iterator unsupported")
+	errUnknownData          = errors.New("unknown format")
 )
 
 var _ tmdb.DB = (*SnappyDB)(nil)
@@ -43,25 +45,28 @@ func (s *SnappyDB) Get(key []byte) ([]byte, error) {
 	} else if item == nil && err == nil {
 		return nil, nil
 	} else {
+		decoded, decodeErr := snappy.Decode(nil, item)
 
-		// if compat is enabled, try to see if this blob is snappy
-		// (by checking if the first byte is '{')
+		// if snappy decode fails, try to replace the underlying
+		// only recover & replace when the blob is a valid json
 		if s.compatMode == CompatModeEnabled {
-			var isSnappyBlob = item[0] != '{'
-			if isSnappyBlob {
-				return snappy.Decode(nil, item)
+			if decodeErr != nil {
+				if json.Valid(item) {
+					s.mtx.Lock()
+					// run item by Set() to encode & replace
+					_ = s.db.Set(key, item)
+					defer s.mtx.Unlock()
+
+					return item, nil
+				} else {
+					return nil, errUnknownData
+				}
 			} else {
-				s.mtx.Lock()
-				// run item by Set() to encode & replace
-				_ = s.db.Set(key, item)
-				defer s.mtx.Unlock()
-
-				return item, nil
+				return decoded, nil
 			}
-
-		} else {
-			return snappy.Decode(nil, item)
 		}
+
+		return decoded, decodeErr
 	}
 }
 
