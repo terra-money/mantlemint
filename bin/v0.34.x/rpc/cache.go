@@ -2,10 +2,11 @@ package rpc
 
 import (
 	"fmt"
-	lru "github.com/hashicorp/golang-lru"
 	"net/http"
 	"net/http/httptest"
 	"sync"
+
+	lru "github.com/hashicorp/golang-lru"
 )
 
 type ResponseCache struct {
@@ -20,8 +21,10 @@ type CacheBackend struct {
 	serveCount      uint64
 	cacheType       string
 	mtx             *sync.Mutex
-	inTransit       map[string]bool
-	resultChan      map[string]chan *ResponseCache
+
+	// subscribe to cache for same request URI
+	resultChan     map[string]chan *ResponseCache
+	subscribeCount map[string]int
 }
 
 func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
@@ -38,8 +41,8 @@ func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
 		serveCount:      0,
 		cacheType:       cacheType,
 		mtx:             new(sync.Mutex),
-		inTransit:       make(map[string]bool),
 		resultChan:      make(map[string]chan *ResponseCache),
+		subscribeCount:  make(map[string]int),
 	}
 }
 
@@ -81,8 +84,8 @@ func (cb *CacheBackend) Purge() {
 	cb.evictionCount = 0
 	cb.cacheServeCount = 0
 	cb.serveCount = 0
-	cb.inTransit = make(map[string]bool)
 	cb.resultChan = make(map[string]chan *ResponseCache)
+	cb.subscribeCount = make(map[string]int)
 	cb.mtx.Unlock()
 }
 
@@ -109,19 +112,14 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	// 캐시가 없다 --> 첫번째 리퀘스트이거나 아직 캐시 up이 안된것
-	// inTransit = false인 경우 첫 리퀘스트
-	// 아니면 중복
-
-	_, isInTransit := cb.inTransit[uri]
+	cb.mtx.Lock()
+	_, isInTransit := cb.resultChan[uri]
 
 	// if isInTransit is false, this is the first time we're processing this query
 	// run actual querier
 	if !isInTransit {
-		// 채널 만듬
-		cb.mtx.Lock()
-		cb.inTransit[uri] = true
 		cb.resultChan[uri] = make(chan *ResponseCache)
+		cb.subscribeCount[uri] = 0
 		cb.mtx.Unlock()
 
 		recorder := httptest.NewRecorder()
@@ -132,23 +130,29 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		// set in cache
 		responseCacheBody := cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
 
-		cb.resultChan[uri] <- responseCacheBody
-
 		// write
 		writer.WriteHeader(recorder.Code)
 		writer.Write(recorder.Body.Bytes())
 
+		// feed all subscriptions
+		for i := 0; i < cb.subscribeCount[uri]; i++ {
+			cb.resultChan[uri] <- responseCacheBody
+		}
+
 		cb.mtx.Lock()
-		delete(cb.inTransit, uri)
+		delete(cb.subscribeCount, uri)
+		delete(cb.resultChan, uri)
 		cb.mtx.Unlock()
 
 		return
 	}
 
-	// wait for result
+	// same query is processing but not cached yet.
+	// subscribe for cache result here.
+	cb.subscribeCount[uri]++
+	cb.mtx.Unlock()
 	response := <-cb.resultChan[uri]
 
 	writer.WriteHeader(response.status)
 	writer.Write(response.body)
-	return
 }
