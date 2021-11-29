@@ -2,10 +2,11 @@ package rpc
 
 import (
 	"fmt"
-	lru "github.com/hashicorp/golang-lru"
 	"net/http"
 	"net/http/httptest"
 	"sync"
+
+	lru "github.com/hashicorp/golang-lru"
 )
 
 type ResponseCache struct {
@@ -20,6 +21,7 @@ type CacheBackend struct {
 	serveCount      uint64
 	cacheType       string
 	mtx             *sync.Mutex
+	cacheMtxMap     map[string]*sync.Mutex
 }
 
 func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
@@ -36,6 +38,7 @@ func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
 		serveCount:      0,
 		cacheType:       cacheType,
 		mtx:             new(sync.Mutex),
+		cacheMtxMap:     make(map[string]*sync.Mutex),
 	}
 }
 
@@ -74,6 +77,7 @@ func (cb *CacheBackend) Purge() {
 	cb.evictionCount = 0
 	cb.cacheServeCount = 0
 	cb.serveCount = 0
+	cb.cacheMtxMap = make(map[string]*sync.Mutex)
 	cb.mtx.Unlock()
 }
 
@@ -84,6 +88,8 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 
 	// set response type as json
 	writer.Header().Set("Content-Type", "application/json")
+
+	uri := request.URL.String()
 
 	cached := cb.Get(request.URL.String())
 	// if cached, return as is
@@ -97,15 +103,45 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	recorder := httptest.NewRecorder()
+	cb.mtx.Lock()
+	mtx, isInTransit := cb.cacheMtxMap[uri]
+	if !isInTransit {
+		mtx := &sync.Mutex{}
+		cb.cacheMtxMap[uri] = mtx
+		mtx.Lock()
+		cb.mtx.Unlock()
 
-	// process request
-	handler.ServeHTTP(recorder, request)
+		recorder := httptest.NewRecorder()
 
-	// set in cache
-	cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
+		// process request
+		handler.ServeHTTP(recorder, request)
 
-	// write
-	writer.WriteHeader(recorder.Code)
-	writer.Write(recorder.Body.Bytes())
+		// set in cache
+		cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
+
+		// write
+		writer.WriteHeader(recorder.Code)
+		writer.Write(recorder.Body.Bytes())
+
+		mtx.Unlock()
+	} else {
+		cb.mtx.Unlock()
+
+		mtx.Lock()
+		cached := cb.Get(request.URL.String())
+		mtx.Unlock()
+
+		if cached == nil {
+			panic("cache not set")
+		}
+
+		writer.WriteHeader(cached.status)
+		writer.Write(cached.body)
+
+		cb.mtx.Lock()
+		cb.cacheServeCount++
+		cb.mtx.Unlock()
+
+	}
+
 }
