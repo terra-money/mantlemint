@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+
 	abcicli "github.com/tendermint/tendermint/abci/client"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -43,7 +44,6 @@ func (m *MantlemintRPCClient) ABCIQuery(ctx context.Context, path string, data b
 }
 
 func (m *MantlemintRPCClient) ABCIQueryWithOptions(ctx context.Context, path string, data bytes.HexBytes, opts rpcclient.ABCIQueryOptions) (*coretypes.ResultABCIQuery, error) {
-	fmt.Println("wtf???")
 	if resp, err := m.client.QuerySync(abci.RequestQuery{
 		Data:   data,
 		Path:   path,

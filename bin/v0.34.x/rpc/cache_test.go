@@ -1,14 +1,16 @@
 package rpc
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCacheBackend(t *testing.T) {
-	cb := NewCacheBackend(1)
+	cb := NewCacheBackend(1, "test")
 
 	cb.Set("key", 200, []byte("hello world"))
 	cached := cb.Get("key")
@@ -42,7 +44,10 @@ func TestCacheBackend(t *testing.T) {
 	cb.HandleCachedHTTP(testRes, testReq, handler)
 	cb.HandleCachedHTTP(testRes, testReq, handler)
 
-	assert.Equal(t, 1, cb.Purge())
+	fmt.Println(callCount)
+	assert.Equal(t, 1, callCount)
+
+	cb.Purge()
 
 	callCount = 0
 	cb.HandleCachedHTTP(testRes, testReq, handler)
@@ -52,6 +57,7 @@ func TestCacheBackend(t *testing.T) {
 	cb.HandleCachedHTTP(testRes, testReq, handler)
 	cb.HandleCachedHTTP(testRes, testReq, handler)
 
+	fmt.Println(callCount)
 	assert.Equal(t, callCount, 1)
 
 }
