@@ -103,12 +103,17 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		return
 	}
 
+	// critical section for checking if caching is in transit
+	// and set it true if not
 	cb.mtx.Lock()
-	mtx, isInTransit := cb.cacheMtxMap[uri]
+	mtxForUri, isInTransit := cb.cacheMtxMap[uri]
+
+	// if isInTransit is false, this is the first time we're processing this query
+	// run actual querier
 	if !isInTransit {
-		mtx := &sync.Mutex{}
-		cb.cacheMtxMap[uri] = mtx
-		mtx.Lock()
+		mtxForUri := &sync.Mutex{}
+		cb.cacheMtxMap[uri] = mtxForUri
+		mtxForUri.Lock()
 		cb.mtx.Unlock()
 
 		recorder := httptest.NewRecorder()
@@ -123,13 +128,15 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		writer.WriteHeader(recorder.Code)
 		writer.Write(recorder.Body.Bytes())
 
-		mtx.Unlock()
+		mtxForUri.Unlock()
 	} else {
+		// same query is processing but not cached yet.
 		cb.mtx.Unlock()
 
-		mtx.Lock()
+		// wait for the cache
+		mtxForUri.Lock()
 		cached := cb.Get(request.URL.String())
-		mtx.Unlock()
+		mtxForUri.Unlock()
 
 		if cached == nil {
 			panic("cache not set")
