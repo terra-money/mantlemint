@@ -56,7 +56,11 @@ func main() {
 	sdkConfig.SetAddressVerifier(core.AddressVerifier)
 	sdkConfig.Seal()
 
-	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{mantlemintConfig.MantlemintDB, mantlemintConfig.Home, heleveldb.DriverModeKeySuffixDesc})
+	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
+		Name: mantlemintConfig.MantlemintDB,
+		Dir:  mantlemintConfig.Home,
+		Mode: heleveldb.DriverModeKeySuffixDesc,
+	})
 	if ldbErr != nil {
 		panic(ldbErr)
 	}
@@ -89,7 +93,7 @@ func main() {
 		&wasmconfig.Config{
 			ContractQueryGasLimit:   3000000,
 			ContractDebugMode:       false,
-			ContractMemoryCacheSize: 2048,
+			ContractMemoryCacheSize: 1024,
 		},
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
@@ -111,7 +115,6 @@ func main() {
 	}()
 
 	var executor = mantlemint.NewMantlemintExecutor(batched, appConns.Consensus())
-
 	var mm = mantlemint.NewMantlemint(
 		batched,
 		appConns,
@@ -127,22 +130,29 @@ func main() {
 	// initialize using provided genesis
 	genesisDoc := getGenesisDoc(mantlemintConfig.GenesisPath)
 	initialHeight := genesisDoc.InitialHeight
+
+	// set target initial write height to genesis.initialHeight;
+	// this is safe as upon Inject it will be set with block.Height
 	hldb.SetWriteHeight(initialHeight)
 	batchedOrigin.Open()
 
+	// initialize state machine with genesis
 	if initErr := mm.Init(genesisDoc); initErr != nil {
 		panic(initErr)
 	}
 
+	// flush to db; panic upon error (can't proceed)
 	if flushErr := batchedOrigin.Flush(); flushErr != nil {
 		debug.PrintStack()
 		panic(flushErr)
 	}
 
+	// load initial state to mantlemint
 	if loadErr := mm.LoadInitialState(); loadErr != nil {
 		panic(loadErr)
 	}
 
+	// initialization is done; clear write height
 	hldb.ClearWriteHeight()
 
 	// get blocks over some sort of transport, inject to mantlemint
@@ -157,6 +167,7 @@ func main() {
 	if indexerInstanceErr != nil {
 		panic(indexerInstanceErr)
 	}
+
 	indexerInstance.RegisterIndexerService("tx", tx.IndexTx)
 	indexerInstance.RegisterIndexerService("block", block.IndexBlock)
 
@@ -174,16 +185,11 @@ func main() {
 		codec,
 		cacheInvalidateChan,
 
-		// register custom routers; primarily for indexers
-		func(router *mux.Router) {
-			// create new post router. It would panic on error
-			go indexerInstance.
-				WithSideSyncRouter(func(sidesyncRouter *mux.Router) {
-					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, tx.RegisterRESTRoute)
-					indexerInstance.RegisterRESTRoute(router, sidesyncRouter, block.RegisterRESTRoute)
-				}).
-				StartSideSync(mantlemintConfig.IndexerSideSyncPort)
-		},
+		// callback for registering custom routers; primarily for indexers
+		// default: noop,
+		// todo: make this part injectable
+		func(router *mux.Router) {},
+
 		// inject flag checker for synced
 		blockFeed.IsSynced,
 	)
@@ -196,40 +202,37 @@ func main() {
 	if mantlemintConfig.DisableSync {
 		fmt.Println("running without sync...")
 		forever()
+	} else if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
+		panic(blockFeedErr)
 	} else {
-		if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
-			panic(blockFeedErr)
-		} else {
-			for {
-				feed := <-cBlockFeed
+		for {
+			feed := <-cBlockFeed
 
-				// open db batch
-				hldb.SetWriteHeight(feed.Block.Height)
-				batchedOrigin.Open()
-				if injectErr := mm.Inject(feed.Block); injectErr != nil {
-					debug.PrintStack()
-					panic(injectErr)
-				}
-
-				// flush db batch
-				if flushErr := batchedOrigin.Flush(); flushErr != nil {
-					debug.PrintStack()
-					panic(flushErr)
-				}
-
-				hldb.ClearWriteHeight()
-
-				// run indexer
-				if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
-					debug.PrintStack()
-					panic(indexerErr)
-				}
-
-				cacheInvalidateChan <- feed.Block.Height
+			// open db batch
+			hldb.SetWriteHeight(feed.Block.Height)
+			batchedOrigin.Open()
+			if injectErr := mm.Inject(feed.Block); injectErr != nil {
+				debug.PrintStack()
+				panic(injectErr)
 			}
+
+			// flush db batch
+			if flushErr := batchedOrigin.Flush(); flushErr != nil {
+				debug.PrintStack()
+				panic(flushErr)
+			}
+
+			hldb.ClearWriteHeight()
+
+			// run indexer
+			if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
+				debug.PrintStack()
+				panic(indexerErr)
+			}
+
+			cacheInvalidateChan <- feed.Block.Height
 		}
 	}
-
 }
 
 // Pass this in as an option to use a dbStoreAdapter instead of an IAVLStore for simulation speed.

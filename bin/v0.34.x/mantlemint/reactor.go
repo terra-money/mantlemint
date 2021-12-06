@@ -207,7 +207,3 @@ func (mm *Instance) safeRunAfter(block *tendermint.Block, events *EventCollector
 		return nil
 	}
 }
-
-// ----
-func NopRunBefore(block *tendermint.Block) error                        { return nil }
-func NopRunAfter(block *tendermint.Block, events *EventCollector) error { return nil }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/terra-money/mantlemint/lib"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/lib"
 
 	tmdb "github.com/tendermint/tm-db"
 )
