@@ -4,7 +4,6 @@ import (
 	"fmt"
 	terra "github.com/terra-money/core/app"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -16,7 +15,6 @@ type Config struct {
 	WSEndpoints         []string
 	MantlemintDB        string
 	IndexerDB           string
-	IndexerSideSyncPort int64
 	DisableSync         bool
 }
 
@@ -56,15 +54,6 @@ func NewConfig() Config {
 
 		// IndexerDB is the db name for indexed data
 		IndexerDB: getValidEnv("INDEXER_DB"),
-
-		// IndexerSideSyncPort is
-		IndexerSideSyncPort: func() int64 {
-			port, portErr := strconv.Atoi(getValidEnv("INDEXER_SIDESYNC_PORT"))
-			if portErr != nil {
-				panic(portErr)
-			}
-			return int64(port)
-		}(),
 
 		// DisableSync sets a flag where if true mantlemint won't accept any blocks (usually for debugging)
 		DisableSync: func() bool {

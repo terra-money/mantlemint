@@ -7,7 +7,6 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/snappy"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
-	"net/http"
 	"time"
 )
 
@@ -15,7 +14,6 @@ type Indexer struct {
 	db             tmdb.DB
 	indexerTags    []string
 	indexers       []IndexFunc
-	sidesyncRouter *mux.Router
 }
 
 func NewIndexer(dbName, path string) (*Indexer, error) {
@@ -60,25 +58,7 @@ func (idx *Indexer) Run(block *tm.Block, blockId *tm.BlockID, evc *mantlemint.Ev
 	return nil
 }
 
-func (idx *Indexer) WithSideSyncRouter(registerer func(sidesyncRouter *mux.Router)) *Indexer {
-	idx.sidesyncRouter = mux.NewRouter()
-	registerer(idx.sidesyncRouter)
-
-	return idx
-}
-
 func (idx *Indexer) RegisterRESTRoute(router *mux.Router, postRouter *mux.Router, registerer RESTRouteRegisterer) {
 	registerer(router, postRouter, idx.db)
 }
 
-func (idx *Indexer) StartSideSync(port int64) {
-	if idx.sidesyncRouter == nil {
-		panic(fmt.Errorf("sidesync router not set, perhaps you didn't call WithSyideSyncRouter first?\n"))
-	}
-
-	router := idx.sidesyncRouter
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), router)
-	if err != nil {
-		panic(err)
-	}
-}
