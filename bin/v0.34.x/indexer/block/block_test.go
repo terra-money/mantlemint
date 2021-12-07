@@ -30,5 +30,4 @@ func TestIndexBlock(t *testing.T) {
 	assert.NotNil(t, block)
 
 	fmt.Println(string(block))
-
 }

@@ -16,7 +16,6 @@ require (
 	github.com/tendermint/tendermint v0.34.13
 	github.com/tendermint/tm-db v0.6.4
 	github.com/terra-money/core v0.5.11
-	github.com/terra-money/mantlemint v0.0.0
 
 )
 
@@ -112,8 +111,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace github.com/terra-money/mantlemint => ../../
 
 replace github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 

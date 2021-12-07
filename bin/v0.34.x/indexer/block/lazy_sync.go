@@ -11,7 +11,7 @@ import (
 )
 
 func LazySync(height int64, rpcEndpoint string, indexerDB tmdb.DB) (json.RawMessage, error) {
-	fmt.Printf("[indexer/block/sidesync] syncing block %d..\n", height)
+	fmt.Printf("[indexer/block/lazysync] syncing block %d..\n", height)
 
 	resp, err := http.Get(fmt.Sprintf("%v/block?height=%d", rpcEndpoint, height))
 	if err != nil {

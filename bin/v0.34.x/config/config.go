@@ -4,7 +4,6 @@ import (
 	"fmt"
 	terra "github.com/terra-money/core/app"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -13,10 +12,9 @@ type Config struct {
 	Home                string
 	ChainID             string
 	RPCEndpoints        []string
-	WSEndpoints			[]string
+	WSEndpoints         []string
 	MantlemintDB        string
 	IndexerDB           string
-	IndexerSideSyncPort int64
 	DisableSync         bool
 }
 
@@ -24,29 +22,29 @@ type Config struct {
 func NewConfig() Config {
 	return Config{
 		// GenesisPath sets the location of genesis
-		GenesisPath: os.Getenv("GENESIS_PATH"),
+		GenesisPath: getValidEnv("GENESIS_PATH"),
 
 		// Home sets where the default terra home is.
-		Home: os.Getenv("HOME"),
+		Home: getValidEnv("HOME"),
 
 		// ChainID sets expected chain id for this mantlemint instance
-		ChainID: os.Getenv("CHAIN_ID"),
+		ChainID: getValidEnv("CHAIN_ID"),
 
 		// RPCEndpoints is where to pull txs from when fast-syncing
 		RPCEndpoints: func() []string {
-			endpoints := os.Getenv("RPC_ENDPOINTS")
+			endpoints := getValidEnv("RPC_ENDPOINTS")
 			return strings.Split(endpoints, ",")
 		}(),
 
 		// WSEndpoints is where to pull txs from when normal syncing
 		WSEndpoints: func() []string {
-			endpoints := os.Getenv("WS_ENDPOINTS")
+			endpoints := getValidEnv("WS_ENDPOINTS")
 			return strings.Split(endpoints, ",")
 		}(),
 
 		// MantlemintDB is the db name for mantlemint. Defaults to terra.DefaultHome
 		MantlemintDB: func() string {
-			mantlemintDB := os.Getenv("MANTLEMINT_DB")
+			mantlemintDB := getValidEnv("MANTLEMINT_DB")
 			if mantlemintDB == "" {
 				return terra.DefaultNodeHome
 			} else {
@@ -55,20 +53,11 @@ func NewConfig() Config {
 		}(),
 
 		// IndexerDB is the db name for indexed data
-		IndexerDB: os.Getenv("INDEXER_DB"),
-
-		// IndexerSideSyncPort is
-		IndexerSideSyncPort: func() int64 {
-			port, portErr := strconv.Atoi(os.Getenv("INDEXER_SIDESYNC_PORT"))
-			if portErr != nil {
-				panic(portErr)
-			}
-			return int64(port)
-		}(),
+		IndexerDB: getValidEnv("INDEXER_DB"),
 
 		// DisableSync sets a flag where if true mantlemint won't accept any blocks (usually for debugging)
 		DisableSync: func() bool {
-			disableSync := os.Getenv("DISABLE_SYNC")
+			disableSync := getValidEnv("DISABLE_SYNC")
 			return disableSync == "true"
 		}(),
 	}
@@ -76,4 +65,12 @@ func NewConfig() Config {
 
 func (cfg Config) Print() {
 	fmt.Println(cfg)
+}
+
+func getValidEnv(tag string) string {
+	if e := os.Getenv(tag); e == "" {
+		panic(fmt.Errorf("environment variable %s not set; expected string, got %s \"\"", tag, e))
+	} else {
+		return e
+	}
 }
