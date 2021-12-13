@@ -152,10 +152,6 @@ func (hld *HeightLimitedDB) DeleteSync(key []byte) error {
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
 func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
-	if bytes.Compare(start, end) == 0 {
-		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
-	}
-
 	return hld.odb.Iterator(hld.GetCurrentReadHeight(), start, end)
 }
 
@@ -165,10 +161,6 @@ func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
 func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
-	if bytes.Compare(start, end) == 0 {
-		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
-	}
-
 	return hld.odb.ReverseIterator(hld.GetCurrentReadHeight(), start, end)
 }
 
