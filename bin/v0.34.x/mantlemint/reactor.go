@@ -138,6 +138,10 @@ func (mm *Instance) Inject(block *tendermint.Block) error {
 	// because we still want to use fauxMerkleTree for speed (way faster this way!)
 	currentState.AppHash = block.Header.AppHash
 
+	if block.Height == 5684023 {
+		currentState.LastResultsHash = block.Header.LastResultsHash
+	}
+
 	// set new event listener for this round
 	// note that we create new event collector for every block,
 	// however this operation is quite cheap.
