@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/config"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 )
@@ -26,7 +24,7 @@ func blockByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, er
 	return indexerDB.Get(getKey(uint64(heightInInt)))
 }
 
-var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRouter *mux.Router, indexerDB tmdb.DB) {
+var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB tmdb.DB) {
 	var mantlemintConfig = config.NewConfig()
 	router.HandleFunc(EndpointGETBlocksHeight, func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
@@ -61,47 +59,4 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 			return
 		}
 	}).Methods("GET")
-
-	postRouter.HandleFunc(EndpointPOSTBlock, func(writer http.ResponseWriter, request *http.Request) {
-		bz, err := ioutil.ReadAll(request.Body)
-		if err != nil {
-			http.Error(writer, "error reading body", 400)
-			return
-		}
-		record := BlockRecord{}
-		if err := tmjson.Unmarshal(bz, &record); err != nil {
-			http.Error(writer, "error unmarshaling block record", 400)
-			return
-		}
-
-		// prevent rewrite
-		injectedHeight := record.Block.Height
-		data, err := indexerDB.Get(getKey(uint64(injectedHeight)))
-		if err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		if data != nil {
-			writer.WriteHeader(204)
-			writer.Write([]byte("already committed"))
-			return
-		}
-
-		batch := indexerDB.NewBatch()
-		if err := IndexBlock(batch, record.Block, record.BlockID, nil); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		if err := batch.WriteSync(); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		if err := batch.Close(); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-	}).Methods("POST")
 })
