@@ -90,10 +90,13 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			height, err := strconv.ParseInt(request.URL.Query().Get("height"), 10, 64)
+			heightQuery := request.URL.Query().Get("height")
+			height, err := strconv.ParseInt(heightQuery, 10, 64)
 
 			// don't use archival cache if height is 0 or error
 			if err == nil && height > 0 {
+				// GRPC query parses height from header
+				request.Header.Add("x-cosmos-block-height", heightQuery)
 				archivalCache.HandleCachedHTTP(writer, request, next)
 			} else {
 				cache.HandleCachedHTTP(writer, request, next)
