@@ -10,7 +10,7 @@ import (
 
 type IndexFunc func(indexerDB tmdb.Batch, block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector) error
 type ClientHandler func(w http.ResponseWriter, r *http.Request) error
-type RESTRouteRegisterer func(router *mux.Router, postRouter *mux.Router, indexerDB tmdb.DB)
+type RESTRouteRegisterer func(router *mux.Router, indexerDB tmdb.DB)
 
 func CreateIndexer(idf IndexFunc) IndexFunc {
 	return idf

@@ -188,7 +188,10 @@ func main() {
 		// callback for registering custom routers; primarily for indexers
 		// default: noop,
 		// todo: make this part injectable
-		func(router *mux.Router) {},
+		func(router *mux.Router) {
+			indexerInstance.RegisterRESTRoute(router, tx.RegisterRESTRoute)
+			indexerInstance.RegisterRESTRoute(router, block.RegisterRESTRoute)
+		},
 
 		// inject flag checker for synced
 		blockFeed.IsSynced,
