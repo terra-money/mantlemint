@@ -136,10 +136,12 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 
 		// feed all subscriptions
 		cb.mtx.RLock()
-		for i := 0; i < cb.subscribeCount[uri]; i++ {
-			cb.resultChan[uri] <- responseCacheBody
-		}
+		c := cb.resultChan[uri]
+		subscribeCount := cb.subscribeCount[uri]
 		cb.mtx.RUnlock()
+		for i := 0; i < subscribeCount; i++ {
+			c <- responseCacheBody
+		}
 
 		cb.mtx.Lock()
 		delete(cb.subscribeCount, uri)
