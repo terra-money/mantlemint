@@ -20,7 +20,7 @@ type CacheBackend struct {
 	cacheServeCount uint64
 	serveCount      uint64
 	cacheType       string
-	mtx             *sync.Mutex
+	mtx             *sync.RWMutex
 
 	// subscribe to cache for same request URI
 	resultChan     map[string]chan *ResponseCache
@@ -135,9 +135,11 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		writer.Write(recorder.Body.Bytes())
 
 		// feed all subscriptions
+		cb.mtx.RLock()
 		for i := 0; i < cb.subscribeCount[uri]; i++ {
 			cb.resultChan[uri] <- responseCacheBody
 		}
+		cb.mtx.RUnlock()
 
 		cb.mtx.Lock()
 		delete(cb.subscribeCount, uri)
