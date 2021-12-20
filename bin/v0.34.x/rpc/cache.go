@@ -40,7 +40,7 @@ func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
 		cacheServeCount: 0,
 		serveCount:      0,
 		cacheType:       cacheType,
-		mtx:             new(sync.Mutex),
+		mtx:             new(sync.RWMutex),
 		resultChan:      make(map[string]chan *ResponseCache),
 		subscribeCount:  make(map[string]int),
 	}
