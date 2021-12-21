@@ -113,7 +113,7 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	}
 
 	cb.mtx.Lock()
-	_, isInTransit := cb.resultChan[uri]
+	resChan, isInTransit := cb.resultChan[uri]
 
 	// if isInTransit is false, this is the first time we're processing this query
 	// run actual querier
@@ -156,9 +156,7 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	cb.subscribeCount[uri]++
 	cb.mtx.Unlock()
 
-	cb.mtx.RLock()
-	response := <-cb.resultChan[uri]
-	cb.mtx.RUnlock()
+	response := <-resChan
 
 	writer.WriteHeader(response.status)
 	writer.Write(response.body)
