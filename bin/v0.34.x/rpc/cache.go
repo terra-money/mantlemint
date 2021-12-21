@@ -154,8 +154,8 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	// same query is processing but not cached yet.
 	// subscribe for cache result here.
 	cb.subscribeCount[uri]++
-	cb.mtx.Unlock()
 	response := <-cb.resultChan[uri]
+	cb.mtx.Unlock()
 
 	writer.WriteHeader(response.status)
 	writer.Write(response.body)
