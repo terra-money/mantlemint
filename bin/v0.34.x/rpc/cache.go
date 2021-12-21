@@ -84,8 +84,6 @@ func (cb *CacheBackend) Purge() {
 	cb.evictionCount = 0
 	cb.cacheServeCount = 0
 	cb.serveCount = 0
-	cb.resultChan = make(map[string]chan *ResponseCache)
-	cb.subscribeCount = make(map[string]int)
 	cb.mtx.Unlock()
 }
 
