@@ -116,7 +116,8 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	// if isInTransit is false, this is the first time we're processing this query
 	// run actual querier
 	if !isInTransit {
-		cb.resultChan[uri] = make(chan *ResponseCache)
+		c := make(chan *ResponseCache)
+		cb.resultChan[uri] = c
 		cb.subscribeCount[uri] = 0
 		cb.mtx.Unlock()
 
@@ -134,12 +135,12 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 
 		// feed all subscriptions
 		cb.mtx.RLock()
-		c := cb.resultChan[uri]
 		subscribeCount := cb.subscribeCount[uri]
 		cb.mtx.RUnlock()
 		for i := 0; i < subscribeCount; i++ {
 			c <- responseCacheBody
 		}
+		close(c)
 
 		cb.mtx.Lock()
 		delete(cb.subscribeCount, uri)
