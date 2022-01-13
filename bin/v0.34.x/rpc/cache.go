@@ -97,6 +97,7 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	// see if this request is already made, and in transit
 	// set response type as json
 	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Connection", "close")
 
 	cached := cb.Get(request.URL.String())
 	// if cached, return as is
@@ -122,30 +123,38 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		cb.mtx.Unlock()
 
 		recorder := httptest.NewRecorder()
+		var cache *ResponseCache
+
+		go func() {
+			<-request.Context().Done()
+
+			// feed all subscriptions
+			cb.mtx.RLock()
+			subscribeCount := cb.subscribeCount[uri]
+			cb.mtx.RUnlock()
+
+			if cache != nil {
+				for i := 0; i < subscribeCount; i++ {
+					c <- cache
+				}
+			}
+			close(c)
+
+			cb.mtx.Lock()
+			delete(cb.subscribeCount, uri)
+			delete(cb.resultChan, uri)
+			cb.mtx.Unlock()
+		}()
 
 		// process request
 		handler.ServeHTTP(recorder, request)
 
 		// set in cache
-		responseCacheBody := cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
+		cache = cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
 
 		// write
 		writer.WriteHeader(recorder.Code)
 		writer.Write(recorder.Body.Bytes())
-
-		// feed all subscriptions
-		cb.mtx.RLock()
-		subscribeCount := cb.subscribeCount[uri]
-		cb.mtx.RUnlock()
-		for i := 0; i < subscribeCount; i++ {
-			c <- responseCacheBody
-		}
-		close(c)
-
-		cb.mtx.Lock()
-		delete(cb.subscribeCount, uri)
-		delete(cb.resultChan, uri)
-		cb.mtx.Unlock()
 
 		return
 	}
@@ -155,8 +164,13 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	cb.subscribeCount[uri]++
 	cb.mtx.Unlock()
 
-	response := <-resChan
+	response, ok := <-resChan
 
-	writer.WriteHeader(response.status)
-	writer.Write(response.body)
+	if ok {
+		writer.WriteHeader(response.status)
+		writer.Write(response.body)
+	} else {
+		writer.WriteHeader(503)
+		writer.Write([]byte("Service Unavailable"))
+	}
 }
