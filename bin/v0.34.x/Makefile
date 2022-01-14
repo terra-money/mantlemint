@@ -12,8 +12,8 @@ endif
 
 build-linux:
 	mkdir -p $(BUILDDIR)
-	docker build --no-cache --tag terramoney/mantlemint ./
-	docker create --name temp terramoney/mantlemint:latest
+	docker buildx build --platform=linux/amd64 --tag terramoney/mantlemint ./
+	docker create --platform=linux/amd64 --name temp terramoney/mantlemint:latest
 	docker cp temp:/usr/local/bin/mantlemint $(BUILDDIR)/
 	docker rm temp
 
