@@ -3,6 +3,7 @@ package block
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 
@@ -13,13 +14,17 @@ import (
 
 var (
 	EndpointGETBlocksHeight = "/index/blocks/{height}"
-	EndpointPOSTBlock       = "/index/block"
+)
+
+var (
+	ErrorInvalidHeight = func(height string) string { return fmt.Sprintf("invalid height %s", height) }
+	ErrorBlockNotFound = func(height string) string { return fmt.Sprintf("block %s not found... yet.", height) }
 )
 
 func blockByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, error) {
 	heightInInt, err := strconv.Atoi(height)
 	if err != nil {
-		return nil, fmt.Errorf("invalid height: %v", err)
+		return nil, errors.New(ErrorInvalidHeight(height))
 	}
 	return indexerDB.Get(getKey(uint64(heightInInt)))
 }
@@ -29,26 +34,17 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
 		if !ok {
-			writer.WriteHeader(400)
-			writer.Write([]byte("invalid height"))
+			http.Error(writer, ErrorInvalidHeight(height), 400)
 			return
 		}
 
 		if block, err := blockByHeightHandler(indexerDB, height); err != nil {
-			writer.WriteHeader(400)
-			writer.Write([]byte(err.Error()))
+			http.Error(writer, indexer.ErrorInternal(err), 500)
 			return
 		} else if block == nil {
 			// block not seen;
-			_, err := strconv.Atoi(height)
-			if err != nil {
-				http.Error(writer, fmt.Errorf("invalid height: %v", err).Error(), 400)
-				return
-			} else {
-				writer.WriteHeader(400)
-				writer.Write([]byte("invalid height"))
-				return
-			}
+			http.Error(writer, ErrorBlockNotFound(height), 400)
+			return
 		} else {
 			writer.WriteHeader(200)
 			writer.Write(block)

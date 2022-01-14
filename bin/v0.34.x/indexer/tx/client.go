@@ -2,12 +2,20 @@ package tx
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
+)
+
+var (
+	ErrorInvalidHeight = func(height string) string { return fmt.Sprintf("invalid height %s", height) }
+	ErrorTxsNotFound   = func(height string) string { return fmt.Sprintf("txs at height %s not found... yet.", height) }
+	ErrorInvalidHash   = func(hash string) string { return fmt.Sprintf("invalid hash %s", hash) }
+	ErrorTxNotFound    = func(hash string) string { return fmt.Sprintf("tx (%s) not found... yet or forever.", hash) }
 )
 
 func txByHashHandler(indexerDB tmdb.DB, txHash string) ([]byte, error) {
@@ -17,7 +25,7 @@ func txByHashHandler(indexerDB tmdb.DB, txHash string) ([]byte, error) {
 func txsByHeightHandler(indexerDB tmdb.DB, height string) ([]byte, error) {
 	heightInInt, err := strconv.Atoi(height)
 	if err != nil {
-		return nil, fmt.Errorf("invalid height: %v", err)
+		return nil, errors.New(ErrorInvalidHeight(height))
 	}
 	return indexerDB.Get(getByHeightKey(uint64(heightInInt)))
 }
@@ -27,12 +35,15 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		hash, ok := vars["hash"]
 		if !ok {
-			http.Error(writer, "txn not found", 400)
+			http.Error(writer, ErrorInvalidHash(hash), 400)
 			return
 		}
 
 		if txn, err := txByHashHandler(indexerDB, hash); err != nil {
-			http.Error(writer, err.Error(), 400)
+			http.Error(writer, indexer.ErrorInternal(err), 500)
+			return
+		} else if txn == nil {
+			http.Error(writer, ErrorTxNotFound(hash), 400)
 			return
 		} else {
 			writer.WriteHeader(200)
@@ -45,23 +56,16 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
 		if !ok {
-			http.Error(writer, "invalid height", 400)
+			http.Error(writer, ErrorInvalidHeight(height), 400)
 			return
 		}
 
 		if txns, err := txsByHeightHandler(indexerDB, height); err != nil {
-			http.Error(writer, err.Error(), 400)
+			http.Error(writer, indexer.ErrorInternal(err), 400)
 			return
 		} else if txns == nil {
-			// block not seen;
-			_, err := strconv.Atoi(height)
-			if err != nil {
-				http.Error(writer, fmt.Errorf("invalid height: %v", err).Error(), 400)
-				return
-			} else {
-				http.Error(writer, "invalid height", 400)
-				return
-			}
+			http.Error(writer, ErrorTxsNotFound(height), 400)
+			return
 		} else {
 			writer.WriteHeader(200)
 			writer.Write(txns)
