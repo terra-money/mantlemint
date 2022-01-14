@@ -31,6 +31,9 @@ func NewConcurrentQueryClient(mtx *tmsync.RWMutex, app types.Application) abcicl
 }
 
 func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
+	uc.mtx.RLock()
+	defer uc.mtx.RUnlock()
+
 	res := uc.Application.Query(req)
 	return uc.callback(
 		types.ToRequestQuery(req),
@@ -39,6 +42,9 @@ func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
 }
 
 func (uc *UnmutexedClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
+	uc.mtx.RLock()
+	defer uc.mtx.RUnlock()
+
 	res := uc.Application.Query(req)
 	return &res, nil
 }
