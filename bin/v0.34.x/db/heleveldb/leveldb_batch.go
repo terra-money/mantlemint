@@ -3,13 +3,15 @@ package heleveldb
 import (
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/rollbackable"
 )
 
 var _ hld.HeightLimitEnabledBatch = (*LevelBatch)(nil)
+var _ rollbackable.HasRollbackBatch = (*LevelBatch)(nil)
 
 type LevelBatch struct {
 	height int64
-	batch  tmdb.Batch
+	batch  *rollbackable.RollbackableBatch
 	mode   int
 }
 
@@ -20,7 +22,7 @@ func (b *LevelBatch) keyBytesWithHeight(key []byte) []byte {
 func NewLevelDBBatch(atHeight int64, driver *Driver) *LevelBatch {
 	return &LevelBatch{
 		height: atHeight,
-		batch:  driver.session.NewBatch(),
+		batch:  rollbackable.NewRollbackableBatch(driver.session),
 		mode:   driver.mode,
 	}
 }
@@ -66,4 +68,8 @@ func (b *LevelBatch) WriteSync() error {
 
 func (b *LevelBatch) Close() error {
 	return b.batch.Close()
+}
+
+func (b *LevelBatch) RollbackBatch() tmdb.Batch {
+	return b.batch.RollbackBatch
 }
