@@ -220,6 +220,7 @@ func main() {
 			hldb.SetWriteHeight(feed.Block.Height)
 			batchedOrigin.Open()
 			if injectErr := mm.Inject(feed.Block); injectErr != nil {
+				// rollback last block
 				if rollbackBatch != nil {
 					fmt.Println("rollback previous block")
 					rollbackBatch.WriteSync()
@@ -230,12 +231,14 @@ func main() {
 				panic(injectErr)
 			}
 
+			// last block is okay -> dispose rollback batch
 			if rollbackBatch != nil {
 				rollbackBatch.Close()
 				rollbackBatch = nil
 			}
 
 			// flush db batch
+			// returns rollback batch that reverts current block injection
 			if rollback, flushErr := batchedOrigin.Flush(); flushErr != nil {
 				debug.PrintStack()
 				panic(flushErr)

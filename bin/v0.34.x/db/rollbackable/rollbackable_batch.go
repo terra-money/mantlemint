@@ -25,6 +25,7 @@ func NewRollbackableBatch(db tmdb.DB) *RollbackableBatch {
 	}
 }
 
+// revert value for key to previous state
 func (b *RollbackableBatch) backup(key []byte) error {
 	data, err := b.db.Get(key)
 	if err != nil {
