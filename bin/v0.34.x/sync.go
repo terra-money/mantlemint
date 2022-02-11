@@ -32,6 +32,8 @@ import (
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/rpc"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/store/rootmulti"
+
+	tmdb "github.com/tendermint/tm-db"
 )
 
 // initialize mantlemint for v0.34.x
@@ -142,9 +144,11 @@ func main() {
 	}
 
 	// flush to db; panic upon error (can't proceed)
-	if flushErr := batchedOrigin.Flush(); flushErr != nil {
+	if rollback, flushErr := batchedOrigin.Flush(); flushErr != nil {
 		debug.PrintStack()
 		panic(flushErr)
+	} else if rollback != nil {
+		rollback.Close()
 	}
 
 	// load initial state to mantlemint
@@ -208,6 +212,7 @@ func main() {
 	} else if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
 		panic(blockFeedErr)
 	} else {
+		var rollbackBatch tmdb.Batch
 		for {
 			feed := <-cBlockFeed
 
@@ -215,14 +220,30 @@ func main() {
 			hldb.SetWriteHeight(feed.Block.Height)
 			batchedOrigin.Open()
 			if injectErr := mm.Inject(feed.Block); injectErr != nil {
+				// rollback last block
+				if rollbackBatch != nil {
+					fmt.Println("rollback previous block")
+					rollbackBatch.WriteSync()
+					rollbackBatch.Close()
+				}
+
 				debug.PrintStack()
 				panic(injectErr)
 			}
 
+			// last block is okay -> dispose rollback batch
+			if rollbackBatch != nil {
+				rollbackBatch.Close()
+				rollbackBatch = nil
+			}
+
 			// flush db batch
-			if flushErr := batchedOrigin.Flush(); flushErr != nil {
+			// returns rollback batch that reverts current block injection
+			if rollback, flushErr := batchedOrigin.Flush(); flushErr != nil {
 				debug.PrintStack()
 				panic(flushErr)
+			} else {
+				rollbackBatch = rollback
 			}
 
 			hldb.ClearWriteHeight()

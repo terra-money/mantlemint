@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/db/rollbackable"
 )
 
 var _ tmdb.DB = (*SafeBatchDB)(nil)
@@ -12,7 +13,7 @@ var _ SafeBatchDBCloser = (*SafeBatchDB)(nil)
 type SafeBatchDBCloser interface {
 	tmdb.DB
 	Open()
-	Flush() error
+	Flush() (tmdb.Batch, error)
 }
 
 type SafeBatchDB struct {
@@ -25,14 +26,20 @@ func (s *SafeBatchDB) Open() {
 	s.batch = s.db.NewBatch()
 }
 
-func (s *SafeBatchDB) Flush() error {
+// flush batch and return rollback batch if rollbackable
+func (s *SafeBatchDB) Flush() (tmdb.Batch, error) {
 	defer func() {
 		if s.batch != nil {
 			s.batch.Close()
 		}
 		s.batch = nil
 	}()
-	return s.batch.WriteSync()
+
+	if batch, ok := s.batch.(rollbackable.HasRollbackBatch); ok {
+		return batch.RollbackBatch(), s.batch.WriteSync()
+	} else {
+		return nil, s.batch.WriteSync()
+	}
 }
 
 func NewSafeBatchDB(db tmdb.DB) tmdb.DB {
