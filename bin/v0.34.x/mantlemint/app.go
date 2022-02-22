@@ -318,9 +318,11 @@ func (app *MantlemintApp) Seal(genesisGetter func() *tendermint.GenesisDoc) *Man
 	}
 
 	// flush to db; panic upon error (can't proceed)
-	if flushErr := app.safeBatch.Flush(); flushErr != nil {
+	if rollback, flushErr := app.safeBatch.Flush(); flushErr != nil {
 		debug.PrintStack()
 		panic(flushErr)
+	} else if rollback != nil {
+		rollback.Close()
 	}
 
 	// load initial state to mantlemint
@@ -382,6 +384,7 @@ func (app *MantlemintApp) Start(rpcEndpoints, wsEndpoints []string) {
 
 	cBlockFeed := app.blockFeeder.GetBlockFeedChannel()
 	go func() {
+		var rollbackBatch tmdb.Batch
 		for {
 			feed := <-cBlockFeed
 
@@ -389,14 +392,30 @@ func (app *MantlemintApp) Start(rpcEndpoints, wsEndpoints []string) {
 			app.hldb.SetWriteHeight(feed.Block.Height)
 			app.safeBatch.Open()
 			if injectErr := app.mantlemint.Inject(feed.Block); injectErr != nil {
+
+				// rollback last block
+				if rollbackBatch != nil {
+					log.Println("rolling back to previous block..")
+					rollbackBatch.WriteSync()
+					rollbackBatch.Close()
+				}
+
 				debug.PrintStack()
 				panic(injectErr)
 			}
 
+			// last block is okay -> dispose rollback batch
+			if rollbackBatch != nil {
+				rollbackBatch.Close()
+				rollbackBatch = nil
+			}
+
 			// flush db batch
-			if flushErr := app.safeBatch.Flush(); flushErr != nil {
+			if rollback, flushErr := app.safeBatch.Flush(); flushErr != nil {
 				debug.PrintStack()
 				panic(flushErr)
+			} else if rollback != nil {
+				rollbackBatch = rollback
 			}
 
 			app.hldb.ClearWriteHeight()
