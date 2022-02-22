@@ -2,13 +2,12 @@ package tx
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"net/http"
-	"strconv"
-
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
+	"net/http"
+	"strconv"
 )
 
 var (
@@ -40,9 +39,6 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		}
 
 		if txn, err := txByHashHandler(indexerDB, hash); err != nil {
-			http.Error(writer, indexer.ErrorInternal(err), 500)
-			return
-		} else if txn == nil {
 			http.Error(writer, ErrorTxNotFound(hash), 400)
 			return
 		} else {
@@ -61,9 +57,6 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		}
 
 		if txns, err := txsByHeightHandler(indexerDB, height); err != nil {
-			http.Error(writer, indexer.ErrorInternal(err), 400)
-			return
-		} else if txns == nil {
 			http.Error(writer, ErrorTxsNotFound(height), 400)
 			return
 		} else {

@@ -12,7 +12,15 @@ type BlockFeed interface {
 	Close() error
 
 	// Subscribe starts subscription to the block source
-	Subscribe(rpcIndex int) (chan *BlockResult, error)
+	Subscribe() (chan *BlockResult, error)
+
+	// IsSynced reports whether feeder has caught up with the most recent block (i.e. running on ws)
+	IsSynced() bool
+
+	// Inject allows force injection of block
+	Inject(*BlockResult)
+
+	GetBlockFeedChannel() chan *BlockResult
 }
 
 type BlockResult struct {

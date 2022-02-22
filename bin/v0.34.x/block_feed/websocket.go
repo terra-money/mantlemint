@@ -12,6 +12,7 @@ type WSSubscription struct {
 	wsEndpoints []string
 	ws          *websocket.Conn
 	c           chan *BlockResult
+	connIdx     int
 }
 
 type handshake struct {
@@ -28,11 +29,25 @@ type params struct {
 func NewWSSubscription(wsEndpoints []string) (*WSSubscription, error) {
 	return &WSSubscription{
 		wsEndpoints: wsEndpoints,
+		connIdx:     0,
 		ws:          nil,
 	}, nil
 }
 
-func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
+func (ws *WSSubscription) Next() {
+	ws.connIdx = ws.connIdx + 1%len(ws.wsEndpoints)
+}
+
+func (ws *WSSubscription) ConnIndex() int {
+	return ws.connIdx
+}
+
+func (ws *WSSubscription) Subscribe() (chan *BlockResult, error) {
+	if len(ws.wsEndpoints) == 0 {
+		return ws.c, nil
+	}
+
+	rpcIndex := ws.ConnIndex()
 	socket, _, err := websocket.DefaultDialer.Dial(ws.wsEndpoints[rpcIndex], nil)
 
 	// return err, handle failures gracefully
@@ -78,6 +93,18 @@ func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 
 func (ws *WSSubscription) Close() error {
 	return ws.ws.Close()
+}
+
+func (ws *WSSubscription) GetBlockFeedChannel() chan *BlockResult {
+	return ws.c
+}
+
+func (ws *WSSubscription) IsSynced() bool {
+	return false
+}
+
+func (ws *WSSubscription) Inject(result *BlockResult) {
+	ws.c <- result
 }
 
 // tendermint rpc sends the "subscription ok" for the intiail response

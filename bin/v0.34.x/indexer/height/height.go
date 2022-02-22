@@ -6,10 +6,10 @@ import (
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint/event"
 )
 
-var IndexHeight = indexer.CreateIndexer(func(indexerDB tmdb.Batch, block *tm.Block, _ *tm.BlockID, _ *mantlemint.EventCollector) error {
+var IndexHeight = indexer.CreateIndexer(func(indexerDB tmdb.Batch, block *tm.Block, _ *tm.BlockID, _ *event.EventCollector) error {
 	defer fmt.Printf("[indexer/height] indexing done for height %d\n", block.Height)
 	height := block.Height
 

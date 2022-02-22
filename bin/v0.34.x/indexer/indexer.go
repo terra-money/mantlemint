@@ -6,7 +6,7 @@ import (
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/snappy"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint/event"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func (idx *Indexer) RegisterIndexerService(tag string, indexerFunc IndexFunc) {
 	idx.indexers = append(idx.indexers, indexerFunc)
 }
 
-func (idx *Indexer) Run(block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector) error {
+func (idx *Indexer) Run(block *tm.Block, blockId *tm.BlockID, evc *event.EventCollector) error {
 	batch := idx.db.NewBatch()
 	tStart := time.Now()
 	for _, indexerFunc := range idx.indexers {

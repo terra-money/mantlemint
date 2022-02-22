@@ -22,40 +22,37 @@ var done *BlockResult = nil
 
 func NewAggregateBlockFeed(
 	currentBlock int64,
-	rpcEndpoints []string,
-	wsEndpoints []string,
+	rpcSubscription *RPCSubscription,
+	wsSubscription *WSSubscription,
 ) *AggregateSubscription {
-	var rpc, rpcErr = NewRpcSubscription(rpcEndpoints)
-	if rpcErr != nil {
-		panic(rpcErr)
-	}
-
-	// ws starts with 1st occurrence of ws endpoints
-	var ws, wsErr = NewWSSubscription(wsEndpoints)
-	if wsErr != nil {
-		panic(wsErr)
-	}
-
 	return &AggregateSubscription{
-		ws:                    ws,
-		rpc:                   rpc,
+		ws:                    wsSubscription,
+		rpc:                   rpcSubscription,
 		lastKnownBlock:        currentBlock,
 		lastKnownEndpointIdx:  0,
 		aggregateBlockChannel: make(chan *BlockResult),
-		wsEndpointsLength:     len(wsEndpoints),
+		wsEndpointsLength:     0,
 		isSynced:              false,
 	}
 }
 
-func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
+func (ags *AggregateSubscription) Inject(blockResult *BlockResult) {
+	ags.aggregateBlockChannel <- blockResult
+}
+
+func (ags *AggregateSubscription) GetBlockFeedChannel() chan *BlockResult {
+	return ags.aggregateBlockChannel
+}
+
+func (ags *AggregateSubscription) Subscribe() (chan *BlockResult, error) {
 	// create rpc subscriber
-	cRpc, cRpcErr := ags.rpc.Subscribe(rpcIndex)
+	cRpc, cRpcErr := ags.rpc.Subscribe()
 	if cRpcErr != nil {
 		return nil, cRpcErr
 	}
 
 	// create websocket subscriber
-	cWS, cWSErr := ags.ws.Subscribe(rpcIndex)
+	cWS, cWSErr := ags.ws.Subscribe()
 	if cWSErr != nil {
 		return nil, cWSErr
 	}
@@ -71,13 +68,14 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	if firstBlock := <-cWS; firstBlock.Block.Header.Height != ags.lastKnownBlock+1 {
 		log.Printf("[block_feed/aggregate] received the first block(%d), but local blockchain is at (%d)\n", firstBlock.Block.Header.Height, ags.lastKnownBlock)
 		go func() {
-			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height, rpcIndex)
+			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height)
 			for {
 				r := <-cRpc
 				if r != done {
 					ags.aggregateBlockChannel <- r
 					ags.lastKnownBlock = r.Block.Height
 				} else {
+
 					break
 				}
 			}
@@ -125,7 +123,7 @@ func (ags *AggregateSubscription) Reconnect() {
 	time.Sleep(time.Second)
 
 	log.Printf("[block_feed/aggregate] reconnecting with rpcIndex of %d\n", endpointIndex)
-	if _, err := ags.Subscribe(endpointIndex); err != nil {
+	if _, err := ags.Subscribe(); err != nil {
 		ags.Reconnect()
 	}
 }

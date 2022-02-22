@@ -11,18 +11,38 @@ var _ BlockFeed = (*RPCSubscription)(nil)
 
 type RPCSubscription struct {
 	rpcEndpoints []string
-	cSub     chan *BlockResult
+	cSub         chan *BlockResult
+	connIdx      int
+}
+
+func (rpc *RPCSubscription) GetBlockFeedChannel() chan *BlockResult {
+	return rpc.cSub
+}
+
+func (rpc *RPCSubscription) IsSynced() bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (rpc *RPCSubscription) Inject(result *BlockResult) {
+	rpc.cSub <- result
 }
 
 func NewRpcSubscription(rpcEndpoints []string) (*RPCSubscription, error) {
 	return &RPCSubscription{
 		rpcEndpoints: rpcEndpoints,
-		cSub:     make(chan *BlockResult),
+		cSub:         make(chan *BlockResult),
+		connIdx:      0,
 	}, nil
 }
 
-func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64, rpcIndex int) {
+func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64) {
+	if len(rpc.rpcEndpoints) == 0 {
+		return
+	}
+
 	var cSub = rpc.cSub
+	rpcIndex := rpc.ConnIndex()
 
 	log.Printf("[block_feed/rpc] subscription started, from=%d, to=%d\n", from, to)
 
@@ -50,7 +70,15 @@ func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64, rpcIndex int) {
 	cSub <- nil
 }
 
-func (rpc *RPCSubscription) Subscribe(_ int) (chan *BlockResult, error) {
+func (rpc *RPCSubscription) Next() {
+	rpc.connIdx = rpc.connIdx + 1%len(rpc.rpcEndpoints)
+}
+
+func (rpc *RPCSubscription) ConnIndex() int {
+	return rpc.connIdx
+}
+
+func (rpc *RPCSubscription) Subscribe() (chan *BlockResult, error) {
 	return rpc.cSub, nil
 }
 

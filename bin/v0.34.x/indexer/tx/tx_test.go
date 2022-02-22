@@ -6,7 +6,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint/event"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -23,7 +23,7 @@ func TestIndexTx(t *testing.T) {
 
 	eventFile, _ := os.Open("../fixtures/response_4814775.json")
 	eventJSON, _ := ioutil.ReadAll(eventFile)
-	evc := mantlemint.NewMantlemintEventCollector()
+	evc := event.NewMantlemintEventCollector()
 	event := tendermint.EventDataTx{}
 	if err := tmjson.Unmarshal(eventJSON, &event.Result); err != nil {
 		panic(err)
