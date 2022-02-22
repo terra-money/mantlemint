@@ -1,14 +1,12 @@
 package mantlemint
 
 import (
-	// "fmt"
-	// abcicli "github.com/tendermint/tendermint/abci/client"
-	// abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/consensus"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint/event"
 
 	"log"
 	"sync"
@@ -36,7 +34,7 @@ type Instance struct {
 	lastHeight int64
 	lastBlock  *tendermint.Block
 
-	evc *EventCollector
+	evc *event.EventCollector
 
 	// before and after callback
 	runBefore MantlemintCallbackBefore
@@ -93,6 +91,7 @@ func (mm *Instance) Init(genesis *tendermint.GenesisDoc) error {
 		if genstate, err := state.MakeGenesisState(genesis); err != nil {
 			return err
 		} else {
+			log.Printf("genesis state created. AppHash=%v, LastResultsHash=%v\n", genstate.AppHash, genstate.LastResultsHash)
 			mm.lastState = genstate
 		}
 
@@ -141,7 +140,7 @@ func (mm *Instance) Inject(block *tendermint.Block) error {
 	// set new event listener for this round
 	// note that we create new event collector for every block,
 	// however this operation is quite cheap.
-	mm.evc = NewMantlemintEventCollector()
+	mm.evc = event.NewMantlemintEventCollector()
 	mm.executor.SetEventBus(mm.evc)
 
 	if runBeforeErr := mm.safeRunBefore(block); runBeforeErr != nil {
@@ -188,7 +187,7 @@ func (mm *Instance) SetBlockExecutor(nextBlockExecutor Executor) {
 	mm.executor = nextBlockExecutor
 }
 
-func (mm *Instance) GetCurrentEventCollector() *EventCollector {
+func (mm *Instance) GetCurrentEventCollector() *event.EventCollector {
 	return mm.evc
 }
 
@@ -200,8 +199,8 @@ func (mm *Instance) safeRunBefore(block *tendermint.Block) error {
 	}
 }
 
-func (mm *Instance) safeRunAfter(block *tendermint.Block, events *EventCollector) error {
-	if mm.runBefore != nil {
+func (mm *Instance) safeRunAfter(block *tendermint.Block, events *event.EventCollector) error {
+	if mm.runAfter != nil {
 		return mm.runAfter(block, events)
 	} else {
 		return nil

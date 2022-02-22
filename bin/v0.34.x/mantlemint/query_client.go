@@ -7,9 +7,9 @@ import (
 	tmsync "github.com/tendermint/tendermint/libs/sync"
 )
 
-var _ abcicli.Client = (*UnmutexedClient)(nil)
+var _ abcicli.Client = (*ConcurrentQueryClient)(nil)
 
-type UnmutexedClient struct {
+type ConcurrentQueryClient struct {
 	*localClient
 }
 
@@ -25,12 +25,12 @@ func NewConcurrentQueryClient(mtx *tmsync.RWMutex, app types.Application) abcicl
 
 	cli.BaseService = *service.NewBaseService(nil, "localClient", cli)
 
-	return &UnmutexedClient{
+	return &ConcurrentQueryClient{
 		localClient: cli,
 	}
 }
 
-func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
+func (uc *ConcurrentQueryClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
 	res := uc.Application.Query(req)
 	return uc.callback(
 		types.ToRequestQuery(req),
@@ -38,7 +38,7 @@ func (uc *UnmutexedClient) QueryAsync(req types.RequestQuery) *abcicli.ReqRes {
 	)
 }
 
-func (uc *UnmutexedClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
+func (uc *ConcurrentQueryClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
 	res := uc.Application.Query(req)
 	return &res, nil
 }

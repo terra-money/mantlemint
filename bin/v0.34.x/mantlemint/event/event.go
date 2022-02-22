@@ -1,4 +1,4 @@
-package mantlemint
+package event
 
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
