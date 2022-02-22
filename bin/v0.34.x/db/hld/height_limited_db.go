@@ -96,13 +96,8 @@ func (hld *HeightLimitedDB) SetWriteHeight(height int64) {
 // ClearWriteHeight sets the next target write Height
 // NOTE: evaluate the actual usage of it
 func (hld *HeightLimitedDB) ClearWriteHeight() int64 {
-	fmt.Println("!!! clearing write height...")
 	lastKnownWriteHeight := hld.writeHeight
 	hld.writeHeight = InvalidHeight
-	// if batchErr := hld.writeBatch.Write(); batchErr != nil {
-	// 	panic(batchErr)
-	// }
-	// hld.writeBatch = nil
 	return lastKnownWriteHeight
 }
 
@@ -152,10 +147,6 @@ func (hld *HeightLimitedDB) DeleteSync(key []byte) error {
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
 func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
-	if bytes.Compare(start, end) == 0 {
-		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
-	}
-
 	return hld.odb.Iterator(hld.GetCurrentReadHeight(), start, end)
 }
 
@@ -165,10 +156,6 @@ func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
 // CONTRACT: start, end readonly []byte
 func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
-	if bytes.Compare(start, end) == 0 {
-		return nil, fmt.Errorf("invalid iterator operation; start_store_key=%v, end_store_key=%v", start, end)
-	}
-
 	return hld.odb.ReverseIterator(hld.GetCurrentReadHeight(), start, end)
 }
 
@@ -179,15 +166,6 @@ func (hld *HeightLimitedDB) Close() error {
 
 // NewBatch creates a batch for atomic updates. The caller must call Batch.Close.
 func (hld *HeightLimitedDB) NewBatch() tmdb.Batch {
-	// if hld.writeBatch != nil {
-	// 	// TODO: fix me
-	// 	return hld.writeBatch
-	// } else {
-	// 	fmt.Println("!!! opening hld.batch", hld.GetCurrentWriteHeight())
-	// 	hld.writeBatch = hld.odb.NewBatch(hld.GetCurrentWriteHeight())
-	// 	return hld.writeBatch
-	// }
-	//
 	return hld.odb.NewBatch(hld.GetCurrentWriteHeight())
 }
 
