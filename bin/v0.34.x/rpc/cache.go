@@ -20,7 +20,7 @@ type CacheBackend struct {
 	cacheServeCount uint64
 	serveCount      uint64
 	cacheType       string
-	mtx             *sync.Mutex
+	mtx             *sync.RWMutex
 
 	// subscribe to cache for same request URI
 	resultChan     map[string]chan *ResponseCache
@@ -40,7 +40,7 @@ func NewCacheBackend(cacheSize int, cacheType string) *CacheBackend {
 		cacheServeCount: 0,
 		serveCount:      0,
 		cacheType:       cacheType,
-		mtx:             new(sync.Mutex),
+		mtx:             new(sync.RWMutex),
 		resultChan:      make(map[string]chan *ResponseCache),
 		subscribeCount:  make(map[string]int),
 	}
@@ -84,8 +84,6 @@ func (cb *CacheBackend) Purge() {
 	cb.evictionCount = 0
 	cb.cacheServeCount = 0
 	cb.serveCount = 0
-	cb.resultChan = make(map[string]chan *ResponseCache)
-	cb.subscribeCount = make(map[string]int)
 	cb.mtx.Unlock()
 }
 
@@ -99,6 +97,7 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	// see if this request is already made, and in transit
 	// set response type as json
 	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Connection", "close")
 
 	cached := cb.Get(request.URL.String())
 	// if cached, return as is
@@ -113,36 +112,49 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	}
 
 	cb.mtx.Lock()
-	_, isInTransit := cb.resultChan[uri]
+	resChan, isInTransit := cb.resultChan[uri]
 
 	// if isInTransit is false, this is the first time we're processing this query
 	// run actual querier
 	if !isInTransit {
-		cb.resultChan[uri] = make(chan *ResponseCache)
+		c := make(chan *ResponseCache)
+		cb.resultChan[uri] = c
 		cb.subscribeCount[uri] = 0
 		cb.mtx.Unlock()
 
 		recorder := httptest.NewRecorder()
+		var cache *ResponseCache
+
+		go func() {
+			<-request.Context().Done()
+
+			// feed all subscriptions
+			cb.mtx.RLock()
+			subscribeCount := cb.subscribeCount[uri]
+			cb.mtx.RUnlock()
+
+			if cache != nil {
+				for i := 0; i < subscribeCount; i++ {
+					c <- cache
+				}
+			}
+			close(c)
+
+			cb.mtx.Lock()
+			delete(cb.subscribeCount, uri)
+			delete(cb.resultChan, uri)
+			cb.mtx.Unlock()
+		}()
 
 		// process request
 		handler.ServeHTTP(recorder, request)
 
 		// set in cache
-		responseCacheBody := cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
+		cache = cb.Set(request.URL.String(), recorder.Code, recorder.Body.Bytes())
 
 		// write
 		writer.WriteHeader(recorder.Code)
 		writer.Write(recorder.Body.Bytes())
-
-		// feed all subscriptions
-		for i := 0; i < cb.subscribeCount[uri]; i++ {
-			cb.resultChan[uri] <- responseCacheBody
-		}
-
-		cb.mtx.Lock()
-		delete(cb.subscribeCount, uri)
-		delete(cb.resultChan, uri)
-		cb.mtx.Unlock()
 
 		return
 	}
@@ -151,8 +163,14 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 	// subscribe for cache result here.
 	cb.subscribeCount[uri]++
 	cb.mtx.Unlock()
-	response := <-cb.resultChan[uri]
 
-	writer.WriteHeader(response.status)
-	writer.Write(response.body)
+	response, ok := <-resChan
+
+	if ok {
+		writer.WriteHeader(response.status)
+		writer.Write(response.body)
+	} else {
+		writer.WriteHeader(503)
+		writer.Write([]byte("Service Unavailable"))
+	}
 }

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -20,15 +21,19 @@ import (
 	"github.com/terra-money/core/app/params"
 )
 
-func StartRPC(
+type RPCContext struct {
+	server *api.Server
+	config config.Config
+}
+
+func NewMantlemintRPCContext(
 	app *terra.TerraApp,
 	rpcclient rpcclient.Client,
 	chainId string,
 	codec params.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
-	getIsSynced func() bool,
-) error {
+) *RPCContext {
 	vp := viper.GetViper()
 	cfg := config.GetConfig(vp)
 
@@ -70,30 +75,21 @@ func StartRPC(
 	// register custom routes to default api server
 	registerCustomRoutes(apiSrv.Router)
 
-	// custom healthcheck endpoint
-	apiSrv.Router.Handle("/health", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		isSynced := getIsSynced()
-		if isSynced {
-			writer.WriteHeader(http.StatusOK)
-			writer.Write([]byte("OK"))
-		} else {
-			writer.WriteHeader(http.StatusServiceUnavailable)
-			writer.Write([]byte("NOK"))
-		}
-	})).Methods("GET")
-
 	// register all default GET routers...
 	app.RegisterAPIRoutes(apiSrv, cfg.API)
 	app.RegisterTendermintService(context)
-	errCh := make(chan error)
+	app.RegisterTxService(context)
 
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			height, err := strconv.ParseInt(request.URL.Query().Get("height"), 10, 64)
+			heightQuery := request.URL.Query().Get("height")
+			height, err := strconv.ParseInt(heightQuery, 10, 64)
 
 			// don't use archival cache if height is 0 or error
 			if err == nil && height > 0 {
+				// GRPC query parses height from header
+				request.Header.Add("x-cosmos-block-height", heightQuery)
 				archivalCache.HandleCachedHTTP(writer, request, next)
 			} else {
 				cache.HandleCachedHTTP(writer, request, next)
@@ -101,9 +97,18 @@ func StartRPC(
 		})
 	})
 
+	return &RPCContext{
+		server: apiSrv,
+		config: cfg,
+	}
+}
+
+func (rpc *RPCContext) Start() error {
+	errCh := make(chan error)
+
 	// start api server in goroutine
 	go func() {
-		if err := apiSrv.Start(cfg); err != nil {
+		if err := rpc.server.Start(rpc.config); err != nil {
 			errCh <- err
 		}
 	}()
@@ -115,4 +120,8 @@ func StartRPC(
 	}
 
 	return nil
+}
+
+func (rpc *RPCContext) GetRouter() (*mux.Router, *runtime.ServeMux) {
+	return rpc.server.Router, rpc.server.GRPCGatewayRouter
 }
