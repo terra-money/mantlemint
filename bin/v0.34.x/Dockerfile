@@ -7,7 +7,7 @@ FROM golang:1.17-alpine3.14 AS go-builder
 # with some changes to support our toolchain, etc
 RUN set -eux; apk add --no-cache ca-certificates build-base;
 
-RUN apk add git
+RUN apk add git build-base cmake linux-headers
 # NOTE: add these to run with LEDGER_ENABLED=true
 # RUN apk add libusb-dev linux-headers
 
@@ -15,11 +15,15 @@ WORKDIR /code
 COPY . /code/
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v0.16.2/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
-RUN sha256sum /lib/libwasmvm_muslc.a | grep 0e62296b9f24cf3a05f8513f99cee536c7087079855ea6ffb4f89b35eccdaa66
+ADD https://github.com/CosmWasm/wasmvm/releases/download/v0.16.3/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
+
+# use mimalloc for musl
+RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
+
+ENV MIMALLOC_LARGE_OS_PAGES=1
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
-RUN LEDGER_ENABLED=false go build -work -tags muslc,linux -mod=readonly -o build/mantlemint ./sync.go
+RUN LEDGER_ENABLED=false go build -work -tags muslc,linux -mod=readonly -ldflags="-extldflags '-L/code/mimalloc/build -lmimalloc'" -o build/mantlemint ./sync.go
 
 FROM alpine:3.12
 
