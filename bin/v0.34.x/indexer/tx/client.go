@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/config"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
-	"io/ioutil"
 	"net/http"
 	"strconv"
+)
+
+var (
+	ErrorInvalidHeight = func(height string) string { return fmt.Sprintf("invalid height %s", height) }
+	ErrorTxsNotFound   = func(height string) string { return fmt.Sprintf("txs at height %s not found... yet.", height) }
+	ErrorInvalidHash   = func(hash string) string { return fmt.Sprintf("invalid hash %s", hash) }
+	ErrorTxNotFound    = func(hash string) string { return fmt.Sprintf("tx (%s) not found... yet or forever.", hash) }
 )
 
 func txByHashHandler(indexerDB tmdb.DB, txHash string) ([]byte, error) {
@@ -23,23 +24,22 @@ func txByHashHandler(indexerDB tmdb.DB, txHash string) ([]byte, error) {
 func txsByHeightHandler(indexerDB tmdb.DB, height string) ([]byte, error) {
 	heightInInt, err := strconv.Atoi(height)
 	if err != nil {
-		return nil, fmt.Errorf("invalid height: %v", err)
+		return nil, errors.New(ErrorInvalidHeight(height))
 	}
 	return indexerDB.Get(getByHeightKey(uint64(heightInInt)))
 }
 
-var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRouter *mux.Router, indexerDB tmdb.DB) {
-	var mantlemintConfig = config.NewConfig()
+var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB tmdb.DB) {
 	router.HandleFunc("/index/tx/by_hash/{hash}", func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
 		hash, ok := vars["hash"]
 		if !ok {
-			http.Error(writer, "txn not found", 400)
+			http.Error(writer, ErrorInvalidHash(hash), 400)
 			return
 		}
 
 		if txn, err := txByHashHandler(indexerDB, hash); err != nil {
-			http.Error(writer, err.Error(), 400)
+			http.Error(writer, ErrorTxNotFound(hash), 400)
 			return
 		} else {
 			writer.WriteHeader(200)
@@ -52,33 +52,12 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
 		if !ok {
-			http.Error(writer, "invalid height", 400)
+			http.Error(writer, ErrorInvalidHeight(height), 400)
 			return
 		}
 
 		if txns, err := txsByHeightHandler(indexerDB, height); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		} else if txns == nil {
-			// block not seen;
-			heightInInt, err := strconv.Atoi(height)
-			if err != nil {
-				http.Error(writer, fmt.Errorf("invalid height: %v", err).Error(), 400)
-				return
-			}
-			if _, lazySyncErr := LazySync(int64(heightInInt), mantlemintConfig.RPCEndpoints[0], indexerDB); lazySyncErr != nil {
-				http.Error(writer, lazySyncErr.Error(), 400)
-				return
-			} else {
-				txns, err := txsByHeightHandler(indexerDB, height)
-				if err != nil {
-					http.Error(writer, err.Error(), 400)
-					return
-				} else {
-					writer.WriteHeader(200)
-					writer.Write(txns)
-				}
-			}
+			http.Error(writer, ErrorTxsNotFound(height), 400)
 			return
 		} else {
 			writer.WriteHeader(200)
@@ -86,59 +65,4 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, postRou
 			return
 		}
 	}).Methods("GET")
-
-	// expected input is from RPC
-	// { block, txRecords }
-	postRouter.HandleFunc("/index/txs", func(writer http.ResponseWriter, request *http.Request) {
-		body, err := request.GetBody()
-		if err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		bz, err := ioutil.ReadAll(body)
-		if err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		input := struct {
-			Block     *tm.Block  `json:"block"`
-			TxRecords []TxRecord `json:"tx_records"`
-		}{
-			Block:     nil,
-			TxRecords: make([]TxRecord, 0),
-		}
-
-		if err := tmjson.Unmarshal(bz, &input); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		batch := indexerDB.NewBatch()
-		evc := mantlemint.NewMantlemintEventCollector()
-
-		for _, txRecord := range input.TxRecords {
-			deliverTx := abci.ResponseDeliverTx{}
-			if err := tmjson.Unmarshal(txRecord.TxResponse, &deliverTx); err != nil {
-				http.Error(writer, errors.Wrapf(err, "failed unmarshaling tx response").Error(), 400)
-			}
-			evc.ResponseDeliverTxs = append(evc.ResponseDeliverTxs, &deliverTx)
-		}
-
-		if err := IndexTx(batch, input.Block, nil, evc); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		if err := batch.WriteSync(); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-
-		if err := batch.Close(); err != nil {
-			http.Error(writer, err.Error(), 400)
-			return
-		}
-	})
 })

@@ -8,12 +8,12 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/core/app"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint/event"
 )
 
 var cdc = terra.MakeEncodingConfig()
 
-var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector) error {
+var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, blockID *tm.BlockID, evc *event.EventCollector) error {
 	// encoder; proto -> mem -> json
 	txDecoder := cdc.TxConfig.TxDecoder()
 	jsonEncoder := cdc.TxConfig.TxJSONEncoder()
