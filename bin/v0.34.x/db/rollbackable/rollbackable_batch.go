@@ -15,6 +15,7 @@ type RollbackableBatch struct {
 
 	db            tmdb.DB
 	RollbackBatch tmdb.Batch
+	RecordCount   int
 }
 
 func NewRollbackableBatch(db tmdb.DB) *RollbackableBatch {
@@ -27,6 +28,7 @@ func NewRollbackableBatch(db tmdb.DB) *RollbackableBatch {
 
 // revert value for key to previous state
 func (b *RollbackableBatch) backup(key []byte) error {
+	b.RecordCount++
 	data, err := b.db.Get(key)
 	if err != nil {
 		return err

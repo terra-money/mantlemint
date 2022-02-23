@@ -1,6 +1,8 @@
 package heleveldb
 
 import (
+	"fmt"
+
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/db/rollbackable"
@@ -71,5 +73,13 @@ func (b *LevelBatch) Close() error {
 }
 
 func (b *LevelBatch) RollbackBatch() tmdb.Batch {
+	b.Metric()
 	return b.batch.RollbackBatch
+}
+
+func (b *LevelBatch) Metric() {
+	fmt.Printf("[rollback-batch] rollback batch for height %d's record length %d\n",
+		b.height,
+		b.batch.RecordCount,
+	)
 }
