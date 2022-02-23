@@ -90,6 +90,11 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			if request.URL.Path == "/health" {
+				next.ServeHTTP(writer, request)
+				return
+			}
+
 			heightQuery := request.URL.Query().Get("height")
 			height, err := strconv.ParseInt(heightQuery, 10, 64)
 
