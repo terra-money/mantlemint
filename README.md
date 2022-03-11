@@ -109,6 +109,14 @@ sync
 - `/index/tx/by_height/{height}`: List all transactions and their responses in a block. Equivalent to `tendermint/block?height=xxx`, with tx responses base64-decoded for better usability.
 - `/index/tx/by_hash/{txHash}`: Get transaction and its response by hash. Equivalent to `lcd/txs/{hash}`, but without hitting RPC.
 
+## Notable Differences from [core](https://github.com/terra-money/core)
+
+- Uses a forked [tendermint/tm-db](https://github.com/terra-money/tm-db/commit/c71e8b6e9f20d7f5be32527db4a92ae19ac0d2b2): Disables unncessary mutexes in `prefixdb` methods
+- Replaces ABCIClient with [NewConcurrentQueryClient](https://github.com/terra-money/mantlemint/blob/main/bin/v0.34.x/mantlemint/client.go#L110): Removal of mutexes allow better concurrency, even during block injection
+- Uses single batch-protected db: All state changes are flushed at once, making it safe to read from db during block injection
+- Automatic failover: In case of block injection failure, mantlemint reverts back to the previous known state and retry
+
+
 ## Community
 
 - [Offical Website](https://terra.money)
