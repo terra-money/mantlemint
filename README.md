@@ -114,6 +114,14 @@ Please note that mantlemint still is able to serve queries while `/health` retur
 - Replaces ABCIClient with [NewConcurrentQueryClient](https://github.com/terra-money/mantlemint/blob/main/mantlemint/client.go#L110): Removal of mutexes allow better concurrency, even during block injection
 - Uses single batch-protected db: All state changes are flushed at once, making it safe to read from db during block injection
 - Automatic failover: In case of block injection failure, mantlemint reverts back to the previous known state and retry
+- Strictly no `tendermint`; some parameters in app.toml would not affect `mantlemint`
+- Following endpoints are  not implemented
+  - `GET /blocks/`
+  - `GET /blocks/latest`
+  - `GET /txs/{hash}`
+  - `GET /txs`
+  - `GET /validatorset`
+  - All `POST` variants
 
 
 ## Community
