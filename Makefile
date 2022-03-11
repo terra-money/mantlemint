@@ -19,4 +19,3 @@ build-static:
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./
-	mv $(GOPATH)/bin/mantlemint-provider-v0.34.x $(GOPATH)/bin/mantlemint

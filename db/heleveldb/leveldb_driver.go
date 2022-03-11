@@ -5,8 +5,8 @@ import (
 	"math"
 
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/lib"
+	"github.com/terra-money/mantlemint/db/hld"
+	"github.com/terra-money/mantlemint/lib"
 )
 
 type Driver struct {

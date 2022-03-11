@@ -2,7 +2,7 @@ package block
 
 import (
 	tm "github.com/tendermint/tendermint/types"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/lib"
+	"github.com/terra-money/mantlemint/lib"
 )
 
 var prefix = []byte("block/height:")
@@ -12,5 +12,5 @@ var getKey = func(height uint64) []byte {
 
 type BlockRecord struct {
 	BlockID *tm.BlockID `json:"block_id""`
-	Block   *tm.Block `json:"block"`
+	Block   *tm.Block   `json:"block"`
 }

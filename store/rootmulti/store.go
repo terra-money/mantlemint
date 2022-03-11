@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
+	"github.com/terra-money/mantlemint/db/hld"
 
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"

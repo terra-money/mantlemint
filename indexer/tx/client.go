@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
+	"github.com/terra-money/mantlemint/indexer"
 )
 
 var (

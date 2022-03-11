@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/rollbackable"
+	"github.com/terra-money/mantlemint/db/hld"
+	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
 var _ hld.HeightLimitEnabledBatch = (*LevelBatch)(nil)

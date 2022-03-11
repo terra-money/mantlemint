@@ -7,8 +7,8 @@ import (
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/core/app"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/indexer"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint/indexer"
+	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 var cdc = terra.MakeEncodingConfig()

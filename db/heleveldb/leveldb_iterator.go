@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/db/hld"
+	"github.com/terra-money/mantlemint/db/hld"
 )
 
 var _ hld.HeightLimitEnabledIterator = (*Iterator)(nil)

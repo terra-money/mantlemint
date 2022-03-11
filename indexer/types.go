@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
+	"github.com/terra-money/mantlemint/mantlemint"
 	"log"
 	"net/http"
 	"runtime"

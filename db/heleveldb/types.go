@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/terra-money/mantlemint-provider-v0.34.x/lib"
+	"github.com/terra-money/mantlemint/lib"
 )
 
 const (
