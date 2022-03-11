@@ -237,6 +237,12 @@ func main() {
 				rollbackBatch = nil
 			}
 
+			// run indexer BEFORE batch flush
+			if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
+				debug.PrintStack()
+				panic(indexerErr)
+			}
+
 			// flush db batch
 			// returns rollback batch that reverts current block injection
 			if rollback, flushErr := batchedOrigin.Flush(); flushErr != nil {
@@ -247,12 +253,6 @@ func main() {
 			}
 
 			hldb.ClearWriteHeight()
-
-			// run indexer
-			if indexerErr := indexerInstance.Run(feed.Block, feed.BlockID, mm.GetCurrentEventCollector()); indexerErr != nil {
-				debug.PrintStack()
-				panic(indexerErr)
-			}
 
 			cacheInvalidateChan <- feed.Block.Height
 		}
