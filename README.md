@@ -104,6 +104,16 @@ DISABLE_SYNC=false \
 sync
 ```
 
+## Health check
+
+`mantlemint` implements a separate `/health` endpoint. It is particularly useful if you want to suppress traffics being routed to `mantlemint` nodes still syncing or unavailable due to whatever reason.
+
+The endpoint will response:
+- `200 OK` if mantlemint sync status is up-to date (i.e. syncing using websocket from RPC)
+- `400 NOK` if mantlemint is still syncing past blocks, and is not ready to serve the latest state yet.
+
+Please note that mantlemint still is able to serve queries while `/health` returns `NOK`.
+
 ## Default Indexes
 
 - `/index/tx/by_height/{height}`: List all transactions and their responses in a block. Equivalent to `tendermint/block?height=xxx`, with tx responses base64-decoded for better usability.
