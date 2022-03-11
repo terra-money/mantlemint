@@ -4,12 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"runtime/debug"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,6 +26,10 @@ import (
 	"github.com/terra-money/mantlemint-provider-v0.34.x/mantlemint"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/rpc"
 	"github.com/terra-money/mantlemint-provider-v0.34.x/store/rootmulti"
+	"io/ioutil"
+	"log"
+	"os"
+	"runtime/debug"
 
 	tmdb "github.com/tendermint/tm-db"
 )
@@ -40,14 +38,6 @@ import (
 func main() {
 	mantlemintConfig := config.NewConfig()
 	mantlemintConfig.Print()
-
-	viper.SetConfigType("toml")
-	viper.SetConfigName("app")
-	viper.AddConfigPath(filepath.Join(mantlemintConfig.Home, "config"))
-
-	if err := viper.MergeInConfig(); err != nil {
-		panic(fmt.Errorf("failed to merge configuration: %w", err))
-	}
 
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetCoinType(core.CoinType)
