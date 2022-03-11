@@ -95,7 +95,7 @@ sync
 
 ## Health check
 
-`mantlemint` implements a separate `/health` endpoint. It is particularly useful if you want to suppress traffics being routed to `mantlemint` nodes still syncing or unavailable due to whatever reason.
+`mantlemint` implements `/health` endpoint. It is useful if you want to suppress traffics being routed to `mantlemint` nodes still syncing or unavailable due to whatever reason.
 
 The endpoint will response:
 - `200 OK` if mantlemint sync status is up-to date (i.e. syncing using websocket from RPC)
