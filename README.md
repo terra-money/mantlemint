@@ -5,7 +5,7 @@
 
 Mantlemint is a fast core optimized for serving massive user queries.
 
-Native query performance on RPC is very slow and is not suitable for massive query handling, due to the inefficiencies introduced by IAVL tree. Mantlemint is running on `fauxMerkleTree` mode, basically removing the IAVL inefficiencies while using the same core to compute the same module outputs. 
+Native query performance on RPC is slow and is not suitable for massive query handling, due to the inefficiencies introduced by IAVL tree. Mantlemint is running on `fauxMerkleTree` mode, basically removing the IAVL inefficiencies while using the same core to compute the same module outputs. 
 
 If you are looking to serve any kind of public node accepting varying degrees of end-user queries, it is recommended that you run a mantlemint instance alongside of your RPC. While mantlemint is indeed faster at resolving queries, due to the absence of IAVL tree and native tendermint, it cannot join p2p network by itself. Rather, you would have to relay finalized blocks to mantlemint, using RPC's websocket.
 
@@ -51,6 +51,22 @@ Mantlemint internally runs the same Terra Core, therefore you need to provide th
 
 It is __required__ to run mantlemint in a separate `$HOME` directory than RPC; while mantlemint maintains its own database, some of the data may be overwritten by either mantlemint or RPC and may cause trouble.
 
+
+### Building
+
+#### 1. As a statically-linked application
+```sh
+$ make build-static # results in build/mantlemint
+```
+
+
+#### 2. As a dynamically-linked application
+```sh
+$ make build # results in build/mantlemint
+$ make install # results in $GOPATH/bin/mantlemint
+```
+
+
 ### Running
 
 Mantlemint depends on 2 configs:
@@ -67,7 +83,7 @@ GENESIS_PATH=config/genesis.json \
 # - create and maintain $HOME/mantlemint.db directory
 # - create and maintain $HOME/data/* for wasm blobs; (unsafe to share with RPC!)
 # - create and maintain $HOME/$(INDEXER_DB).db for mantle indexers
-HOME=mantlemint \
+MANTLEMINT_HOME=mantlemint \
 
 # Chain ID 
 CHAIN_ID=columbus-5 \
@@ -82,18 +98,49 @@ WS_ENDPOINTS=ws://rpc1:26657/websocket,ws://rpc2:26657/websocket \
 INDEXER_DB=indexer \
 
 # Flag to enable/disable mantlemint sync, mainly for debugging
-DISABLE_SYNC=true \
+DISABLE_SYNC=false \
 
 # Run sync binary
 sync
 ```
 
+## Health check
+
+`mantlemint` implements a separate `/health` endpoint. It is particularly useful if you want to suppress traffics being routed to `mantlemint` nodes still syncing or unavailable due to whatever reason.
+
+The endpoint will response:
+- `200 OK` if mantlemint sync status is up-to date (i.e. syncing using websocket from RPC)
+- `400 NOK` if mantlemint is still syncing past blocks, and is not ready to serve the latest state yet.
+
+Please note that mantlemint still is able to serve queries while `/health` returns `NOK`.
 
 ## Default Indexes
 
 - `/index/tx/by_height/{height}`: List all transactions and their responses in a block. Equivalent to `tendermint/block?height=xxx`, with tx responses base64-decoded for better usability.
 - `/index/tx/by_hash/{txHash}`: Get transaction and its response by hash. Equivalent to `lcd/txs/{hash}`, but without hitting RPC.
 
-# LICENSE
+## Notable Differences from [core](https://github.com/terra-money/core)
 
-Apache 2.0
+- Uses a forked [tendermint/tm-db](https://github.com/terra-money/tm-db/commit/c71e8b6e9f20d7f5be32527db4a92ae19ac0d2b2): Disables unncessary mutexes in `prefixdb` methods
+- Replaces ABCIClient with [NewConcurrentQueryClient](https://github.com/terra-money/mantlemint/blob/main/bin/v0.34.x/mantlemint/client.go#L110): Removal of mutexes allow better concurrency, even during block injection
+- Uses single batch-protected db: All state changes are flushed at once, making it safe to read from db during block injection
+- Automatic failover: In case of block injection failure, mantlemint reverts back to the previous known state and retry
+
+
+## Community
+
+- [Offical Website](https://terra.money)
+- [Discord](https://discord.gg/e29HWwC2Mz)
+- [Telegram](https://t.me/terra_announcements)
+- [Twitter](https://twitter.com/terra_money)
+- [YouTube](https://goo.gl/3G4T1z)
+
+## Contributing
+
+If you are interested in contributing to Terra Core source, please review our [code of conduct](./CODE_OF_CONDUCT.md).
+
+# License
+
+This software is licensed under the Apache 2.0 license. Read more about it here.
+
+© 2021 Terraform Labs, PTE LTD
