@@ -92,11 +92,7 @@ func main() {
 		0,
 		codec,
 		simapp.EmptyAppOptions{},
-		&wasmconfig.Config{
-			ContractQueryGasLimit:   3000000,
-			ContractDebugMode:       false,
-			ContractMemoryCacheSize: 1024,
-		},
+		wasmconfig.GetConfig(viper.GetViper()),
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
