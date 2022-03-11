@@ -5,7 +5,7 @@
 
 Mantlemint is a fast core optimized for serving massive user queries.
 
-Native query performance on RPC is very slow and is not suitable for massive query handling, due to the inefficiencies introduced by IAVL tree. Mantlemint is running on `fauxMerkleTree` mode, basically removing the IAVL inefficiencies while using the same core to compute the same module outputs. 
+Native query performance on RPC is slow and is not suitable for massive query handling, due to the inefficiencies introduced by IAVL tree. Mantlemint is running on `fauxMerkleTree` mode, basically removing the IAVL inefficiencies while using the same core to compute the same module outputs. 
 
 If you are looking to serve any kind of public node accepting varying degrees of end-user queries, it is recommended that you run a mantlemint instance alongside of your RPC. While mantlemint is indeed faster at resolving queries, due to the absence of IAVL tree and native tendermint, it cannot join p2p network by itself. Rather, you would have to relay finalized blocks to mantlemint, using RPC's websocket.
 
@@ -51,6 +51,22 @@ Mantlemint internally runs the same Terra Core, therefore you need to provide th
 
 It is __required__ to run mantlemint in a separate `$HOME` directory than RPC; while mantlemint maintains its own database, some of the data may be overwritten by either mantlemint or RPC and may cause trouble.
 
+
+### Building
+
+#### 1. As a statically-linked application
+```sh
+$ make build-static # results in build/mantlemint
+```
+
+
+#### 2. As a dynamically-linked application
+```sh
+$ make build # results in build/mantlemint
+$ make install # results in $GOPATH/bin/mantlemint
+```
+
+
 ### Running
 
 Mantlemint depends on 2 configs:
@@ -82,18 +98,31 @@ WS_ENDPOINTS=ws://rpc1:26657/websocket,ws://rpc2:26657/websocket \
 INDEXER_DB=indexer \
 
 # Flag to enable/disable mantlemint sync, mainly for debugging
-DISABLE_SYNC=true \
+DISABLE_SYNC=false \
 
 # Run sync binary
 sync
 ```
-
 
 ## Default Indexes
 
 - `/index/tx/by_height/{height}`: List all transactions and their responses in a block. Equivalent to `tendermint/block?height=xxx`, with tx responses base64-decoded for better usability.
 - `/index/tx/by_hash/{txHash}`: Get transaction and its response by hash. Equivalent to `lcd/txs/{hash}`, but without hitting RPC.
 
-# LICENSE
+## Community
 
-Apache 2.0
+- [Offical Website](https://terra.money)
+- [Discord](https://discord.gg/e29HWwC2Mz)
+- [Telegram](https://t.me/terra_announcements)
+- [Twitter](https://twitter.com/terra_money)
+- [YouTube](https://goo.gl/3G4T1z)
+
+## Contributing
+
+If you are interested in contributing to Terra Core source, please review our [code of conduct](./CODE_OF_CONDUCT.md).
+
+# License
+
+This software is licensed under the Apache 2.0 license. Read more about it here.
+
+© 2021 Terraform Labs, PTE LTD
