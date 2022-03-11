@@ -83,7 +83,7 @@ GENESIS_PATH=config/genesis.json \
 # - create and maintain $HOME/mantlemint.db directory
 # - create and maintain $HOME/data/* for wasm blobs; (unsafe to share with RPC!)
 # - create and maintain $HOME/$(INDEXER_DB).db for mantle indexers
-HOME=mantlemint \
+MANTLEMINT_HOME=mantlemint \
 
 # Chain ID 
 CHAIN_ID=columbus-5 \

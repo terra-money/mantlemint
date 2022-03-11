@@ -20,7 +20,6 @@ ADD https://github.com/terra-money/wasmvm/releases/download/v0.16.4/libwasmvm_mu
 # use mimalloc for musl
 RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 
-ENV MIMALLOC_VERBOSE=1
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
