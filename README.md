@@ -28,11 +28,15 @@ This specific directory contains mantlemint implementation for [@terra-money/cor
 
 Go v1.17+ is recommended for this project.
 
+#### 1. As a statically-linked application
 ```sh
-$ export MANTLEMINT_VERSION=v0.34.x
-$ git clone https://github.com/terra-money/mantlemint.git
-$ cd bin/$MANTLEMINT_VERSION
-$ go build sync.go
+$ make build-static # results in build/mantlemint
+```
+
+#### 2. As a dynamically-linked application
+```sh
+$ make build # results in build/mantlemint
+$ make install # results in $GOPATH/bin/mantlemint
 ```
 
 ## Usage
@@ -50,21 +54,6 @@ Any [Terra node](https://github.com/terra-money/core) with port 26657 enabled ca
 Mantlemint internally runs the same Terra Core, therefore you need to provide the same configuration files as if you would run an RPC. Bare minimum you would at least need `app.toml` and `genesis.json`.
 
 It is __required__ to run mantlemint in a separate `$HOME` directory than RPC; while mantlemint maintains its own database, some of the data may be overwritten by either mantlemint or RPC and may cause trouble.
-
-
-### Building
-
-#### 1. As a statically-linked application
-```sh
-$ make build-static # results in build/mantlemint
-```
-
-
-#### 2. As a dynamically-linked application
-```sh
-$ make build # results in build/mantlemint
-$ make install # results in $GOPATH/bin/mantlemint
-```
 
 
 ### Running
@@ -122,7 +111,7 @@ Please note that mantlemint still is able to serve queries while `/health` retur
 ## Notable Differences from [core](https://github.com/terra-money/core)
 
 - Uses a forked [tendermint/tm-db](https://github.com/terra-money/tm-db/commit/c71e8b6e9f20d7f5be32527db4a92ae19ac0d2b2): Disables unncessary mutexes in `prefixdb` methods
-- Replaces ABCIClient with [NewConcurrentQueryClient](https://github.com/terra-money/mantlemint/blob/main/bin/v0.34.x/mantlemint/client.go#L110): Removal of mutexes allow better concurrency, even during block injection
+- Replaces ABCIClient with [NewConcurrentQueryClient](https://github.com/terra-money/mantlemint/blob/main/mantlemint/client.go#L110): Removal of mutexes allow better concurrency, even during block injection
 - Uses single batch-protected db: All state changes are flushed at once, making it safe to read from db during block injection
 - Automatic failover: In case of block injection failure, mantlemint reverts back to the previous known state and retry
 
