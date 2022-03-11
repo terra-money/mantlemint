@@ -132,9 +132,6 @@ Please note that mantlemint still is able to serve queries while `/health` retur
 - [Twitter](https://twitter.com/terra_money)
 - [YouTube](https://goo.gl/3G4T1z)
 
-## Contributing
-
-If you are interested in contributing to Terra Core source, please review our [code of conduct](./CODE_OF_CONDUCT.md).
 
 # License
 
