@@ -771,10 +771,6 @@ github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2l
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
 github.com/tendermint/tendermint v0.34.14 h1:GCXmlS8Bqd2Ix3TQCpwYLUNHe+Y+QyJsm5YE+S/FkPo=
 github.com/tendermint/tendermint v0.34.14/go.mod h1:FrwVm3TvsVicI9Z7FlucHV6Znfd5KBc/Lpp69cCwtk0=
-github.com/terra-money/core v0.5.16 h1:iLP+guLzd9gOjYMYURzBmwu6bdlsfJflYUFoQCZsbuc=
-github.com/terra-money/core v0.5.16/go.mod h1:MEpq9DsEr2lBs8P7GiIJLfBqCZZKHfdl5qEs0nOcQkg=
-github.com/terra-money/core v0.5.17-0.20220220061132-1b2707a3b8ec h1:0JBuRcQmUnCnkCo9sHsk5X/vbYAMxp7BKH82NeMNpGU=
-github.com/terra-money/core v0.5.17-0.20220220061132-1b2707a3b8ec/go.mod h1:GzjTEGkbrw6BXyw3z0jlM5y5mswpLg/JhUr6GAlXp2w=
 github.com/terra-money/core v0.5.18-0.20220304040324-70c1ef6f11b0 h1:40hUUCkXo31cSh9QsVzTj2BrDUoawKVIytzcPqcJNvQ=
 github.com/terra-money/core v0.5.18-0.20220304040324-70c1ef6f11b0/go.mod h1:aUZfcVV4GP92baeM/XLFN3FOWzkMUrLjMs3B1+MDovY=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
