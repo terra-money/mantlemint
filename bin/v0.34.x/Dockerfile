@@ -15,7 +15,7 @@ WORKDIR /code
 COPY . /code/
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ADD https://github.com/terra-money/wasmvm/releases/download/v0.16.4-drop-order-fix/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
+ADD https://github.com/terra-money/wasmvm/releases/download/v0.16.4/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
 
 # use mimalloc for musl
 RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
