@@ -62,6 +62,8 @@ Mantlemint depends on 2 configs:
 - `$HOME/config/app.toml`; you can reuse `app.toml` you're using with core
 - Environment variables; mantlemint specific runtime variables to configure various properties of mantlemint. Examples as follows
 
+> Make sure you separate `MANTLEMINT_HOME` from other mantlemint instances, or core. Doing so may result in an undefined behaviour.
+
 ```sh
 # Location of genesis file
 GENESIS_PATH=config/genesis.json \
@@ -91,6 +93,10 @@ DISABLE_SYNC=false \
 
 # Run sync binary
 sync
+
+# Optional: crisis module's invariant check is known to take hours.
+# You can skip it by providing --x-crisis-skip-assert-invariants flag
+sync --x-crisis-skip-assert-invariants 
 ```
 
 ## Health check
@@ -122,6 +128,42 @@ Please note that mantlemint still is able to serve queries while `/health` retur
   - `GET /txs`
   - `GET /validatorset`
   - All `POST` variants
+
+
+## FAQ
+
+### Q1. Can I use public RPC (http://public-node.terra.dev:26657) as RPC and WS endpoints?
+
+While you can, we do NOT recommend doing so. We only expose public node as a seed node for p2p, and its http/ws connection may not be stable. It is safer to have your own RPC 
+
+### Q2. Can I convert existing core's database to mantlemint?
+
+No. Mantlemint's db structure is NOT compatible with core's. 
+
+### Q3. Mantlemint doesn't support tendermint queries like /blocks, /txs, but I still need them. What should I do?
+
+You can route those traffic to an existing RPC that you use for `RPC_ENDPOINTS` and `WS_ENDPOINTS` with a load balancer.
+
+### Q4. Is it possible to disable archive? It takes up too much space!
+
+Not yet, although it is on the roadmap.
+
+### Q5. Mantlemint seems to hang up on the first block.
+
+Processing genesis block is known to take 2+ hours -- be patient!
+
+Also, try disabling crisis module's invariant check on genesis block creation, by providing flag `--x-crisis-skip-assert-invariants`.
+
+### Q6. What are the system requirements to run mantlemint safely?
+
+- 4 or more CPU cores
+- At least 16GB memory, 32~64GB for genesis block creation. 
+  - You can scale down to smaller system after mantlemint successfully creates the genesis block
+- At least 2TB disk space, although we recommend bigger.
+
+### Q7. Are snapshots provided?
+
+Not yet, but we have plans to do so.
 
 
 ## Community
