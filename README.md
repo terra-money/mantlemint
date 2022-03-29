@@ -85,6 +85,9 @@ RPC_ENDPOINTS=http://rpc1:26657,http://rpc2:26657 \
 # WS Endpoint; used to sync live block as soon as they are available through RPC websocket  
 WS_ENDPOINTS=ws://rpc1:26657/websocket,ws://rpc2:26657/websocket \
 
+# Name of mantlemint.db, akin to application.db for core
+MANTLEMINT_DB=mantlemint \
+
 # Name of indexer db
 INDEXER_DB=indexer \
 
