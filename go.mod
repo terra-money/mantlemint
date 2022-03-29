@@ -16,14 +16,14 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/tendermint v0.34.14
 	github.com/tendermint/tm-db v0.6.6
-	github.com/terra-money/core v0.5.18-0.20220304040324-70c1ef6f11b0
+	github.com/terra-money/core v0.5.17
 )
 
 require (
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
 	github.com/99designs/keyring v1.1.6 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
-	github.com/CosmWasm/wasmvm v0.16.3 // indirect
+	github.com/CosmWasm/wasmvm v0.16.5 // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -111,10 +111,10 @@ replace github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terr
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
 
+replace github.com/CosmWasm/wasmvm => github.com/terra-money/wasmvm v0.16.6
+
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
-
-replace github.com/CosmWasm/wasmvm => github.com/terra-money/wasmvm v0.16.4
 
 replace github.com/tendermint/tm-db => github.com/terra-money/tm-db v0.6.5-0.20220307182415-c71e8b6e9f20
