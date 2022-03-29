@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
@@ -71,6 +70,7 @@ func main() {
 
 	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
+	vpr := viper.GetViper()
 
 	var app = terra.NewTerraApp(
 		logger,
@@ -81,8 +81,8 @@ func main() {
 		mantlemintConfig.Home,
 		0,
 		codec,
-		simapp.EmptyAppOptions{},
-		wasmconfig.GetConfig(viper.GetViper()),
+		vpr,
+		wasmconfig.GetConfig(vpr),
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
