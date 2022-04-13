@@ -2,6 +2,17 @@
 
 ## [v0.1.1](https://github.com/terra-money/mantlemint/tree/v0.1.1) (2022-04-13)
 
+## Action required
+
+This release contains a patch that may render your mantlemint node unstable. Please follow the below instruction (also mentioned in README):
+
+>
+> ### Q8. Mantlemint becomes unresponsive when put under load
+> 
+> Run [this](https://github.com/YunSuk-Yeo/wasm-cache-rebuilder) at least once. This happens because since cosmwasm@0.16.6 (+wasmer@2.2.1), deserialized wasm module format changed and you need to rebuild contract cache.
+
+
+
 [Full Changelog](https://github.com/terra-money/mantlemint/compare/v0.1.0...v0.1.1)
 
 **Closed issues:**
