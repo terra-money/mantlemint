@@ -102,6 +102,27 @@ sync
 sync --x-crisis-skip-assert-invariants 
 ```
 
+### Adjusting smart contract memory cache size
+
+The `wasm` section in `config.toml` may play a critical role in how mantlemint performs under heavy load. We recommend adjusting `contract-memory-cache-size` if you are planning to run mantlemint publicly, as loading contract instances from disk is an expensive operation.
+
+```toml
+[wasm]
+# The maximum gas amount can be spent for contract query.
+# The contract query will invoke contract execution vm,
+# so we need to restrict the max usage to prevent DoS attack
+contract-query-gas-limit = "3000000"
+
+# The flag to specify whether print contract logs or not
+contract-debug-mode = "false"
+
+# The WASM VM memory cache size in MiB not bytes.
+# Adjust this if you need to hold more smart contract instances in memory (less overhead for loading contracts to memory)
+contract-memory-cache-size = "16384" # 16GB
+```
+
+
+
 ## Health check
 
 `mantlemint` implements `/health` endpoint. It is useful if you want to suppress traffics being routed to `mantlemint` nodes still syncing or unavailable due to whatever reason.
@@ -167,6 +188,10 @@ Also, try disabling crisis module's invariant check on genesis block creation, b
 ### Q7. Are snapshots provided?
 
 Not yet, but we have plans to do so.
+
+### Q8. Mantlemint becomes unresponsive when put under load
+
+Run [this](https://github.com/YunSuk-Yeo/wasm-cache-rebuilder) at least once. This happens because since cosmwasm@0.16.6 (+wasmer@2.2.1), deserialized wasm module format changed and you need to rebuild contract cache.
 
 
 ## Community
