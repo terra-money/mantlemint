@@ -195,8 +195,6 @@ Run [this](https://github.com/YunSuk-Yeo/wasm-cache-rebuilder) at least once. Th
 
 ### Q9. What directories should I backup when creating snapshot?
 
-These.
-
 ```
 ${MANTLEMINT_HOME}/data 
 ${MANTLEMINT_HOME}/indexer.db 

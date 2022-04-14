@@ -1,17 +1,32 @@
 # Changelog
 
-## [v0.1.1](https://github.com/terra-money/mantlemint/tree/v0.1.1) (2022-04-13)
+## [v0.1.2](https://github.com/terra-money/mantlemint/tree/v0.1.2) (2022-04-14)
 
-## Action required
+This release contains a depencency upgrade for [core](https://github.com/terra-money/core)@0.5.17...@0.5.18. Apart from the dependency bump all functionalities should be exactly the same as v0.1.1.
 
-This release contains a patch that may render your mantlemint node unstable. Please follow the below instruction (also mentioned in README):
+You may need to rebuild contracts cache. Referencing from core@0.5.18 [release note](https://github.com/terra-money/core/releases/tag/v0.5.18):
 
+> Release Note
 >
-> ### Q8. Mantlemint becomes unresponsive when put under load
-> 
-> Run [this](https://github.com/YunSuk-Yeo/wasm-cache-rebuilder) at least once. This happens because since cosmwasm@0.16.6 (+wasmer@2.2.1), deserialized wasm module format changed and you need to rebuild contract cache.
+> This release contains a wasmer version bump from v2.0.0 to v2.2.1. The wasm caches of these two versions are not compatible, thus rebuilding is required.
+>
+> To avoid possible sync delays due to the runtime rebuilding overhead, it is highly recommended that node operators rebuild their wasm cache with the [cosmwasm-cache-rebuilder](https://github.com/terra-money/cosmwasm-cache-rebuilder) before replacing terrad runtime to v0.5.18.
+>
+> Node upgrade instructions
+>
+> 1. Rebuild your wasm cache using the cosmwasm-cache-rebuilder. This rebuilder can be run simultaneously without killing a running terrad process.
+> 2. You can ignore the file already open error. If other errors occur (no disk space, etc), it is safe to run the rebuilder multiple times.
+> 3. When the rebuilder is finished, update terrad to v0.5.18 and restart.
+> 4. The rebuilder creates a `$TERRA_HOME/data/wasm/cache/modules/v3-wasmer1` directory. The `$TERRA_HOME/data/wasm/cache/modules/v1` can be deleted after updating terrad to v0.5.18.
 
 
+[Full Changelog](https://github.com/terra-money/mantlemint/compare/v0.1.1...v0.1.2)
+
+**Merged pull requests:**
+
+- deps\(core\): bump core@0.5.18 [\#46](https://github.com/terra-money/mantlemint/pull/46) ([kjessec](https://github.com/kjessec))
+
+## [v0.1.1](https://github.com/terra-money/mantlemint/tree/v0.1.1) (2022-04-13)
 
 [Full Changelog](https://github.com/terra-money/mantlemint/compare/v0.1.0...v0.1.1)
 
