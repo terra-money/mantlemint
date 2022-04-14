@@ -193,6 +193,16 @@ Not yet, but we have plans to do so.
 
 Run [this](https://github.com/YunSuk-Yeo/wasm-cache-rebuilder) at least once. This happens because since cosmwasm@0.16.6 (+wasmer@2.2.1), deserialized wasm module format changed and you need to rebuild contract cache.
 
+### Q9. What directories should I backup when creating snapshot?
+
+These.
+
+```
+${MANTLEMINT_HOME}/data 
+${MANTLEMINT_HOME}/indexer.db 
+${MANTLEMINT_HOME}/mantlemint.db 
+```
+
 
 ## Community
 
