@@ -4,6 +4,11 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"runtime/debug"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
@@ -11,10 +16,12 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	terra "github.com/terra-money/core/app"
-	core "github.com/terra-money/core/types"
-	wasmconfig "github.com/terra-money/core/x/wasm/config"
+	core "github.com/terra-money/core/v2/app"
+	terra "github.com/terra-money/core/v2/app"
+	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/heleveldb"
 	"github.com/terra-money/mantlemint/db/hld"
@@ -25,10 +32,6 @@ import (
 	"github.com/terra-money/mantlemint/mantlemint"
 	"github.com/terra-money/mantlemint/rpc"
 	"github.com/terra-money/mantlemint/store/rootmulti"
-	"io/ioutil"
-	"log"
-	"os"
-	"runtime/debug"
 
 	tmdb "github.com/tendermint/tm-db"
 )
@@ -40,11 +43,17 @@ func main() {
 
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetCoinType(core.CoinType)
-	sdkConfig.SetFullFundraiserPath(core.FullFundraiserPath)
-	sdkConfig.SetBech32PrefixForAccount(core.Bech32PrefixAccAddr, core.Bech32PrefixAccPub)
-	sdkConfig.SetBech32PrefixForValidator(core.Bech32PrefixValAddr, core.Bech32PrefixValPub)
-	sdkConfig.SetBech32PrefixForConsensusNode(core.Bech32PrefixConsAddr, core.Bech32PrefixConsPub)
-	sdkConfig.SetAddressVerifier(core.AddressVerifier)
+	accountPubKeyPrefix := core.AccountAddressPrefix + "pub"
+	validatorAddressPrefix := core.AccountAddressPrefix + "valoper"
+	validatorPubKeyPrefix := core.AccountAddressPrefix + "valoperpub"
+	consNodeAddressPrefix := core.AccountAddressPrefix + "valcons"
+	consNodePubKeyPrefix := core.AccountAddressPrefix + "valconspub"
+
+	sdkConfig.SetBech32PrefixForAccount(core.AccountAddressPrefix, accountPubKeyPrefix)
+	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
+	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
+	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
+
 	sdkConfig.Seal()
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{

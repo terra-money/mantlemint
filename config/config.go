@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	terra "github.com/terra-money/core/app"
+	terra "github.com/terra-money/core/v2/app"
 	"os"
 	"path/filepath"
 	"strings"

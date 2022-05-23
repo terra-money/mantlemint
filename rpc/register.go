@@ -16,8 +16,8 @@ import (
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	terra "github.com/terra-money/core/app"
-	"github.com/terra-money/core/app/params"
+	terra "github.com/terra-money/core/v2/app"
+	"github.com/terra-money/core/v2/app/params"
 )
 
 func StartRPC(
