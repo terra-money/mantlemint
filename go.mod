@@ -1,6 +1,6 @@
 module github.com/terra-money/mantlemint
 
-go 1.17
+go 1.18
 
 require (
 	github.com/CosmWasm/wasmd v0.27.0
@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tendermint/tendermint v0.34.19
 	github.com/tendermint/tm-db v0.6.7
-	github.com/terra-money/core/v2 v2.0.0-rc.0
+	github.com/terra-money/core/v2 v2.0.0-rc.1
 )
 
 require (
