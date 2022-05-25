@@ -944,8 +944,8 @@ github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoM
 github.com/tendermint/tendermint v0.34.14/go.mod h1:FrwVm3TvsVicI9Z7FlucHV6Znfd5KBc/Lpp69cCwtk0=
 github.com/tendermint/tendermint v0.34.19 h1:y0P1qI5wSa9IRuhKnTDA6IUcOrLi1hXJuALR+R7HFEk=
 github.com/tendermint/tendermint v0.34.19/go.mod h1:R5+wgIwSxMdKQcmOaeudL0Cjkr3HDkhpcdum6VeU3R4=
-github.com/terra-money/core/v2 v2.0.0-rc.1 h1:yom3ZBPzBtw8BxTT50aQ7CdMhBxl6LQu8hXUUH5bapg=
-github.com/terra-money/core/v2 v2.0.0-rc.1/go.mod h1:r84UU2X+kpoatzxBp0lPHswZst9GWgu/Gg55s9WMWlk=
+github.com/terra-money/core/v2 v2.0.0-rc.0 h1:Ep29tdkMmv75X6eTmlE6e6imOcJHvFlOAfdg8aRWXwM=
+github.com/terra-money/core/v2 v2.0.0-rc.0/go.mod h1:BMFR3e2unkLIv41nTZM7Y6FSAuWhD7+IBgMvxIxrAQU=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
 github.com/terra-money/ledger-terra-go v0.11.2/go.mod h1:ClJ2XMj1ptcnONzKH+GhVPi7Y8pXIT+UzJ0TNt0tfZE=
 github.com/terra-money/tm-db v0.6.4-performance.7 h1:eS7qNoUf+a0A0nWRieFg1iNneBaf80TMkShPLE8onnM=
