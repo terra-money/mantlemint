@@ -25,4 +25,14 @@ func RegisterRESTRoutes(router *mux.Router, app *terra.TerraApp) {
 		}
 		writer.WriteHeader(http.StatusOK)
 	})).Methods("POST")
+
+	router.Handle("/export/circulating_supply", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cs, err := ExportCirculatingSupply(app)
+		if err != nil {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte(err.Error()))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(cs.String()))
+	}))
 }
