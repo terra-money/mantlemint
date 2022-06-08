@@ -24,6 +24,7 @@ func ExportAllAccounts(app *terra.TerraApp) error {
 }
 
 func exportWorker(app *terra.TerraApp) {
+	app.Logger().Info("[export] exporting accounts")
 	height := app.LastBlockHeight()
 	ctx := app.NewContext(true, tmproto.Header{Height: height})
 	// Should use lastest block time
@@ -32,11 +33,19 @@ func exportWorker(app *terra.TerraApp) {
 	count := 0
 	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), "uluna").Amount
+		delegations := app.StakingKeeper.GetAllDelegatorDelegations(ctx, account.GetAddress())
+		for _, d := range delegations {
+			val, ok := app.StakingKeeper.GetValidator(ctx, d.GetValidatorAddr())
+			if ok {
+				balance = balance.Add(val.TokensFromShares(d.GetShares()).TruncateInt())
+			}
+		}
+
 		switch account.(type) {
 		case *vestingtypes.PeriodicVestingAccount:
 			v := account.(*vestingtypes.PeriodicVestingAccount)
 			vesting := v.GetVestingCoins(time).AmountOf("uluna")
-			vested := balance
+			vested := balance.Sub(vesting)
 			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
 		case *authtypes.BaseAccount:
 			vesting := "0"
@@ -46,11 +55,12 @@ func exportWorker(app *terra.TerraApp) {
 			return false
 		}
 		count += 1
-		if count%100000 == 0 {
-			app.Logger().Info(fmt.Sprintf("Getting balance count: %d", count))
+		if count%20000 == 0 {
+			app.Logger().Info(fmt.Sprintf("[export] getting balance count: %d", count))
 		}
 		return false
 	})
 	os.WriteFile("accounts.csv", []byte(strings.Join(accounts, "\n")), 0700)
 	IsAccountExportRunning = false
+	app.Logger().Info("[export] exporting accounts completed")
 }
