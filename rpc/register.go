@@ -18,6 +18,7 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/core/v2/app/params"
+	"github.com/terra-money/mantlemint/export"
 )
 
 func StartRPC(
@@ -82,6 +83,9 @@ func StartRPC(
 		}
 	})).Methods("GET")
 
+	// register export routes
+	export.RegisterRESTRoutes(apiSrv.Router, app)
+
 	// register all default GET routers...
 	app.RegisterAPIRoutes(apiSrv, cfg.API)
 	app.RegisterTendermintService(context)
@@ -90,7 +94,7 @@ func StartRPC(
 	// caching middleware
 	apiSrv.Router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			if request.URL.Path == "/health" {
+			if request.URL.Path == "/health" || !export.ShouldCacheRoute(request.URL.Path) {
 				next.ServeHTTP(writer, request)
 				return
 			}
