@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
+
 	"github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/gorilla/mux"
@@ -18,6 +19,7 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/core/v2/app/params"
+	mconfig "github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/export"
 )
 
@@ -29,6 +31,7 @@ func StartRPC(
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
 	getIsSynced func() bool,
+	mantlemintConfig mconfig.Config,
 ) error {
 	vp := viper.GetViper()
 	cfg := config.GetConfig(vp)
@@ -84,7 +87,9 @@ func StartRPC(
 	})).Methods("GET")
 
 	// register export routes
-	export.RegisterRESTRoutes(apiSrv.Router, app)
+	if mantlemintConfig.EnableExportModule {
+		export.RegisterRESTRoutes(apiSrv.Router, app)
+	}
 
 	// register all default GET routers...
 	app.RegisterAPIRoutes(apiSrv, cfg.API)

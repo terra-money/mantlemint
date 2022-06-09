@@ -52,13 +52,8 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 		return sdktypes.Int{}, err
 	}
 	lunaCommunityPool := communityPool.Pool.AmountOf("uluna").TruncateInt()
-	feePool := app.DistrKeeper.GetFeePool(ctx)
-	lunaFeePool := feePool.CommunityPool.AmountOf("uluna").TruncateInt()
 
-	govAccount := app.GovKeeper.GetGovernanceAccount(ctx)
-	lunaGovAccount := app.BankKeeper.GetBalance(ctx, govAccount.GetAddress(), "uluna").Amount
-
-	return lunaTotalSupply.Sub(lunaCommunityPool).Sub(totalVesting).Sub(lunaFeePool).Sub(lunaGovAccount), nil
+	return lunaTotalSupply.Sub(lunaCommunityPool).Sub(totalVesting), nil
 }
 
 func exportWorker(app *terra.TerraApp) {

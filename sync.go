@@ -194,6 +194,7 @@ func main() {
 
 		// inject flag checker for synced
 		blockFeed.IsSynced,
+		mantlemintConfig,
 	)
 
 	if rpcErr != nil {
