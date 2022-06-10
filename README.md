@@ -94,6 +94,9 @@ INDEXER_DB=indexer \
 # Flag to enable/disable mantlemint sync, mainly for debugging
 DISABLE_SYNC=false \
 
+# Flag to enable/disable export module. Used for accounts export and circulating supply endpoint
+ENABLE_EXPORT_MODULE=true \
+
 # Run sync binary
 sync
 
