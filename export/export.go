@@ -16,14 +16,14 @@ import (
 	terra "github.com/terra-money/core/v2/app"
 )
 
-var IsAccountExportRunning = false
+var IsAccountExportWorkerRunning = false
 
 func ExportAllAccounts(app *terra.TerraApp) error {
-	if IsAccountExportRunning {
+	if IsAccountExportWorkerRunning {
 		return fmt.Errorf("exporting is still running")
 	}
-	IsAccountExportRunning = true
-	go exportWorker(app)
+	IsAccountExportWorkerRunning = true
+	go runAccountExportWorker(app)
 	return nil
 }
 
@@ -56,7 +56,7 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 	return lunaTotalSupply.Sub(lunaCommunityPool).Sub(totalVesting), nil
 }
 
-func exportWorker(app *terra.TerraApp) {
+func runAccountExportWorker(app *terra.TerraApp) {
 	app.Logger().Info("[export] exporting accounts")
 	height := app.LastBlockHeight()
 	ctx := app.NewContext(true, tmproto.Header{Height: height})
@@ -108,6 +108,6 @@ func exportWorker(app *terra.TerraApp) {
 		return false
 	})
 	os.WriteFile("accounts.csv", []byte(strings.Join(accounts, "\n")), 0700)
-	IsAccountExportRunning = false
+	IsAccountExportWorkerRunning = false
 	app.Logger().Info("[export] exporting accounts completed")
 }
