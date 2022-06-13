@@ -37,6 +37,15 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 		case *vestingtypes.PeriodicVestingAccount:
 			v := account.(*vestingtypes.PeriodicVestingAccount)
 			totalVesting = totalVesting.Add(v.GetVestingCoins(time).AmountOf("uluna"))
+		case *vestingtypes.ContinuousVestingAccount:
+			v := account.(*vestingtypes.ContinuousVestingAccount)
+			totalVesting = totalVesting.Add(v.GetVestingCoins(time).AmountOf("uluna"))
+		case *vestingtypes.DelayedVestingAccount:
+			v := account.(*vestingtypes.DelayedVestingAccount)
+			totalVesting = totalVesting.Add(v.GetVestingCoins(time).AmountOf("uluna"))
+		case *vestingtypes.PermanentLockedAccount:
+			v := account.(*vestingtypes.PermanentLockedAccount)
+			totalVesting = totalVesting.Add(v.GetVestingCoins(time).AmountOf("uluna"))
 		default:
 			return false
 		}
@@ -77,6 +86,21 @@ func runAccountExportWorker(app *terra.TerraApp) {
 		switch account.(type) {
 		case *vestingtypes.PeriodicVestingAccount:
 			v := account.(*vestingtypes.PeriodicVestingAccount)
+			vesting := v.GetVestingCoins(time).AmountOf("uluna")
+			vested := balance.Add(v.DelegatedFree.AmountOf("uluna"))
+			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
+		case *vestingtypes.ContinuousVestingAccount:
+			v := account.(*vestingtypes.ContinuousVestingAccount)
+			vesting := v.GetVestingCoins(time).AmountOf("uluna")
+			vested := balance.Add(v.DelegatedFree.AmountOf("uluna"))
+			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
+		case *vestingtypes.DelayedVestingAccount:
+			v := account.(*vestingtypes.DelayedVestingAccount)
+			vesting := v.GetVestingCoins(time).AmountOf("uluna")
+			vested := balance.Add(v.DelegatedFree.AmountOf("uluna"))
+			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
+		case *vestingtypes.PermanentLockedAccount:
+			v := account.(*vestingtypes.PermanentLockedAccount)
 			vesting := v.GetVestingCoins(time).AmountOf("uluna")
 			vested := balance.Add(v.DelegatedFree.AmountOf("uluna"))
 			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
