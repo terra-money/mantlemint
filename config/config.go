@@ -2,24 +2,26 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	terra "github.com/terra-money/core/v2/app"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 type Config struct {
-	GenesisPath  string
-	Home         string
-	ChainID      string
-	RPCEndpoints []string
-	WSEndpoints  []string
-	MantlemintDB string
-	IndexerDB    string
-	DisableSync  bool
+	GenesisPath        string
+	Home               string
+	ChainID            string
+	RPCEndpoints       []string
+	WSEndpoints        []string
+	MantlemintDB       string
+	IndexerDB          string
+	DisableSync        bool
+	EnableExportModule bool
 }
 
 // NewConfig converts envvars into consumable config chunks
@@ -63,6 +65,11 @@ func NewConfig() Config {
 		DisableSync: func() bool {
 			disableSync := getValidEnv("DISABLE_SYNC")
 			return disableSync == "true"
+		}(),
+
+		EnableExportModule: func() bool {
+			enableExport := getValidEnv("ENABLE_EXPORT_MODULE")
+			return enableExport == "true"
 		}(),
 	}
 
