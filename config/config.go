@@ -92,7 +92,7 @@ func NewConfig() Config {
 }
 
 func (cfg Config) Print() {
-	fmt.Println(cfg)
+	fmt.Printf("%+v\n", cfg)
 }
 
 func getValidEnv(tag string) string {
