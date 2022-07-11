@@ -40,7 +40,7 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 		// nop
 		return nil
 	}
-	defer fmt.Printf("[indexer/richlist] indexing done for height %d\n", block.Height)
+	defer fmt.Printf("[indexer/richlist] indexing done for height %d - %d items are in richlist\n", block.Height, richlist.Len())
 
 	if height == 2 || richlist.Len() < cfg.RichlistLength { // genesis or lack of items
 		fmt.Printf("[indexer/richlist] generate list from states... height:%d, len:%d\n", height, richlist.Len())
@@ -72,12 +72,10 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 		events = append(events, tx.GetEvents()...)
 	}
 	events = append(events, evc.ResponseEndBlock.GetEvents()...)
-	fmt.Printf("[DEBUG] events: %d\n", len(events))
 	changes, err := filterCoinChanges(events, defaultDenom)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("[DEBUG] %d balance-changed accounts: %+v\n", len(changes), changes)
 
 	// apply changes into richlist
 	err = richlist.Apply(changes, app, height, defaultDenom)
@@ -96,8 +94,6 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 		return err
 	}
 
-	fmt.Printf("[DEBUG] rank length: %d / saved: %d - at height %d\n", richlist.Len(), extracted.Len(), height)
-
 	// save exracted one
 	// save one for latest
 	err = indexerDB.Set(getDefaultKey(0), richlistJSON)
@@ -115,14 +111,12 @@ func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block
 	ctx := app.NewContext(true, tmproto.Header{Height: int64(height)})
 	// Should use lastest block time
 	app.BankKeeper.IterateAllBalances(ctx, func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		fmt.Printf("iterate: %s / %s\n", address.String(), coin.String())
 		if coin.Denom != denom {
 			return false
 		}
 		if err = list.Rank(Ranker{Addresses: []string{address.String()}, Score: coin}); err != nil {
 			return true
 		}
-		fmt.Printf("rank from state - addr:%s amount:%s / len:%d\n", address.String(), coin.Amount.String(), list.Rankers.Len())
 		return false // don't return true. true will halt this iteration
 	})
 
@@ -134,10 +128,6 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 	coinMap := make(map[string]sdk.Int)
 
 	for _, event := range events {
-		fmt.Printf("[DEBUG] EVENT: %s\n", event.GetType())
-		for _, a := range event.GetAttributes() {
-			fmt.Printf("[DEBUG]     ATTRIBUTES %s\n", a.String())
-		}
 		var address string
 		var changing *sdk.Int
 
@@ -147,7 +137,6 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 				return nil, fmt.Errorf("invalid event found: %+v", event.String())
 			}
 			prev, found := coinMap[address]
-			fmt.Printf("[indexer/richlist/debug] decreasing: %s / %s - %s\n", address, prev.String(), changing.String())
 			if !found {
 				coinMap[address] = sdk.ZeroInt().Sub(*changing)
 			} else {
@@ -159,7 +148,6 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 				return nil, fmt.Errorf("invalid event found: %+v", event.String())
 			}
 			prev, found := coinMap[address]
-			fmt.Printf("[indexer/richlist/debug] increasing: %s / %s + %s\n", address, prev.String(), changing.String())
 			if !found {
 				coinMap[address] = *changing
 			} else {
@@ -192,10 +180,8 @@ func extractChange(attrs []abci.EventAttribute, attributeKey string, denom strin
 			amount = &amtInt
 		}
 		if address != "" && amount != nil {
-			fmt.Printf("extracted change: %s / %s\n", address, amount.String())
 			return
 		}
 	}
-	fmt.Printf("extracted change: %s / %s\n", address, amount.String())
 	return
 }
