@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime/debug"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
@@ -20,7 +21,6 @@ import (
 	terra "github.com/terra-money/core/v2/app"
 	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/heleveldb"
@@ -28,6 +28,7 @@ import (
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/indexer/block"
+	"github.com/terra-money/mantlemint/indexer/richlist"
 	"github.com/terra-money/mantlemint/indexer/tx"
 	"github.com/terra-money/mantlemint/mantlemint"
 	"github.com/terra-money/mantlemint/rpc"
@@ -38,7 +39,7 @@ import (
 
 // initialize mantlemint for v0.34.x
 func main() {
-	mantlemintConfig := config.NewConfig()
+	mantlemintConfig := config.GetConfig()
 	mantlemintConfig.Print()
 
 	sdkConfig := sdk.GetConfig()
@@ -162,13 +163,14 @@ func main() {
 	)
 
 	// create indexer service
-	indexerInstance, indexerInstanceErr := indexer.NewIndexer("indexer", mantlemintConfig.Home)
+	indexerInstance, indexerInstanceErr := indexer.NewIndexer("indexer", mantlemintConfig.Home, app)
 	if indexerInstanceErr != nil {
 		panic(indexerInstanceErr)
 	}
 
 	indexerInstance.RegisterIndexerService("tx", tx.IndexTx)
 	indexerInstance.RegisterIndexerService("block", block.IndexBlock)
+	indexerInstance.RegisterIndexerService("richlist", richlist.IndexRichlist)
 
 	abcicli, _ := appCreator.NewABCIClient()
 	rpccli := rpc.NewRpcClient(abcicli)
@@ -190,6 +192,7 @@ func main() {
 		func(router *mux.Router) {
 			indexerInstance.RegisterRESTRoute(router, tx.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, block.RegisterRESTRoute)
+			indexerInstance.RegisterRESTRoute(router, richlist.RegisterRESTRoute)
 		},
 
 		// inject flag checker for synced

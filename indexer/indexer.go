@@ -2,21 +2,25 @@ package indexer
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	terra "github.com/terra-money/core/v2/app"
+	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/db/snappy"
 	"github.com/terra-money/mantlemint/mantlemint"
-	"time"
 )
 
 type Indexer struct {
 	db          tmdb.DB
 	indexerTags []string
 	indexers    []IndexFunc
+	app         *terra.TerraApp
 }
 
-func NewIndexer(dbName, path string) (*Indexer, error) {
+func NewIndexer(dbName, path string, app *terra.TerraApp) (*Indexer, error) {
 	indexerDB, indexerDBError := tmdb.NewGoLevelDB(dbName, path)
 	if indexerDBError != nil {
 		return nil, indexerDBError
@@ -28,6 +32,7 @@ func NewIndexer(dbName, path string) (*Indexer, error) {
 		db:          indexerDBCompressed,
 		indexerTags: []string{},
 		indexers:    []IndexFunc{},
+		app:         app,
 	}, nil
 }
 
@@ -37,21 +42,21 @@ func (idx *Indexer) RegisterIndexerService(tag string, indexerFunc IndexFunc) {
 }
 
 func (idx *Indexer) Run(block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector) error {
-	batch := idx.db.NewBatch()
+	//batch := idx.db.NewBatch()
+	batch := safe_batch.NewSafeBatchDB(idx.db)
+	batchedOrigin := batch.(safe_batch.SafeBatchDBCloser)
+	batchedOrigin.Open()
+
 	tStart := time.Now()
 	for _, indexerFunc := range idx.indexers {
-		if indexerErr := indexerFunc(batch, block, blockId, evc); indexerErr != nil {
+		if indexerErr := indexerFunc(*batch.(*safe_batch.SafeBatchDB), block, blockId, evc, idx.app); indexerErr != nil {
 			return indexerErr
 		}
 	}
 	tEnd := time.Now()
 	fmt.Printf("[indexer] finished %d indexers, %dms\n", len(idx.indexers), tEnd.Sub(tStart).Milliseconds())
 
-	if err := batch.WriteSync(); err != nil {
-		return err
-	}
-
-	if err := batch.Close(); err != nil {
+	if _, err := batchedOrigin.Flush(); err != nil {
 		return err
 	}
 

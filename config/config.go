@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -22,10 +23,23 @@ type Config struct {
 	IndexerDB          string
 	DisableSync        bool
 	EnableExportModule bool
+	RichlistLength     int
+	RichlistThreshold  int64
 }
 
-// NewConfig converts envvars into consumable config chunks
-func NewConfig() Config {
+var singleton Config
+
+func init() {
+	singleton = newConfig()
+}
+
+// GetConfig returns singleton config
+func GetConfig() *Config {
+	return &singleton
+}
+
+// newConfig converts envvars into consumable config chunks
+func newConfig() Config {
 	cfg := Config{
 		// GenesisPath sets the location of genesis
 		GenesisPath: getValidEnv("GENESIS_PATH"),
@@ -70,6 +84,39 @@ func NewConfig() Config {
 		EnableExportModule: func() bool {
 			enableExport := getValidEnv("ENABLE_EXPORT_MODULE")
 			return enableExport == "true"
+		}(),
+
+		// RichlistLength have to be greater than or equal to 0, richlist function will be off if length is 0
+		RichlistLength: func() int {
+			lengthStr := getValidEnv("RICHLIST_LENGTH")
+			length, err := strconv.Atoi(lengthStr)
+			if err != nil {
+				panic(err)
+			}
+			if length < 0 {
+				panic(fmt.Errorf("RICHLIST_LENGTH(%s) is invalid", lengthStr))
+			}
+			return length
+		}(),
+
+		// RichlistThreshold (unit:LUNA, not uluna)
+		RichlistThreshold: func() int64 {
+			// don't need to read threshold env if the length of richlist is 0
+			lengthStr := getValidEnv("RICHLIST_LENGTH")
+			length, _ := strconv.Atoi(lengthStr)
+			if length == 0 {
+				return 0
+			}
+
+			thresholdStr := getValidEnv("RICHLIST_THRESHOLD")
+			threshold, err := strconv.ParseInt(thresholdStr, 10, 64)
+			if err != nil {
+				panic(err)
+			}
+			if threshold < 1 {
+				panic(fmt.Errorf("RICHLIST_THRESHOLD(%s) is invalid", thresholdStr))
+			}
+			return threshold
 		}(),
 	}
 

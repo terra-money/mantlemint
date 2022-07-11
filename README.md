@@ -94,12 +94,18 @@ DISABLE_SYNC=false \
 # Flag to enable/disable export module. Used for accounts export and circulating supply endpoint
 ENABLE_EXPORT_MODULE=true \
 
-# Run sync binary (compiled with `go build sync.go`)
-sync
+# Length of richlist. it have to be greater than or equal to 0, richlist function will be off if length is 0
+RICHLIST_LENGTH=100
+
+# Threshold(the minimum amount) of richlist. unit: luna (not uluna)
+RICHLIST_THRESHOLD=1000000
+
+# Run sync binary (compiled with `make install`)
+mantlemint
 
 # Optional: crisis module's invariant check is known to take hours.
 # You can skip it by providing --x-crisis-skip-assert-invariants flag
-sync --x-crisis-skip-assert-invariants
+mantlemint --x-crisis-skip-assert-invariants
 ```
 
 ### Adjusting smart contract memory cache size
@@ -128,6 +134,7 @@ Please note that mantlemint is still able to serve queries while `/health` retur
 
 - `/index/tx/by_height/{height}`: List all transactions and their responses in a block. Equivalent to `tendermint/block?height=xxx`, with tx responses base64-decoded for better usability.
 - `/index/tx/by_hash/{txHash}`: Get transaction and its response by hash. Equivalent to `lcd/txs/{hash}`, but without hitting RPC.
+- `/index/richlist/{height}`: Get a richlist at the given height. Height supports `latest`.
 
 ## Notable Differences from [core](https://github.com/terra-money/core)
 
