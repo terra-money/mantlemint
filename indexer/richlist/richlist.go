@@ -8,6 +8,7 @@ import (
 	tm "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/config"
@@ -59,7 +60,7 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 			if err != nil {
 				return err
 			}
-			err = indexerDB.Set(getDefaultKey(0), richlistJSON)
+			err = indexerDB.Set(getDefaultKey(1), richlistJSON)
 			if err != nil {
 				return err
 			}
@@ -109,15 +110,16 @@ func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block
 	list = NewRichlist(height, &threshold)
 
 	ctx := app.NewContext(true, tmproto.Header{Height: int64(height)})
-	// Should use lastest block time
-	app.BankKeeper.IterateAllBalances(ctx, func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		if coin.Denom != denom {
+
+	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+		if _, isModule := account.(*authtypes.ModuleAccount); isModule {
 			return false
 		}
-		if err = list.Rank(Ranker{Addresses: []string{address.String()}, Score: coin}); err != nil {
-			return true
+		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), denom)
+		if err = list.Rank(Ranker{Addresses: []string{account.GetAddress().String()}, Score: balance}); err != nil {
+			return true // stop iteration and return err
 		}
-		return false // don't return true. true will halt this iteration
+		return false
 	})
 
 	return list, err

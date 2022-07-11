@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/google/btree"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	terra "github.com/terra-money/core/v2/app"
@@ -171,6 +172,14 @@ func (list *Richlist) Apply(changes []changing, app *terra.TerraApp, height uint
 
 	for _, item := range changes {
 		accAddress, _ := sdk.AccAddressFromBech32(item.AccAddresses[0]) // a ranker have only one address
+
+		// skip module accounts
+		account := app.AccountKeeper.GetAccount(ctx, accAddress)
+		_, isModule := account.(*authtypes.ModuleAccount)
+		if isModule {
+			continue
+		}
+
 		amountPrev := app.BankKeeper.GetBalance(ctx, accAddress, denom)
 		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(item.Amount))
 

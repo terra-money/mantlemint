@@ -19,7 +19,7 @@ var (
 
 var (
 	ErrorInvalidHeight    = func(height string) string { return fmt.Sprintf("invalid height %s", height) }
-	ErrorRichlistNotFound = func(height string) string { return fmt.Sprintf("richlist %s not found... yet.", height) }
+	ErrorRichlistNotFound = func(height string) string { return fmt.Sprintf("richlist at %s not found... yet.", height) }
 )
 
 func richlistByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, error) {
