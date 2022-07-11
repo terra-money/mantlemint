@@ -134,7 +134,8 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		if event.Type == eventCoinSpent {
 			address, changing = extractChange(event.GetAttributes(), attrSpender, denom)
 			if address == "" || changing == nil {
-				return nil, fmt.Errorf("invalid event found: %+v", event.String())
+				fmt.Printf("invalid spent event found: %+v", event.String())
+				continue
 			}
 			prev, found := coinMap[address]
 			if !found {
@@ -145,7 +146,8 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		} else if event.Type == eventCoinReceived {
 			address, changing = extractChange(event.GetAttributes(), attrReceiver, denom)
 			if address == "" || changing == nil {
-				return nil, fmt.Errorf("invalid event found: %+v", event.String())
+				fmt.Printf("invalid receive event found: %+v", event.String())
+				continue
 			}
 			prev, found := coinMap[address]
 			if !found {
