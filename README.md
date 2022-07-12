@@ -97,8 +97,10 @@ ENABLE_EXPORT_MODULE=true \
 # Length of richlist. it have to be greater than or equal to 0, richlist function will be off if length is 0
 RICHLIST_LENGTH=100
 
-# Threshold(the minimum amount) of richlist. ex: 100,000,000,000uluna for 100,000LUNA
-RICHLIST_THRESHOLD=100000000000uluna
+# Threshold(the minimum amount) of richlist
+# NOTE: this is *not* low limit of the richlist to be shown
+#       this is about internal parameter to manage memory usage.
+RICHLIST_THRESHOLD=10000000000uluna
 
 # Run sync binary (compiled with `make install`)
 mantlemint

@@ -18,20 +18,19 @@ import (
 )
 
 const (
-	eventCoinSpent    = "coin_spent"
-	eventCoinReceived = "coin_received"
-	attrSpender       = "spender"
-	attrReceiver      = "receiver"
-	attrAmount        = "amount"
+	eventCoinSpent         = "coin_spent"
+	eventCoinReceived      = "coin_received"
+	eventCompleteUnbonding = "complete_unbonding"
+	attrSpender            = "spender"
+	attrReceiver           = "receiver"
+	attrAmount             = "amount"
+	attrDelegator          = "delegator"
 )
 
-//var cdc = terra.MakeEncodingConfig()
+var cfg = config.GetConfig()
 
-// global/static and the latest richlist
 // for now, we only handle a richlist for LUNA
 var richlist = NewRichlist(0, cfg.RichlistThreshold)
-
-var cfg = config.GetConfig()
 
 var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector, app *terra.TerraApp) (err error) {
 	height := uint64(block.Height)
@@ -77,6 +76,13 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 	if err != nil {
 		return err
 	}
+	/** debug
+	fmt.Printf("======================================================================================\n")
+	for _, event := range events {
+		fmt.Printf("%+v\n", event.String())
+	}
+	fmt.Printf("======================================================================================\n")
+	*/
 
 	// apply changes into richlist
 	err = richlist.Apply(changes, app, height, richlist.threshold.Denom)
@@ -132,7 +138,8 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		var address string
 		var changing *sdk.Int
 
-		if event.Type == eventCoinSpent {
+		switch event.Type {
+		case eventCoinSpent:
 			address, changing = extractChange(event.GetAttributes(), attrSpender, denom)
 			if address == "" || changing == nil {
 				fmt.Printf("invalid spent event found: %+v", event.String())
@@ -144,10 +151,22 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 			} else {
 				coinMap[address] = prev.Sub(*changing)
 			}
-		} else if event.Type == eventCoinReceived {
+		case eventCoinReceived:
 			address, changing = extractChange(event.GetAttributes(), attrReceiver, denom)
 			if address == "" || changing == nil {
 				fmt.Printf("invalid receive event found: %+v", event.String())
+				continue
+			}
+			prev, found := coinMap[address]
+			if !found {
+				coinMap[address] = *changing
+			} else {
+				coinMap[address] = prev.Add(*changing)
+			}
+		case eventCompleteUnbonding:
+			address, changing = extractChange(event.GetAttributes(), attrDelegator, denom)
+			if address == "" || changing == nil {
+				fmt.Printf("invalid unbonding complete event found: %+v", event.String())
 				continue
 			}
 			prev, found := coinMap[address]
