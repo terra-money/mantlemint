@@ -12,16 +12,6 @@ import (
 	"github.com/terra-money/mantlemint/lib"
 )
 
-const (
-	defaultDenom = "uluna"
-	decimal      = int64(10 ^ 6) // explicitly casted to int64
-)
-
-var (
-	threshold     = cfg.RichlistThreshold
-	thresholdLuna = sdk.NewCoin(defaultDenom, sdk.NewInt(threshold*decimal))
-)
-
 // keys for storage
 var (
 	prefix = []byte("richlist/height:")
@@ -29,7 +19,7 @@ var (
 		return lib.ConcatBytes(prefix, lib.UintToBigEndian(height), []byte(":"), []byte(denom))
 	}
 	getDefaultKey = func(height uint64) []byte {
-		return getKey(height, defaultDenom)
+		return getKey(height, cfg.RichlistThreshold.Denom)
 	}
 )
 

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -24,7 +25,7 @@ type Config struct {
 	DisableSync        bool
 	EnableExportModule bool
 	RichlistLength     int
-	RichlistThreshold  int64
+	RichlistThreshold  *sdk.Coin
 }
 
 var singleton Config
@@ -99,24 +100,20 @@ func newConfig() Config {
 			return length
 		}(),
 
-		// RichlistThreshold (unit:LUNA, not uluna)
-		RichlistThreshold: func() int64 {
+		// RichlistThreshold (format: {amount}{denom} like 1000000000000uluna)
+		RichlistThreshold: func() *sdk.Coin {
 			// don't need to read threshold env if the length of richlist is 0
 			lengthStr := getValidEnv("RICHLIST_LENGTH")
 			length, _ := strconv.Atoi(lengthStr)
 			if length == 0 {
-				return 0
+				return nil
 			}
 
-			thresholdStr := getValidEnv("RICHLIST_THRESHOLD")
-			threshold, err := strconv.ParseInt(thresholdStr, 10, 64)
+			thresholdCoin, err := sdk.ParseCoinNormalized(getValidEnv("RICHLIST_THRESHOLD"))
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("RICHLIST_THRESHOLD is invalid: %v", err))
 			}
-			if threshold < 1 {
-				panic(fmt.Errorf("RICHLIST_THRESHOLD(%s) is invalid", thresholdStr))
-			}
-			return threshold
+			return &thresholdCoin
 		}(),
 	}
 

@@ -29,7 +29,7 @@ const (
 
 // global/static and the latest richlist
 // for now, we only handle a richlist for LUNA
-var richlist = NewRichlist(0, &thresholdLuna)
+var richlist = NewRichlist(0, cfg.RichlistThreshold)
 
 var cfg = config.GetConfig()
 
@@ -45,7 +45,7 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 
 	if height == 2 || richlist.Len() < cfg.RichlistLength { // genesis or lack of items
 		fmt.Printf("[indexer/richlist] generate list from states... height:%d, len:%d\n", height, richlist.Len())
-		list, err := generateRichlistFromState(indexerDB, block, blockID, evc, app, height-1, richlist.threshold.Denom)
+		list, err := generateRichlistFromState(indexerDB, block, blockID, evc, app, height-1, *richlist.threshold)
 		if err != nil {
 			return err
 		}
@@ -73,13 +73,13 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 		events = append(events, tx.GetEvents()...)
 	}
 	events = append(events, evc.ResponseEndBlock.GetEvents()...)
-	changes, err := filterCoinChanges(events, defaultDenom)
+	changes, err := filterCoinChanges(events, richlist.threshold.Denom)
 	if err != nil {
 		return err
 	}
 
 	// apply changes into richlist
-	err = richlist.Apply(changes, app, height, defaultDenom)
+	err = richlist.Apply(changes, app, height, richlist.threshold.Denom)
 	if err != nil {
 		return err
 	}
@@ -105,8 +105,7 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 	return indexerDB.Set(getDefaultKey(height), richlistJSON)
 })
 
-func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector, app *terra.TerraApp, height uint64, denom string) (list *Richlist, err error) {
-	threshold := sdk.NewCoin(denom, sdk.NewInt(threshold*decimal))
+func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector, app *terra.TerraApp, height uint64, threshold sdk.Coin) (list *Richlist, err error) {
 	list = NewRichlist(height, &threshold)
 
 	ctx := app.NewContext(true, tmproto.Header{Height: int64(height)})
@@ -115,7 +114,7 @@ func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block
 		if _, isModule := account.(*authtypes.ModuleAccount); isModule {
 			return false
 		}
-		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), denom)
+		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), threshold.Denom)
 		if err = list.Rank(Ranker{Addresses: []string{account.GetAddress().String()}, Score: balance}); err != nil {
 			return true // stop iteration and return err
 		}
