@@ -220,8 +220,6 @@ github.com/coreos/pkg v0.0.0-20160727233714-3ac0863d7acf/go.mod h1:E3G3o1h8I7cfc
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/cosmos/btcutil v1.0.4 h1:n7C2ngKXo7UC9gNyMNLbzqz7Asuf+7Qv4gnX/rOdQ44=
 github.com/cosmos/btcutil v1.0.4/go.mod h1:Ffqc8Hn6TJUdDgHBwIZLtrLQC1KdJ9jGJl/TvgUaxbU=
-github.com/cosmos/cosmos-sdk v0.45.4 h1:eStDAhJdMY8n5arbBRe+OwpNeBSunxSBHp1g55ulfdA=
-github.com/cosmos/cosmos-sdk v0.45.4/go.mod h1:WOqtDxN3eCCmnYLVla10xG7lEXkFjpTaqm2a2WasgCc=
 github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
@@ -946,6 +944,8 @@ github.com/tendermint/tendermint v0.34.19 h1:y0P1qI5wSa9IRuhKnTDA6IUcOrLi1hXJuAL
 github.com/tendermint/tendermint v0.34.19/go.mod h1:R5+wgIwSxMdKQcmOaeudL0Cjkr3HDkhpcdum6VeU3R4=
 github.com/terra-money/core/v2 v2.1.0-beta.1 h1:wAX9qZ3AQsPvXLOHZoMgUabQmixDqoeNrgqJatDukm4=
 github.com/terra-money/core/v2 v2.1.0-beta.1/go.mod h1:LYFB8XUwEcx4jldKD+ODRZUbK+2CrVdAQqfCMsbfgl0=
+github.com/terra-money/cosmos-sdk v0.45.6-terra.1 h1:cBDp0GSPz4myc0ayOvUhpGK5jCMbB+uDVibFpgXrlYE=
+github.com/terra-money/cosmos-sdk v0.45.6-terra.1/go.mod h1:bPeeVMEtVvH3y3xAGHVbK+/CZlpaazzh77hG8ZrcJpI=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
 github.com/terra-money/ledger-terra-go v0.11.2/go.mod h1:ClJ2XMj1ptcnONzKH+GhVPi7Y8pXIT+UzJ0TNt0tfZE=
 github.com/terra-money/tm-db v0.6.4-performance.7 h1:eS7qNoUf+a0A0nWRieFg1iNneBaf80TMkShPLE8onnM=
