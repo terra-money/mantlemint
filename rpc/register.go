@@ -31,7 +31,7 @@ func StartRPC(
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
 	getIsSynced func() bool,
-	mantlemintConfig mconfig.Config,
+	mantlemintConfig *mconfig.Config,
 ) error {
 	vp := viper.GetViper()
 	cfg := config.GetConfig(vp)

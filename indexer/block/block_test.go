@@ -2,12 +2,14 @@ package block
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmdb "github.com/tendermint/tm-db"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint/db/safe_batch"
 )
 
 func TestIndexBlock(t *testing.T) {
@@ -18,12 +20,12 @@ func TestIndexBlock(t *testing.T) {
 	record := BlockRecord{}
 	_ = tmjson.Unmarshal(blockJSON, &record)
 
-	batch := db.NewBatch()
-	if err := IndexBlock(batch, record.Block, record.BlockID, nil); err != nil {
+	batch := safe_batch.NewSafeBatchDB(db)
+	batch.(safe_batch.SafeBatchDBCloser).Open()
+	if err := IndexBlock(*batch.(*safe_batch.SafeBatchDB), record.Block, record.BlockID, nil, nil); err != nil {
 		panic(err)
 	}
-	_ = batch.WriteSync()
-	_ = batch.Close()
+	batch.(safe_batch.SafeBatchDBCloser).Flush()
 
 	block, err := blockByHeightHandler(db, "4724005")
 	assert.Nil(t, err)

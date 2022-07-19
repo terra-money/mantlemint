@@ -1,16 +1,19 @@
 package indexer
 
 import (
-	"github.com/gorilla/mux"
-	tm "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint/mantlemint"
 	"log"
 	"net/http"
 	"runtime"
+
+	"github.com/gorilla/mux"
+	tm "github.com/tendermint/tendermint/types"
+	tmdb "github.com/tendermint/tm-db"
+	terra "github.com/terra-money/core/v2/app"
+	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/mantlemint"
 )
 
-type IndexFunc func(indexerDB tmdb.Batch, block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector) error
+type IndexFunc func(indexerDB safe_batch.SafeBatchDB, block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector, app *terra.TerraApp) error
 type ClientHandler func(w http.ResponseWriter, r *http.Request) error
 type RESTRouteRegisterer func(router *mux.Router, indexerDB tmdb.DB)
 

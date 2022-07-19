@@ -2,14 +2,16 @@ package tx
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/mantlemint"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestIndexTx(t *testing.T) {
@@ -31,12 +33,11 @@ func TestIndexTx(t *testing.T) {
 
 	_ = evc.PublishEventTx(event)
 
-	batch := db.NewBatch()
-	if err := IndexTx(batch, block, nil, evc); err != nil {
+	safebatch := safe_batch.NewSafeBatchDB(db)
+	if err := IndexTx(*safebatch.(*safe_batch.SafeBatchDB), block, nil, evc, nil); err != nil {
 		panic(err)
 	}
-	_ = batch.WriteSync()
-	_ = batch.Close()
+	safebatch.(safe_batch.SafeBatchDBCloser).Flush()
 
 	txn, err := txByHashHandler(db, "C794D5CE7179AED455C10E8E7645FE8F8A40BA0C97F1275AB87B5E88A52CB2C3")
 	assert.Nil(t, err)

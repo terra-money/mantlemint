@@ -2,9 +2,10 @@ package tx
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
+
+	"github.com/pkg/errors"
 
 	"github.com/gorilla/mux"
 	tmdb "github.com/tendermint/tm-db"

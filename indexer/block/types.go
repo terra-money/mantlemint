@@ -11,6 +11,6 @@ var getKey = func(height uint64) []byte {
 }
 
 type BlockRecord struct {
-	BlockID *tm.BlockID `json:"block_id""`
+	BlockID *tm.BlockID `json:"block_id"`
 	Block   *tm.Block   `json:"block"`
 }
