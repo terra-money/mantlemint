@@ -2,9 +2,10 @@ package tx
 
 import (
 	"encoding/json"
+	"time"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/terra-money/mantlemint/lib"
-	"time"
 )
 
 type TxRecord struct {

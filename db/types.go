@@ -1,4 +1,3 @@
-
 package db
 
 // DB defines mantlemint specific db interface, based off tm-db@0.6.4.

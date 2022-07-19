@@ -8,5 +8,3 @@ var getKey = func() []byte {
 type HeightRecord struct {
 	Height uint64 `json:"height"`
 }
-
-
