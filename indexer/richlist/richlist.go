@@ -18,6 +18,10 @@ import (
 )
 
 const (
+	haltOnApplyFailure = false
+)
+
+const (
 	eventCoinSpent         = "coin_spent"
 	eventCoinReceived      = "coin_received"
 	eventCompleteUnbonding = "complete_unbonding"
@@ -79,7 +83,7 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 
 	// apply changes into richlist
 	err = richlist.Apply(changes, app, height, richlist.threshold.Denom)
-	if err != nil {
+	if err != nil && haltOnApplyFailure {
 		return err
 	}
 	richlist.Height = height
