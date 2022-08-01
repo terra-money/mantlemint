@@ -99,7 +99,7 @@ func (list *Richlist) Unrank(ranker Ranker) (err error) {
 	}
 	item := list.Rankers.Get(ranker)
 	if item == nil {
-		return nil
+		return fmt.Errorf("failed to unkrank: cannot find %+v", ranker)
 	}
 
 	unranked := item.(Ranker)
@@ -157,11 +157,11 @@ func (list Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extra
 	return
 }
 
-func (list *Richlist) Apply(changes []changing, app *terra.TerraApp, height uint64, denom string) (err error) {
+func (list *Richlist) Apply(changes map[string]sdk.Int, app *terra.TerraApp, height uint64, denom string) (err error) {
 	ctx := app.NewContext(true, tmproto.Header{})
 
-	for _, item := range changes {
-		accAddress, _ := sdk.AccAddressFromBech32(item.AccAddresses[0]) // a ranker have only one address
+	for address, amount := range changes {
+		accAddress, _ := sdk.AccAddressFromBech32(address) // a ranker have only one address
 
 		// skip module accounts
 		account := app.AccountKeeper.GetAccount(ctx, accAddress)
@@ -171,9 +171,9 @@ func (list *Richlist) Apply(changes []changing, app *terra.TerraApp, height uint
 		}
 
 		amountPrev := app.BankKeeper.GetBalance(ctx, accAddress, denom)
-		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(item.Amount))
+		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(amount))
 
-		ranker := Ranker{Addresses: item.AccAddresses}
+		ranker := Ranker{Addresses: []string{address}}
 		// remove outdated rank
 		ranker.Score = amountPrev
 		err = list.Unrank(ranker)
@@ -213,11 +213,4 @@ func (list Richlist) MarshalJSON() (b []byte, err error) {
 	})
 
 	return json.Marshal(l)
-}
-
-// internal use only to track balance-changing
-// We cannot re-use Ranker because sdk.Coin occurs panic if amount is negative.
-type changing struct {
-	AccAddresses []string
-	Amount       sdk.Int
 }
