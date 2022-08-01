@@ -76,13 +76,6 @@ var IndexRichlist = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB,
 	if err != nil {
 		return err
 	}
-	/** debug
-	fmt.Printf("======================================================================================\n")
-	for _, event := range events {
-		fmt.Printf("%+v\n", event.String())
-	}
-	fmt.Printf("======================================================================================\n")
-	*/
 
 	// apply changes into richlist
 	err = richlist.Apply(changes, app, height, richlist.threshold.Denom)
@@ -131,8 +124,8 @@ func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block
 }
 
 // ranker.Amount will be used as differential
-func filterCoinChanges(events []abci.Event, denom string) (addresses []changing, err error) {
-	coinMap := make(map[string]sdk.Int)
+func filterCoinChanges(events []abci.Event, denom string) (coinMap map[string]sdk.Int, err error) {
+	coinMap = make(map[string]sdk.Int)
 
 	for _, event := range events {
 		var address string
@@ -142,7 +135,7 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		case eventCoinSpent:
 			address, changing = extractChange(event.GetAttributes(), attrSpender, denom)
 			if address == "" || changing == nil {
-				fmt.Printf("invalid spent event found: %+v", event.String())
+				fmt.Printf("invalid spent event found: %+v\n", event.String())
 				continue
 			}
 			prev, found := coinMap[address]
@@ -154,7 +147,7 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		case eventCoinReceived:
 			address, changing = extractChange(event.GetAttributes(), attrReceiver, denom)
 			if address == "" || changing == nil {
-				fmt.Printf("invalid receive event found: %+v", event.String())
+				fmt.Printf("invalid receive event found: %+v\n", event.String())
 				continue
 			}
 			prev, found := coinMap[address]
@@ -166,7 +159,7 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		case eventCompleteUnbonding:
 			address, changing = extractChange(event.GetAttributes(), attrDelegator, denom)
 			if address == "" || changing == nil {
-				fmt.Printf("invalid unbonding complete event found: %+v", event.String())
+				fmt.Printf("invalid unbonding complete event found: %+v\n", event.String())
 				continue
 			}
 			prev, found := coinMap[address]
@@ -178,9 +171,6 @@ func filterCoinChanges(events []abci.Event, denom string) (addresses []changing,
 		}
 		// nop for other events
 	}
-	for addr, amount := range coinMap {
-		addresses = append(addresses, changing{AccAddresses: []string{addr}, Amount: amount})
-	}
 	return
 }
 
@@ -190,16 +180,17 @@ func extractChange(attrs []abci.EventAttribute, attributeKey string, denom strin
 		if key == attributeKey {
 			address = string(attr.GetValue())
 		} else if key == attrAmount {
-			//coin, err := sdk.ParseDecCoin(string(attr.GetValue()))
-			coin, err := sdk.ParseCoinNormalized(string(attr.GetValue()))
+			coins, err := sdk.ParseCoinsNormalized(string(attr.GetValue()))
 			if err != nil {
 				return "", nil
 			}
-			if coin.GetDenom() != denom {
-				continue
+			for _, coin := range coins {
+				if coin.GetDenom() != denom {
+					continue
+				}
+				amtInt := sdk.NewIntFromBigInt(coin.Amount.BigInt())
+				amount = &amtInt
 			}
-			amtInt := sdk.NewIntFromBigInt(coin.Amount.BigInt())
-			amount = &amtInt
 		}
 		if address != "" && amount != nil {
 			return
