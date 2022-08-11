@@ -160,18 +160,6 @@ func filterCoinChanges(events []abci.Event, denom string) (coinMap map[string]sd
 			} else {
 				coinMap[address] = prev.Add(*changing)
 			}
-		case eventCompleteUnbonding:
-			address, changing = extractChange(event.GetAttributes(), attrDelegator, denom)
-			if address == "" || changing == nil {
-				fmt.Printf("invalid unbonding complete event found: %+v\n", event.String())
-				continue
-			}
-			prev, found := coinMap[address]
-			if !found {
-				coinMap[address] = *changing
-			} else {
-				coinMap[address] = prev.Add(*changing)
-			}
 		}
 		// nop for other events
 	}
