@@ -27,7 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: featherd/mantlemint
+          images: terraformlabs/mantlemint
           tags: |
             type=sha,prefix=
             type=sha,format=long,prefix=
