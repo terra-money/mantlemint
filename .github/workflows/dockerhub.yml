@@ -33,7 +33,7 @@ jobs:
           tags: |
             type=sha,prefix=
             type=sha,format=long,prefix=
-            type=raw,value=feather
+            type=raw,value=latest
             # type=ref,event=branch
             # type=sha,prefix={{branch}}-
             # type=sha,format=long,prefix={{branch}}-
