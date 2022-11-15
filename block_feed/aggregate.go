@@ -27,13 +27,46 @@ func NewAggregateBlockFeed(
 	rpcEndpoints []string,
 	wsEndpoints []string,
 ) *AggregateSubscription {
-	var rpc, rpcErr = NewRpcSubscription(rpcEndpoints)
+	var rpc *RPCSubscription
+	var ws *WSSubscription
+	var rpcErr error
+	var wsErr error
+
+	retry.Do(
+		func() error {
+			rpc, rpcErr = NewRpcSubscription(rpcEndpoints)
+			if rpcErr != nil {
+				return rpcErr
+			}
+			return nil
+		},
+		retry.OnRetry(func(n uint, err error) {
+			log.Printf("Unable to subscribe to an RPC, Retrying... %v", err)
+		}),
+		retry.Delay(time.Duration(10)*time.Second),
+		retry.Attempts(3000),
+	)
+
 	if rpcErr != nil {
 		panic(rpcErr)
 	}
 
 	// ws starts with 1st occurrence of ws endpoints
-	var ws, wsErr = NewWSSubscription(wsEndpoints)
+	retry.Do(
+		func() error {
+			ws, wsErr = NewWSSubscription(wsEndpoints)
+			if wsErr != nil {
+				return wsErr
+			}
+			return nil
+		},
+		retry.OnRetry(func(n uint, err error) {
+			log.Printf("Unable to subscribe to websocket, Retrying... %v", err)
+		}),
+		retry.Delay(time.Duration(10)*time.Second),
+		retry.Attempts(3000),
+	)
+
 	if wsErr != nil {
 		panic(wsErr)
 	}
@@ -51,24 +84,10 @@ func NewAggregateBlockFeed(
 
 func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 	// create rpc subscriber
-	var cRpc chan *BlockResult
-	var cRpcErr error
-
-	retry.Do(
-		func() error {
-			cRpc, cRpcErr = ags.rpc.Subscribe(rpcIndex)
-			if cRpcErr != nil {
-				return cRpcErr
-			}
-
-			return nil
-		},
-		retry.OnRetry(func(n uint, err error) {
-			log.Printf("Retrying... %v", err)
-		}),
-		retry.Delay(time.Duration(10)*time.Second),
-		retry.Attempts(3000),
-	)
+	cRpc, cRpcErr := ags.rpc.Subscribe(rpcIndex)
+	if cRpcErr != nil {
+		return nil, cRpcErr
+	}
 
 	// create websocket subscriber
 	cWS, cWSErr := ags.ws.Subscribe(rpcIndex)
