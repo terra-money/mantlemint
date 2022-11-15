@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - feat/docker-entrypoint
 
 jobs:
   build:
