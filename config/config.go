@@ -15,17 +15,19 @@ import (
 )
 
 type Config struct {
-	GenesisPath        string
-	Home               string
-	ChainID            string
-	RPCEndpoints       []string
-	WSEndpoints        []string
-	MantlemintDB       string
-	IndexerDB          string
-	DisableSync        bool
-	EnableExportModule bool
-	RichlistLength     int
-	RichlistThreshold  *sdk.Coin
+	GenesisPath          string
+	Home                 string
+	ChainID              string
+	RPCEndpoints         []string
+	WSEndpoints          []string
+	MantlemintDB         string
+	IndexerDB            string
+	DisableSync          bool
+	EnableExportModule   bool
+	RichlistLength       int
+	AccountAddressPrefix string
+	BondDenom            string
+	RichlistThreshold    *sdk.Coin
 }
 
 var singleton Config
@@ -50,7 +52,10 @@ func newConfig() Config {
 
 		// ChainID sets expected chain id for this mantlemint instance
 		ChainID: getValidEnv("CHAIN_ID"),
-
+		//Feather chains are going to have different prefixes
+		AccountAddressPrefix: getValidEnv("ACCOUNT_ADDRESS_PREFIX"),
+		//Feather chains are going to have different denoms
+		BondDenom: getValidEnv("BOND_DENOM"),
 		// RPCEndpoints is where to pull txs from when fast-syncing
 		RPCEndpoints: func() []string {
 			endpoints := getValidEnv("RPC_ENDPOINTS")

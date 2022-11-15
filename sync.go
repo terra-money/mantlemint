@@ -44,13 +44,13 @@ func main() {
 
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetCoinType(core.CoinType)
-	accountPubKeyPrefix := core.AccountAddressPrefix + "pub"
-	validatorAddressPrefix := core.AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := core.AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := core.AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := core.AccountAddressPrefix + "valconspub"
+	accountPubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "pub"
+	validatorAddressPrefix := mantlemintConfig.AccountAddressPrefix + "valoper"
+	validatorPubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "valoperpub"
+	consNodeAddressPrefix := mantlemintConfig.AccountAddressPrefix + "valcons"
+	consNodePubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "valconspub"
 
-	sdkConfig.SetBech32PrefixForAccount(core.AccountAddressPrefix, accountPubKeyPrefix)
+	sdkConfig.SetBech32PrefixForAccount(mantlemintConfig.AccountAddressPrefix, accountPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
