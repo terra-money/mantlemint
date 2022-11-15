@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/avast/retry-go"
 )
 
 var _ BlockFeed = (*AggregateSubscription)(nil)
@@ -49,10 +51,24 @@ func NewAggregateBlockFeed(
 
 func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 	// create rpc subscriber
-	cRpc, cRpcErr := ags.rpc.Subscribe(rpcIndex)
-	if cRpcErr != nil {
-		return nil, cRpcErr
-	}
+	var cRpc chan *BlockResult
+	var cRpcErr error
+
+	retry.Do(
+		func() error {
+			cRpc, cRpcErr = ags.rpc.Subscribe(rpcIndex)
+			if cRpcErr != nil {
+				return cRpcErr
+			}
+
+			return nil
+		},
+		retry.OnRetry(func(n uint, err error) {
+			log.Printf("Retrying... %v", err)
+		}),
+		retry.Delay(time.Duration(10)*time.Second),
+		retry.Attempts(3000),
+	)
 
 	// create websocket subscriber
 	cWS, cWSErr := ags.ws.Subscribe(rpcIndex)
