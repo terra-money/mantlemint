@@ -8,7 +8,7 @@ for i in {1..60}; do
                 echo "Checking for listener at ${RPC}"
                 # if there is no port defined skip check
                 if [[ "${RPC}" =~ ":" ]]; then
-                        timeout 1 bash -c "echo >/dev/tcp/${RPC%:*}/${RPC#*:}" && break
+                        timeout 1 bash -c "echo >/dev/tcp/${RPC%:*}/${RPC#*:}" && break 2
                         echo "Connection to ${RPC} failed"
                 else
                         break 2
