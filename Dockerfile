@@ -44,7 +44,7 @@ WORKDIR /root
 COPY --from=go-builder /go/bin/mantlemint /usr/local/bin/mantlemint
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN RUN chmod 755 /usr/local/bin/entrypoint.sh && \
+RUN chmod 755 /usr/local/bin/entrypoint.sh && \
     apk add bash
 
 # lcd & grpc ports
