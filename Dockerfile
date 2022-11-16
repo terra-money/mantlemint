@@ -42,6 +42,7 @@ FROM alpine:3.14
 WORKDIR /root
 
 COPY --from=go-builder /go/bin/mantlemint /usr/local/bin/mantlemint
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN apk add bash
 
@@ -49,4 +50,5 @@ RUN apk add bash
 EXPOSE 1317
 EXPOSE 9090
 
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD ["/usr/local/bin/mantlemint"]
