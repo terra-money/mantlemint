@@ -15,7 +15,9 @@ func NewMantlemintExecutor(
 	conn proxy.AppConnConsensus,
 ) *state.BlockExecutor {
 	return state.NewBlockExecutor(
-		state.NewStore(db),
+		state.NewStore(db, state.StoreOptions{
+			DiscardABCIResponses: false,
+		}),
 
 		// discard all tm logging
 		log.NewTMLogger(os.Stdout),

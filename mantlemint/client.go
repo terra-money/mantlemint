@@ -326,6 +326,6 @@ func (app *localClient) callback(req *types.Request, res *types.Response) *abcic
 func newLocalReqRes(req *types.Request, res *types.Response) *abcicli.ReqRes {
 	reqRes := abcicli.NewReqRes(req)
 	reqRes.Response = res
-	reqRes.SetDone()
+	reqRes.Done()
 	return reqRes
 }
