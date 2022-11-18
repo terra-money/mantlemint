@@ -13,6 +13,7 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/hld"
 
@@ -43,17 +44,18 @@ const (
 // cacheMultiStore which is used for branching other MultiStores. It implements
 // the CommitMultiStore interface.
 type Store struct {
-	db             dbm.DB
-	hldb           *hld.HeightLimitedDB
-	lastCommitInfo *types.CommitInfo
-	pruningOpts    types.PruningOptions
-	iavlCacheSize  int
-	storesParams   map[types.StoreKey]storeParams
-	stores         map[types.StoreKey]types.CommitKVStore
-	keysByName     map[string]types.StoreKey
-	lazyLoading    bool
-	pruneHeights   []int64
-	initialVersion int64
+	db              dbm.DB
+	hldb            *hld.HeightLimitedDB
+	lastCommitInfo  *types.CommitInfo
+	pruningOpts     types.PruningOptions
+	iavlCacheSize   int
+	storesParams    map[types.StoreKey]storeParams
+	stores          map[types.StoreKey]types.CommitKVStore
+	keysByName      map[string]types.StoreKey
+	lazyLoading     bool
+	pruneHeights    []int64
+	initialVersion  int64
+	disableFastNode bool
 
 	traceWriter  io.Writer
 	traceContext types.TraceContext
@@ -61,6 +63,14 @@ type Store struct {
 	interBlockCache types.MultiStorePersistentCache
 
 	listeners map[types.StoreKey][]types.WriteListener
+}
+
+func (rs *Store) SetIAVLDisableFastNode(disable bool) {
+	rs.disableFastNode = disable
+}
+
+func (rs *Store) RollbackToVersion(version int64) error {
+	return nil
 }
 
 var (
@@ -832,9 +842,9 @@ func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID
 		var err error
 
 		if params.initialVersion == 0 {
-			store, err = iavl.LoadStore(db, id, rs.lazyLoading, rs.iavlCacheSize)
+			store, err = iavl.LoadStore(db, log.NewNopLogger(), key, id, rs.lazyLoading, rs.iavlCacheSize, rs.disableFastNode)
 		} else {
-			store, err = iavl.LoadStoreWithInitialVersion(db, id, rs.lazyLoading, params.initialVersion, rs.iavlCacheSize)
+			store, err = iavl.LoadStoreWithInitialVersion(db, log.NewNopLogger(), key, id, rs.lazyLoading, params.initialVersion, rs.iavlCacheSize, rs.disableFastNode)
 		}
 
 		if err != nil {

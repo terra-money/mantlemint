@@ -3,6 +3,7 @@ package richlist
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -65,6 +66,8 @@ type Richlist struct {
 	Rankers *btree.BTree `json:"rankers"`
 	// internal use only. keep it private
 	threshold *sdk.Coin
+	// internal use only. keep it private
+	mutex *sync.RWMutex
 }
 
 func NewRichlist(height uint64, threshold *sdk.Coin) *Richlist {
@@ -72,6 +75,7 @@ func NewRichlist(height uint64, threshold *sdk.Coin) *Richlist {
 		Height:    height,
 		threshold: threshold,
 		Rankers:   btree.New(2),
+		mutex:     new(sync.RWMutex),
 	}
 }
 
@@ -79,7 +83,10 @@ func (list *Richlist) Rank(ranker Ranker) (err error) {
 	if ranker.Score.IsLT(*list.threshold) {
 		return nil
 	}
+	list.mutex.RLock()
 	item := list.Rankers.Get(ranker)
+	list.mutex.RUnlock()
+
 	var ranked Ranker
 	if item != nil {
 		ranked = item.(Ranker)
@@ -89,6 +96,8 @@ func (list *Richlist) Rank(ranker Ranker) (err error) {
 	} else { // new entry
 		ranked = ranker
 	}
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	list.Rankers.ReplaceOrInsert(ranked)
 	return nil
 }
@@ -97,9 +106,11 @@ func (list *Richlist) Unrank(ranker Ranker) (err error) {
 	if ranker.Score.Amount.LT(list.threshold.Amount) {
 		return nil
 	}
+	list.mutex.RLock()
 	item := list.Rankers.Get(ranker)
+	list.mutex.RUnlock()
 	if item == nil {
-		return nil
+		return fmt.Errorf("failed to unrank: cannot find %+v\n", ranker)
 	}
 
 	unranked := item.(Ranker)
@@ -107,6 +118,8 @@ func (list *Richlist) Unrank(ranker Ranker) (err error) {
 		unranked.Unlist(addr)
 	}
 
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	if len(unranked.Addresses) == 0 {
 		list.Rankers.Delete(unranked)
 	} else {
@@ -115,21 +128,29 @@ func (list *Richlist) Unrank(ranker Ranker) (err error) {
 	return nil
 }
 
-func (list Richlist) Min() Ranker {
+func (list *Richlist) Min() Ranker {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	return list.Rankers.Min().(Ranker)
 }
 
-func (list Richlist) Max() Ranker {
+func (list *Richlist) Max() Ranker {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	return list.Rankers.Max().(Ranker)
 }
 
 // Len returns the number of tree entries
-func (list Richlist) Len() int {
+func (list *Richlist) Len() int {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	return list.Rankers.Len()
 }
 
 // Count returns the number of ranker in the list
-func (list Richlist) Count() (count int) {
+func (list *Richlist) Count() (count int) {
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	list.Rankers.Descend(func(entry btree.Item) bool {
 		count += len(entry.(Ranker).Addresses)
 		return true
@@ -137,7 +158,7 @@ func (list Richlist) Count() (count int) {
 	return
 }
 
-func (list Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extracted *Richlist, err error) {
+func (list *Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extracted *Richlist, err error) {
 	if list.Len() < 1 {
 		return nil, fmt.Errorf("richlist empty")
 	}
@@ -146,22 +167,26 @@ func (list Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extra
 		temp.Score = *threshold
 	}
 	extracted = NewRichlist(height, nil)
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 	list.Rankers.Descend(func(entry btree.Item) bool {
 		ranker := entry.(Ranker)
 		if (extracted.Count() >= len) || (threshold != nil && ranker.Less(temp)) {
 			return false
 		}
+		extracted.mutex.Lock()
+		defer extracted.mutex.Unlock()
 		extracted.Rankers.ReplaceOrInsert(ranker)
 		return true
 	})
 	return
 }
 
-func (list *Richlist) Apply(changes []changing, app *terra.TerraApp, height uint64, denom string) (err error) {
+func (list *Richlist) Apply(changes map[string]sdk.Int, app *terra.TerraApp, height uint64, denom string) (err error) {
 	ctx := app.NewContext(true, tmproto.Header{})
 
-	for _, item := range changes {
-		accAddress, _ := sdk.AccAddressFromBech32(item.AccAddresses[0]) // a ranker have only one address
+	for address, amount := range changes {
+		accAddress, _ := sdk.AccAddressFromBech32(address) // a ranker have only one address
 
 		// skip module accounts
 		account := app.AccountKeeper.GetAccount(ctx, accAddress)
@@ -171,20 +196,23 @@ func (list *Richlist) Apply(changes []changing, app *terra.TerraApp, height uint
 		}
 
 		amountPrev := app.BankKeeper.GetBalance(ctx, accAddress, denom)
-		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(item.Amount))
+		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(amount))
+		//fmt.Printf("[DEBUG] addr:%+v, amountPrev:%+v\n", accAddress, amountPrev)
 
-		ranker := Ranker{Addresses: item.AccAddresses}
+		ranker := Ranker{Addresses: []string{address}}
 		// remove outdated rank
 		ranker.Score = amountPrev
 		err = list.Unrank(ranker)
 		if err != nil {
-			return
+			fmt.Printf("unrank failed: %+v\n", err)
+			//return // don't return! it's normal for the new ranker
 		}
 
 		// apply new rank
 		ranker.Score = amountAfter
 		err = list.Rank(ranker)
 		if err != nil {
+			fmt.Printf("rank failed: %+v\n", err)
 			return
 		}
 	}
@@ -213,11 +241,4 @@ func (list Richlist) MarshalJSON() (b []byte, err error) {
 	})
 
 	return json.Marshal(l)
-}
-
-// internal use only to track balance-changing
-// We cannot re-use Ranker because sdk.Coin occurs panic if amount is negative.
-type changing struct {
-	AccAddresses []string
-	Amount       sdk.Int
 }
