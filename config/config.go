@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	terra "github.com/terra-money/core/v2/app"
 )
 
 type Config struct {
@@ -63,11 +62,11 @@ func newConfig() Config {
 			return strings.Split(endpoints, ",")
 		}(),
 
-		// MantlemintDB is the db name for mantlemint. Defaults to terra.DefaultHome
+		// MantlemintDB is the db name for mantlemint. Defaults to mantlemint
 		MantlemintDB: func() string {
 			mantlemintDB := getValidEnv("MANTLEMINT_DB")
 			if mantlemintDB == "" {
-				return terra.DefaultNodeHome
+				return "mantlemint"
 			} else {
 				return mantlemintDB
 			}

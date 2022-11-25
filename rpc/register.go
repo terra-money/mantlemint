@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -17,17 +18,15 @@ import (
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	terra "github.com/terra-money/core/v2/app"
-	"github.com/terra-money/core/v2/app/params"
+	terra "github.com/terra-money/alliance/app"
 	mconfig "github.com/terra-money/mantlemint/config"
-	"github.com/terra-money/mantlemint/export"
 )
 
 func StartRPC(
-	app *terra.TerraApp,
+	app *cosmoscmd.App,
 	rpcclient rpcclient.Client,
 	chainId string,
-	codec params.EncodingConfig,
+	encodingConfig cosmoscmd.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
 	getIsSynced func() bool,
@@ -35,16 +34,15 @@ func StartRPC(
 ) error {
 	vp := viper.GetViper()
 	cfg, _ := config.GetConfig(vp)
-
 	// create terra client; register all codecs
 	context := client.
 		Context{}.
 		WithClient(rpcclient).
-		WithCodec(codec.Marshaler).
-		WithInterfaceRegistry(codec.InterfaceRegistry).
-		WithTxConfig(codec.TxConfig).
+		WithCodec(encodingConfig.Marshaler).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
-		WithLegacyAmino(codec.Amino).
+		WithLegacyAmino(encodingConfig.Amino).
 		WithHomeDir(terra.DefaultNodeHome).
 		WithChainID(chainId)
 
@@ -86,14 +84,9 @@ func StartRPC(
 		}
 	})).Methods("GET")
 
-	// register export routes
-	if mantlemintConfig.EnableExportModule {
-		export.RegisterRESTRoutes(apiSrv.Router, app)
-	}
-
-	// register all default GET routers...
-	app.RegisterAPIRoutes(apiSrv, cfg.API)
-	app.RegisterTendermintService(context)
+	//// register all default GET routers...
+	(*app).RegisterAPIRoutes(apiSrv, cfg.API)
+	(*app).RegisterTendermintService(context)
 	errCh := make(chan error)
 
 	// caching middleware
