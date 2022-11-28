@@ -61,10 +61,12 @@ ENV CHAIN_ID="localterra" \
     ENABLE_EXPORT_MODULE="false" \
     RICHLIST_LENGTH="100" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
-    BOND_DENOM="uluna"
+    BOND_DENOM="uluna" \
+    RPC_ENDPOINTS="" \
+    WS_ENDPOINTS=""
 
 # lcd & grpc ports
 EXPOSE 1317 9090
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
-CMD ["/usr/local/bin/mantlemint"]
+CMD [ "/usr/local/bin/mantlemint" ]
