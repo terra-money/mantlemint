@@ -39,7 +39,7 @@ RUN set -eux &&\
 ###############################################################################
 FROM alpine:3.14
 
-WORKDIR /root
+WORKDIR /app
 
 COPY --from=go-builder /go/bin/mantlemint /usr/local/bin/mantlemint
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -55,10 +55,9 @@ ENV CHAIN_ID="localterra" \
     MANTLEMINT_DB="/app/config/genesis.json" \
     DISABLE_SYNC="false" \
     RUST_BACKTRACE="full" \
-    LD_LIBRARY_PATH="/usr/local/lib" \
-    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so" \
     ENABLE_EXPORT_MODULE="false" \
     RICHLIST_LENGTH="100" \
+    RICHLIST_THRESHOLD="0uluna" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
     BOND_DENOM="uluna" \
     RPC_ENDPOINTS="http://localhost:26657" \
