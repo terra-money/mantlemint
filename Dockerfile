@@ -47,9 +47,24 @@ COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh && \
     apk add bash
 
+
+ENV CHAIN_ID="localterra" \
+    MANTLEMINT_HOME="/app" \
+    ## db paths relative to MANTLEMINT_HOME
+    INDEXER_DB="/data/indexer" \ 
+    MANTLEMINT_HOME="/data/mantlemint" \
+    MANTLEMINT_DB="/app/config/genesis.json" \
+    DISABLE_SYNC="false" \
+    RUST_BACKTRACE="full" \
+    LD_LIBRARY_PATH="/usr/local/lib" \
+    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so" \
+    ENABLE_EXPORT_MODULE="false" \
+    RICHLIST_LENGTH="100" \
+    ACCOUNT_ADDRESS_PREFIX="terra" \
+    BOND_DENOM="uluna"
+
 # lcd & grpc ports
-EXPOSE 1317
-EXPOSE 9090
+EXPOSE 1317 9090
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 CMD ["/usr/local/bin/mantlemint"]
