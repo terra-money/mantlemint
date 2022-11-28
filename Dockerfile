@@ -47,7 +47,6 @@ COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 755 /usr/local/bin/entrypoint.sh && \
     apk add bash
 
-
 ENV CHAIN_ID="localterra" \
     MANTLEMINT_HOME="/app" \
     ## db paths relative to MANTLEMINT_HOME
@@ -62,8 +61,8 @@ ENV CHAIN_ID="localterra" \
     RICHLIST_LENGTH="100" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
     BOND_DENOM="uluna" \
-    RPC_ENDPOINTS="" \
-    WS_ENDPOINTS=""
+    RPC_ENDPOINTS="http://localhost:26657" \
+    WS_ENDPOINTS="ws://localhost:26657/websocket"
 
 # lcd & grpc ports
 EXPOSE 1317 9090
