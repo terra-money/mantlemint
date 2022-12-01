@@ -51,8 +51,8 @@ ENV CHAIN_ID="localterra" \
     MANTLEMINT_HOME="/app" \
     ## db paths relative to MANTLEMINT_HOME
     INDEXER_DB="/data/indexer" \ 
-    MANTLEMINT_HOME="/data/mantlemint" \
-    MANTLEMINT_DB="/app/config/genesis.json" \
+    MANTLEMINT_DB="/data/mantlemint" \
+    GENESIS_PATH="/app/config/genesis.json" \
     DISABLE_SYNC="false" \
     RUST_BACKTRACE="full" \
     ENABLE_EXPORT_MODULE="false" \
@@ -61,7 +61,8 @@ ENV CHAIN_ID="localterra" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
     BOND_DENOM="uluna" \
     RPC_ENDPOINTS="http://localhost:26657" \
-    WS_ENDPOINTS="ws://localhost:26657/websocket"
+    WS_ENDPOINTS="ws://localhost:26657/websocket" \
+    GENESIS_PATH=""
 
 # lcd & grpc ports
 EXPOSE 1317 9090
