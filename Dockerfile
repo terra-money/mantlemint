@@ -61,8 +61,7 @@ ENV CHAIN_ID="localterra" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
     BOND_DENOM="uluna" \
     RPC_ENDPOINTS="http://localhost:26657" \
-    WS_ENDPOINTS="ws://localhost:26657/websocket" \
-    GENESIS_PATH=""
+    WS_ENDPOINTS="ws://localhost:26657/websocket" 
 
 # lcd & grpc ports
 EXPOSE 1317 9090
