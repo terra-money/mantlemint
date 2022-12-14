@@ -4,24 +4,21 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
+	"github.com/tendermint/spn/cmd"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime/debug"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	core "github.com/terra-money/core/v2/app"
-	terra "github.com/terra-money/core/v2/app"
-	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
+	terra "github.com/terra-money/alliance/app"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
-
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/heleveldb"
 	"github.com/terra-money/mantlemint/db/hld"
@@ -42,20 +39,7 @@ func main() {
 	mantlemintConfig := config.GetConfig()
 	mantlemintConfig.Print()
 
-	sdkConfig := sdk.GetConfig()
-	sdkConfig.SetCoinType(core.CoinType)
-	accountPubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "pub"
-	validatorAddressPrefix := mantlemintConfig.AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := mantlemintConfig.AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := mantlemintConfig.AccountAddressPrefix + "valconspub"
-
-	sdkConfig.SetBech32PrefixForAccount(mantlemintConfig.AccountAddressPrefix, accountPubKeyPrefix)
-	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
-	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
-	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
-
-	sdkConfig.Seal()
+	cmd.SetPrefixes(terra.AccountAddressPrefix)
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
 		Name: mantlemintConfig.MantlemintDB,
@@ -76,13 +60,13 @@ func main() {
 	batched := safe_batch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safe_batch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
-	codec := terra.MakeEncodingConfig()
+	codec := cosmoscmd.MakeEncodingConfig(terra.ModuleBasics)
 
 	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
 	vpr := viper.GetViper()
 
-	var app = terra.NewTerraApp(
+	app := terra.New(
 		logger,
 		batched,
 		nil,
@@ -92,7 +76,6 @@ func main() {
 		0,
 		codec,
 		vpr,
-		wasmconfig.GetConfig(vpr),
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
@@ -163,7 +146,7 @@ func main() {
 	)
 
 	// create indexer service
-	indexerInstance, indexerInstanceErr := indexer.NewIndexer(mantlemintConfig.IndexerDB, mantlemintConfig.Home, app)
+	indexerInstance, indexerInstanceErr := indexer.NewIndexer(mantlemintConfig.IndexerDB, mantlemintConfig.Home, &app)
 	if indexerInstanceErr != nil {
 		panic(indexerInstanceErr)
 	}
@@ -180,7 +163,7 @@ func main() {
 
 	// start RPC server
 	rpcErr := rpc.StartRPC(
-		app,
+		&app,
 		rpccli,
 		mantlemintConfig.ChainID,
 		codec,

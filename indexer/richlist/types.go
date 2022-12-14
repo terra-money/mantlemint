@@ -3,13 +3,14 @@ package richlist
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
+	terra "github.com/terra-money/alliance/app"
 	"sync"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/google/btree"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/lib"
 )
 
@@ -182,7 +183,11 @@ func (list *Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extr
 	return
 }
 
-func (list *Richlist) Apply(changes map[string]sdk.Int, app *terra.TerraApp, height uint64, denom string) (err error) {
+func (list *Richlist) Apply(changes map[string]sdk.Int, capp *cosmoscmd.App, height uint64, denom string) (err error) {
+	app, ok := (*capp).(*terra.App)
+	if !ok {
+		return fmt.Errorf("invalid app expect: %T got %T", terra.App{}, capp)
+	}
 	ctx := app.NewContext(true, tmproto.Header{})
 
 	for address, amount := range changes {
@@ -216,8 +221,7 @@ func (list *Richlist) Apply(changes map[string]sdk.Int, app *terra.TerraApp, hei
 			return
 		}
 	}
-
-	return err
+	return nil
 }
 
 // internal structure to marshal richlist

@@ -13,9 +13,11 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/hld"
 
+	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store/cachemulti"
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
@@ -43,17 +45,18 @@ const (
 // cacheMultiStore which is used for branching other MultiStores. It implements
 // the CommitMultiStore interface.
 type Store struct {
-	db             dbm.DB
-	hldb           *hld.HeightLimitedDB
-	lastCommitInfo *types.CommitInfo
-	pruningOpts    types.PruningOptions
-	iavlCacheSize  int
-	storesParams   map[types.StoreKey]storeParams
-	stores         map[types.StoreKey]types.CommitKVStore
-	keysByName     map[string]types.StoreKey
-	lazyLoading    bool
-	pruneHeights   []int64
-	initialVersion int64
+	db              dbm.DB
+	hldb            *hld.HeightLimitedDB
+	lastCommitInfo  *types.CommitInfo
+	pruningOpts     pruningtypes.PruningOptions
+	iavlCacheSize   int
+	storesParams    map[types.StoreKey]storeParams
+	stores          map[types.StoreKey]types.CommitKVStore
+	keysByName      map[string]types.StoreKey
+	lazyLoading     bool
+	pruneHeights    []int64
+	initialVersion  int64
+	disableFastNode bool
 
 	traceWriter  io.Writer
 	traceContext types.TraceContext
@@ -68,6 +71,23 @@ var (
 	_ types.Queryable        = (*Store)(nil)
 )
 
+func (rs *Store) PruneSnapshotHeight(height int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (rs *Store) SetSnapshotInterval(snapshotInterval uint64) {
+	rs.pruningOpts.Interval = snapshotInterval
+}
+
+func (rs *Store) SetIAVLDisableFastNode(disable bool) {
+	rs.disableFastNode = disable
+}
+
+func (rs *Store) RollbackToVersion(version int64) error {
+	return nil
+}
+
 // NewStore returns a reference to a new Store object with the provided DB. The
 // store will be created with a PruneNothing pruning strategy by default. After
 // a store is created, KVStores must be mounted and finally LoadLatestVersion or
@@ -76,7 +96,7 @@ func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 	return &Store{
 		db:            db,
 		hldb:          hldb,
-		pruningOpts:   types.PruneNothing,
+		pruningOpts:   pruningtypes.NewPruningOptions(pruningtypes.PruningNothing),
 		iavlCacheSize: iavl.DefaultIAVLCacheSize,
 		storesParams:  make(map[types.StoreKey]storeParams),
 		stores:        make(map[types.StoreKey]types.CommitKVStore),
@@ -87,14 +107,14 @@ func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 }
 
 // GetPruning fetches the pruning strategy from the root store.
-func (rs *Store) GetPruning() types.PruningOptions {
+func (rs *Store) GetPruning() pruningtypes.PruningOptions {
 	return rs.pruningOpts
 }
 
 // SetPruning sets the pruning strategy on the root store and all the sub-stores.
 // Note, calling SetPruning on the root store prior to LoadVersion or
 // LoadLatestVersion performs a no-op as the stores aren't mounted yet.
-func (rs *Store) SetPruning(pruningOpts types.PruningOptions) {
+func (rs *Store) SetPruning(pruningOpts pruningtypes.PruningOptions) {
 	rs.pruningOpts = pruningOpts
 }
 
@@ -395,7 +415,7 @@ func (rs *Store) Commit() types.CommitID {
 		// - KeepEvery is zero as that means that all heights should be pruned.
 		// - KeepEvery % (height - KeepRecent) != 0 as that means the height is not
 		// a 'snapshot' height.
-		if rs.pruningOpts.KeepEvery == 0 || pruneHeight%int64(rs.pruningOpts.KeepEvery) != 0 {
+		if rs.pruningOpts.Interval == 0 || pruneHeight%int64(rs.pruningOpts.Interval) != 0 {
 			rs.pruneHeights = append(rs.pruneHeights, pruneHeight)
 		}
 	}
@@ -562,17 +582,17 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 	path := req.Path
 	storeName, subpath, err := parsePath(path)
 	if err != nil {
-		return sdkerrors.QueryResult(err)
+		return sdkerrors.QueryResult(err, false)
 	}
 
 	store := rs.getStoreByName(storeName)
 	if store == nil {
-		return sdkerrors.QueryResult(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "no such store: %s", storeName))
+		return sdkerrors.QueryResult(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "no such store: %s", storeName), false)
 	}
 
 	queryable, ok := store.(types.Queryable)
 	if !ok {
-		return sdkerrors.QueryResult(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "store %s (type %T) doesn't support queries", storeName, store))
+		return sdkerrors.QueryResult(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "store %s (type %T) doesn't support queries", storeName, store), false)
 	}
 
 	// trim the path and make the query
@@ -584,7 +604,7 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 	}
 
 	if res.ProofOps == nil || len(res.ProofOps.Ops) == 0 {
-		return sdkerrors.QueryResult(sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "proof is unexpectedly empty; ensure height has not been pruned"))
+		return sdkerrors.QueryResult(sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "proof is unexpectedly empty; ensure height has not been pruned"), false)
 	}
 
 	// If the request's height is the latest height we've committed, then utilize
@@ -597,7 +617,7 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 	} else {
 		commitInfo, err = getCommitInfo(rs.db, res.Height)
 		if err != nil {
-			return sdkerrors.QueryResult(err)
+			return sdkerrors.QueryResult(err, false)
 		}
 	}
 
@@ -832,9 +852,9 @@ func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID
 		var err error
 
 		if params.initialVersion == 0 {
-			store, err = iavl.LoadStore(db, id, rs.lazyLoading, rs.iavlCacheSize)
+			store, err = iavl.LoadStore(db, log.NewNopLogger(), key, id, rs.lazyLoading, rs.iavlCacheSize, rs.disableFastNode)
 		} else {
-			store, err = iavl.LoadStoreWithInitialVersion(db, id, rs.lazyLoading, params.initialVersion, rs.iavlCacheSize)
+			store, err = iavl.LoadStoreWithInitialVersion(db, log.NewNopLogger(), key, id, rs.lazyLoading, params.initialVersion, rs.iavlCacheSize, rs.disableFastNode)
 		}
 
 		if err != nil {
