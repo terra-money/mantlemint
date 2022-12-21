@@ -100,3 +100,15 @@ var IndexTx = indexer.CreateIndexer(func(batch safe_batch.SafeBatchDB, block *tm
 
 	return nil
 })
+
+func GetTxByHash(db safe_batch.SafeBatchDB, hash string) (txRecord TxRecord, err error) {
+	b, err := db.Get(getKey(hash))
+	if err != nil {
+		return txRecord, err
+	}
+	err = tmjson.Unmarshal(b, &txRecord)
+	if err != nil {
+		return txRecord, err
+	}
+	return txRecord, nil
+}

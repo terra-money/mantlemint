@@ -90,12 +90,20 @@ func (s *SnappyDB) DeleteSync(key []byte) error {
 	return s.Delete(key)
 }
 
-func (s *SnappyDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
-	return nil, errIteratorNotSupported
+func (s *SnappyDB) Iterator(start, end []byte) (iter tmdb.Iterator, err error) {
+	iter, err = s.db.Iterator(start, end)
+	if err != nil {
+		return iter, err
+	}
+	return NewSnappyIterator(iter, s.compatMode), nil
 }
 
-func (s *SnappyDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
-	return nil, errIteratorNotSupported
+func (s *SnappyDB) ReverseIterator(start, end []byte) (iter tmdb.Iterator, err error) {
+	iter, err = s.db.ReverseIterator(start, end)
+	if err != nil {
+		return iter, err
+	}
+	return NewSnappyIterator(iter, s.compatMode), nil
 }
 
 func (s *SnappyDB) Close() error {

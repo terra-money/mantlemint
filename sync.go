@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/tendermint/spn/cmd"
+	"github.com/terra-money/mantlemint/indexer/proposal"
 	"io/ioutil"
 	"log"
 	"os"
@@ -154,6 +155,7 @@ func main() {
 	indexerInstance.RegisterIndexerService("tx", tx.IndexTx)
 	indexerInstance.RegisterIndexerService("block", block.IndexBlock)
 	indexerInstance.RegisterIndexerService("richlist", richlist.IndexRichlist)
+	indexerInstance.RegisterIndexerService("proposal", proposal.IndexProposals)
 
 	abcicli, _ := appCreator.NewABCIClient()
 	rpccli := rpc.NewRpcClient(abcicli)
@@ -176,6 +178,7 @@ func main() {
 			indexerInstance.RegisterRESTRoute(router, tx.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, block.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, richlist.RegisterRESTRoute)
+			indexerInstance.RegisterRESTRoute(router, proposal.RegisterRESTRoute)
 		},
 
 		// inject flag checker for synced
