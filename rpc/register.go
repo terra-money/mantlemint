@@ -111,6 +111,14 @@ func StartRPC(
 		})
 	})
 
+	pm := NewProxyMiddleware(mantlemintConfig.LCDEndpoints)
+	// proxy middleware to handle unimplemented queries
+	apiSrv.Router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			pm.HandleRequest(writer, request, next)
+		})
+	})
+
 	// start api server in goroutine
 	go func() {
 		if err := apiSrv.Start(cfg); err != nil {
