@@ -181,6 +181,7 @@ func main() {
 			indexerInstance.RegisterRESTRoute(router, block.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, richlist.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, proposal.RegisterRESTRoute)
+			indexerInstance.RegisterRESTRoute(router, accounttx.RegisterRESTRoute)
 		},
 
 		// inject flag checker for synced

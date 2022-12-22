@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
+	tmdb "github.com/tendermint/tm-db"
 
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
@@ -101,7 +102,7 @@ var IndexTx = indexer.CreateIndexer(func(batch safe_batch.SafeBatchDB, block *tm
 	return nil
 })
 
-func GetTxByHash(db safe_batch.SafeBatchDB, hash string) (txRecord TxRecord, err error) {
+func GetTxByHash(db tmdb.DB, hash string) (txRecord TxRecord, err error) {
 	b, err := db.Get(getKey(hash))
 	if err != nil {
 		return txRecord, err

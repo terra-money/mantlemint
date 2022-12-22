@@ -7,9 +7,11 @@ import (
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tm "github.com/tendermint/tendermint/types"
+	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/alliance/app"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/indexer"
+	"github.com/terra-money/mantlemint/indexer/tx"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
@@ -142,4 +144,37 @@ func parseEventsForAddresses(events []abci.Event) (addrs map[string]bool, err er
 		}
 	}
 	return addrs, nil
+}
+
+func getTxnsByAccount(db tmdb.DB, account string, offset uint64, limit uint64) (txs []json.RawMessage, err error) {
+	key := GetAccountTxKeyByAddr(account)
+	iter, err := db.Iterator(key, sdk.PrefixEndBytes(key))
+	if err != nil {
+		return txs, err
+	}
+	currentOffset := uint64(0)
+	currentLimit := uint64(0)
+	for iter.Valid() {
+		if currentOffset < offset {
+			currentOffset += 1
+			continue
+		}
+		var accountTx AccountTx
+		b := iter.Value()
+		err = json.Unmarshal(b, &accountTx)
+		if err != nil {
+			return txs, err
+		}
+		tx, err := tx.GetTxByHash(db, accountTx.TxHash)
+		if err != nil {
+			return txs, err
+		}
+		txs = append(txs, tx.TxResponse)
+		currentLimit += 1
+		if currentLimit >= limit {
+			break
+		}
+		iter.Next()
+	}
+	return txs, nil
 }

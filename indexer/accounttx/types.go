@@ -1,6 +1,9 @@
 package accounttx
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"encoding/json"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 type AccountTx struct {
 	TxHash string `json:"txhash"`
@@ -19,4 +22,10 @@ func GetAccountTxKey(addr string, blockHeight uint64, txIndex uint64) (key []byt
 	key = append(GetAccountTxKeyByAddr(addr), sdk.Uint64ToBigEndian(blockHeight)...)
 	key = append(key, sdk.Uint64ToBigEndian(txIndex)...)
 	return key
+}
+
+type GetAccountTxsResponse struct {
+	Limit  uint64            `json:"limit"`
+	Offset uint64            `json:"offset"`
+	Txs    []json.RawMessage `json:"txs"`
 }
