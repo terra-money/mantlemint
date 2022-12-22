@@ -10,14 +10,11 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/proto/tendermint/types"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	tapp "github.com/terra-money/alliance/app"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/indexer"
-	blockindexer "github.com/terra-money/mantlemint/indexer/block"
-	txindexer "github.com/terra-money/mantlemint/indexer/tx"
 	"github.com/terra-money/mantlemint/mantlemint"
 	"golang.org/x/exp/maps"
 	"os"
@@ -34,111 +31,13 @@ func init() {
 }
 
 func proposalIndexerFunc(db safe_batch.SafeBatchDB, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector, app *cosmoscmd.App) (err error) {
-	lastHeight, err := getLastIndexedHeight(db)
-	fmt.Printf("[indexer/proposals] last height: %d current height %d\n", lastHeight, block.Height)
 	if err != nil {
 		return err
 	}
-
-	// if last indexed height is not the last block, perform historical indexing by replaying old blocks
-	if block.Height-lastHeight != 1 {
-		err = indexHistoricalProposals(db, app, lastHeight, block.Height)
-	} else {
-		err = indexNewBlock(db, app, evc, block)
-	}
+	err = indexNewBlock(db, app, evc, block)
 	if err != nil {
 		panic(err)
 	}
-
-	err = db.Set(lastIndexedHeightKey, sdk.Uint64ToBigEndian(uint64(block.Height)))
-	if err != nil {
-		return err
-	}
-
-	count := 0
-	IterateProposals(db, 0, func(proposal Proposal) bool {
-		count += 1
-		return false
-	})
-	fmt.Printf("[indexer/proposals] indexed %d proposals\n", count)
-	return nil
-}
-
-func indexHistoricalProposals(db safe_batch.SafeBatchDB, app *cosmoscmd.App, lastHeight int64, currentHeight int64) (err error) {
-	fmt.Printf("[indexer/proposals] indexing historical from %d\n", lastHeight)
-	var proposalsAdded []*Proposal
-
-	// Go through all blocks
-	err = blockindexer.IterateBlocks(db, lastHeight, currentHeight, func(block *tm.Block) bool {
-		fmt.Println("[indexer/proposals] block", block.Height, "has", len(block.Txs), "txs")
-		fmt.Println("[indexer/proposals] processing block", block.Height)
-		// For each block, get all transactions to look for proposal creation txns
-		for _, txByte := range block.Txs {
-			hash := fmt.Sprintf("%X", txByte.Hash())
-			var txRecord txindexer.TxRecord
-			var txResponse txindexer.ResponseDeliverTx
-			txRecord, err = txindexer.GetTxByHash(db, hash)
-			if err != nil {
-				return true
-			}
-			err = tmjson.Unmarshal(txRecord.TxResponse, &txResponse)
-			if err != nil {
-				return true
-			}
-			for _, event := range txResponse.Events {
-				switch event.Type {
-				case govtypes.EventTypeProposalDeposit, govtypes.EventTypeSubmitProposal:
-					proposalIdStr, found := findAttributeValue(event.Attributes, govtypes.AttributeKeyVotingPeriodStart)
-					var proposalId uint64
-					if found {
-						proposalId, err = strconv.ParseUint(proposalIdStr, 10, 64)
-						if err != nil {
-							return true
-						}
-						proposal := NewProposal(proposalId, govtypesv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD)
-						proposalsAdded = append(proposalsAdded, &proposal)
-					}
-				}
-			}
-		}
-		if err != nil {
-			panic(err)
-		}
-
-		// Find all non-completed proposals and get current voter counts
-		for _, proposal := range proposalsAdded {
-			fmt.Println("[indexer/proposals] Processing proposal", proposal.Id)
-			if proposal.Status == govtypesv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD {
-				appProposal, err := getProposalFromApp(block.Height, app, proposal.Id)
-				if err != nil {
-					panic(err)
-				}
-				if appProposal.Status != govtypesv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD {
-					proposal.Status = appProposal.Status
-				} else {
-					var votes []Vote
-					votes, err = getVoters(block.Height, app, proposal.Id)
-					if err != nil {
-						panic(err)
-					}
-					proposal.Votes = votes
-				}
-			}
-		}
-		return false
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	// Update all new proposals
-	for _, proposal := range proposalsAdded {
-		err = upsertProposal(db, proposal.Id, *proposal)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -253,72 +152,6 @@ func indexNewBlock(db safe_batch.SafeBatchDB, app *cosmoscmd.App, evc *mantlemin
 	return nil
 }
 
-func getProposalFromApp(height int64, app *cosmoscmd.App, proposalId uint64) (proposal govtypesv1.Proposal, err error) {
-	cms, err := (*app).CommitMultiStore().CacheMultiStoreWithVersion(height)
-	if err != nil {
-		return proposal, err
-	}
-	ctx := sdk.NewContext(cms, types.Header{
-		Height: 0,
-	}, false, logger)
-
-	tApp, ok := (*app).(*tapp.App)
-	if !ok {
-		return proposal, fmt.Errorf("invalid app expect: %T got %T", tapp.App{}, tApp)
-	}
-
-	proposal, found := tApp.GovKeeper.GetProposal(ctx, proposalId)
-	if !found {
-		return proposal, fmt.Errorf("proposal with id %d not found", proposalId)
-	}
-	return proposal, nil
-}
-
-func getVoters(height int64, app *cosmoscmd.App, proposalId uint64) (voters []Vote, err error) {
-	cms, err := (*app).CommitMultiStore().CacheMultiStoreWithVersion(height)
-	if err != nil {
-		return voters, err
-	}
-	ctx := sdk.NewContext(cms, types.Header{
-		Height: 0,
-	}, false, logger)
-
-	tApp, ok := (*app).(*tapp.App)
-	if !ok {
-		return voters, fmt.Errorf("invalid app expect: %T got %T", tapp.App{}, tApp)
-	}
-	voters = []Vote{}
-
-	tApp.GovKeeper.IterateVotes(ctx, proposalId, func(vote govtypesv1.Vote) bool {
-		voters = append(voters, Vote{
-			Voter:   vote.Voter,
-			Options: NewWeightedVoteOptions(vote.Options),
-		})
-		return false
-	})
-	return voters, err
-}
-
-func getLastIndexedHeight(db safe_batch.SafeBatchDB) (height int64, err error) {
-	bz, err := db.Get(lastIndexedHeightKey)
-	if err != nil {
-		return height, err
-	}
-	if bz == nil {
-		return 1, err
-	}
-	return int64(sdk.BigEndianToUint64(bz)), nil
-}
-
-func findAttributeValue(attrs []txindexer.EventAttribute, key string) (value string, found bool) {
-	for _, attr := range attrs {
-		if attr.Key == key {
-			return attr.Value, true
-		}
-	}
-	return value, false
-}
-
 func findAbciAttributeValue(attrs []abci.EventAttribute, key string) (value string, found bool) {
 	for _, attr := range attrs {
 		fmt.Println(string(attr.GetKey()), string(attr.GetValue()))
@@ -359,32 +192,6 @@ func GetProposal(db tmdb.DB, proposalId uint64) (proposal Proposal, err error) {
 		proposal.Votes = []Vote{}
 	}
 	return proposal, err
-}
-
-func IterateProposals(db safe_batch.SafeBatchDB, fromId uint64, cb func(proposal Proposal) bool) (err error) {
-	iter, err := db.Iterator(getProposalKey(fromId), sdk.PrefixEndBytes(proposalKey))
-	//iter, err := db.Iterator(getProposalKey(fromId), getProposalKey(1000))
-	if err != nil {
-		return err
-	}
-	for iter.Valid() {
-		b := iter.Value()
-		if b == nil {
-			iter.Next()
-			continue
-		}
-		var proposal Proposal
-		err = tmjson.Unmarshal(b, &proposal)
-		if err != nil {
-			return err
-		}
-		stop := cb(proposal)
-		if stop {
-			return nil
-		}
-		iter.Next()
-	}
-	return nil
 }
 
 func indexVotesByVoter(votes []Vote) (m map[string]Vote) {

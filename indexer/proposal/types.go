@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	lastIndexedHeightKey = []byte("proposal_last_height:")
-	proposalKey          = []byte("proposal:")
+	proposalKey = []byte("proposal:")
 )
 
 type Proposal struct {
@@ -24,17 +23,6 @@ type Vote struct {
 type WeightedVoteOption struct {
 	Weight string `json:"weight""`
 	Option string `json:"option"`
-}
-
-func NewWeightedVoteOptions(options govtypesv1.WeightedVoteOptions) (wvo []WeightedVoteOption) {
-	wvo = []WeightedVoteOption{}
-	for _, option := range options {
-		wvo = append(wvo, WeightedVoteOption{
-			Weight: option.Weight,
-			Option: govtypesv1.VoteOption_name[int32(option.Option)],
-		})
-	}
-	return wvo
 }
 
 func getProposalKey(proposalId uint64) (key []byte) {
