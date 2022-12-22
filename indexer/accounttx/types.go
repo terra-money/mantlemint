@@ -1,12 +1,15 @@
 package accounttx
 
 import (
-	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/terra-money/mantlemint/indexer/tx"
+	"time"
 )
 
 type AccountTx struct {
-	TxHash string `json:"txhash"`
+	TxHash      string    `json:"txhash"`
+	BlockHeight uint64    `json:"height"`
+	Timestamp   time.Time `json:"timestamp"`
 }
 
 var (
@@ -25,7 +28,7 @@ func GetAccountTxKey(addr string, blockHeight uint64, txIndex uint64) (key []byt
 }
 
 type GetAccountTxsResponse struct {
-	Limit  uint64            `json:"limit"`
-	Offset uint64            `json:"offset"`
-	Txs    []json.RawMessage `json:"txs"`
+	Limit  uint64                `json:"limit"`
+	Offset uint64                `json:"offset"`
+	Txs    []tx.TxByHeightRecord `json:"txs"`
 }

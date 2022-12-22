@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/alliance/app"
@@ -36,7 +37,9 @@ var IndexTx = indexer.CreateIndexer(func(db safe_batch.SafeBatchDB, block *tm.Bl
 		for addr, _ := range addrsInTx {
 			key := GetAccountTxKey(addr, uint64(block.Height), uint64(i))
 			accountTx := AccountTx{
-				TxHash: fmt.Sprintf("%X", txByte.Hash()),
+				TxHash:      fmt.Sprintf("%X", txByte.Hash()),
+				BlockHeight: uint64(block.Height),
+				Timestamp:   block.Time,
 			}
 			b, err := json.Marshal(accountTx)
 			if err != nil {
@@ -146,7 +149,7 @@ func parseEventsForAddresses(events []abci.Event) (addrs map[string]bool, err er
 	return addrs, nil
 }
 
-func getTxnsByAccount(db tmdb.DB, account string, offset uint64, limit uint64) (txs []json.RawMessage, err error) {
+func getTxnsByAccount(db tmdb.DB, account string, offset uint64, limit uint64) (txs []tx.TxByHeightRecord, err error) {
 	key := GetAccountTxKeyByAddr(account)
 	iter, err := db.Iterator(key, sdk.PrefixEndBytes(key))
 	if err != nil {
@@ -165,11 +168,37 @@ func getTxnsByAccount(db tmdb.DB, account string, offset uint64, limit uint64) (
 		if err != nil {
 			return txs, err
 		}
-		tx, err := tx.GetTxByHash(db, accountTx.TxHash)
+		txRecord, err := tx.GetTxByHash(db, accountTx.TxHash)
 		if err != nil {
 			return txs, err
 		}
-		txs = append(txs, tx.TxResponse)
+
+		var txResponse tx.ResponseDeliverTx
+		err = tmjson.Unmarshal(txRecord.TxResponse, &txResponse)
+		if err != nil {
+			return txs, err
+		}
+		txRes := tx.TxByHeightRecord{
+			Code:      txResponse.Code,
+			Codespace: txResponse.Codespace,
+			GasUsed:   txResponse.GasUsed,
+			GasWanted: txResponse.GasWanted,
+			Height:    int64(accountTx.BlockHeight),
+			RawLog:    txResponse.Log,
+			Logs: func() json.RawMessage {
+				if txResponse.Code == 0 {
+					return []byte(txResponse.Log)
+				} else {
+					out, _ := json.Marshal([]string{})
+					return out
+				}
+			}(),
+			TxHash:    accountTx.TxHash,
+			Timestamp: accountTx.Timestamp,
+			Tx:        txRecord.Tx,
+		}
+
+		txs = append(txs, txRes)
 		currentLimit += 1
 		if currentLimit >= limit {
 			break
