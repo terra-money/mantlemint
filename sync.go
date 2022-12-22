@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/tendermint/spn/cmd"
+	"github.com/terra-money/mantlemint/indexer/accounttx"
 	"github.com/terra-money/mantlemint/indexer/proposal"
 	"io/ioutil"
 	"log"
@@ -156,6 +157,7 @@ func main() {
 	indexerInstance.RegisterIndexerService("block", block.IndexBlock)
 	indexerInstance.RegisterIndexerService("richlist", richlist.IndexRichlist)
 	indexerInstance.RegisterIndexerService("proposal", proposal.IndexProposals)
+	indexerInstance.RegisterIndexerService("accounttx", accounttx.IndexTx)
 
 	abcicli, _ := appCreator.NewABCIClient()
 	rpccli := rpc.NewRpcClient(abcicli)
