@@ -19,6 +19,7 @@ type Config struct {
 	ChainID              string
 	RPCEndpoints         []string
 	WSEndpoints          []string
+	LCDEndpoints         []string
 	MantlemintDB         string
 	IndexerDB            string
 	DisableSync          bool
@@ -64,6 +65,12 @@ func newConfig() Config {
 		// WSEndpoints is where to pull txs from when normal syncing
 		WSEndpoints: func() []string {
 			endpoints := getValidEnv("WS_ENDPOINTS")
+			return strings.Split(endpoints, ",")
+		}(),
+
+		// LCDEndpoints is where to forward unhandled queries to a node
+		LCDEndpoints: func() []string {
+			endpoints := getValidEnv("LCD_ENDPOINTS")
 			return strings.Split(endpoints, ",")
 		}(),
 
