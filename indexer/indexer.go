@@ -1,14 +1,15 @@
 package indexer
 
+//nolint:staticcheck
 import (
 	"fmt"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/db/snappy"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
@@ -41,19 +42,21 @@ func (idx *Indexer) RegisterIndexerService(tag string, indexerFunc IndexFunc) {
 	idx.indexers = append(idx.indexers, indexerFunc)
 }
 
-func (idx *Indexer) Run(block *tm.Block, blockId *tm.BlockID, evc *mantlemint.EventCollector) error {
-	//batch := idx.db.NewBatch()
-	batch := safe_batch.NewSafeBatchDB(idx.db)
-	batchedOrigin := batch.(safe_batch.SafeBatchDBCloser)
+func (idx *Indexer) Run(block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector) error {
+	// batch := idx.db.NewBatch()
+	batch := safebatch.NewSafeBatchDB(idx.db)
+	batchedOrigin := batch.(safebatch.SafeBatchDBCloser)
 	batchedOrigin.Open()
 
 	tStart := time.Now()
 	for _, indexerFunc := range idx.indexers {
-		if indexerErr := indexerFunc(*batch.(*safe_batch.SafeBatchDB), block, blockId, evc, idx.app); indexerErr != nil {
+		if indexerErr := indexerFunc(*batch.(*safebatch.SafeBatchDB), block, blockID, evc, idx.app); indexerErr != nil {
 			return indexerErr
 		}
 	}
 	tEnd := time.Now()
+
+	//nolint:forbidigo
 	fmt.Printf("[indexer] finished %d indexers, %dms\n", len(idx.indexers), tEnd.Sub(tStart).Milliseconds())
 
 	if _, err := batchedOrigin.Flush(); err != nil {

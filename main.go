@@ -1,28 +1,29 @@
 package main
 
+//nolint:staticcheck
 import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
-	"github.com/tendermint/spn/cmd"
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime/debug"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/gorilla/mux"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/spf13/viper"
+	"github.com/tendermint/spn/cmd"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	terra "github.com/terra-money/alliance/app"
-	blockFeeder "github.com/terra-money/mantlemint/block_feed"
+	tmdb "github.com/tendermint/tm-db"
+	abci "github.com/terra-money/alliance/app"
+	blockFeeder "github.com/terra-money/mantlemint/blockfeed"
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/heleveldb"
 	"github.com/terra-money/mantlemint/db/hld"
-	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/indexer/block"
 	"github.com/terra-money/mantlemint/indexer/richlist"
@@ -30,16 +31,16 @@ import (
 	"github.com/terra-money/mantlemint/mantlemint"
 	"github.com/terra-money/mantlemint/rpc"
 	"github.com/terra-money/mantlemint/store/rootmulti"
-
-	tmdb "github.com/tendermint/tm-db"
 )
 
 // initialize mantlemint for v0.34.x
+//
+//nolint:funlen,forbidigo
 func main() {
 	mantlemintConfig := config.GetConfig()
 	mantlemintConfig.Print()
 
-	cmd.SetPrefixes(terra.AccountAddressPrefix)
+	cmd.SetPrefixes(abci.AccountAddressPrefix)
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
 		Name: mantlemintConfig.MantlemintDB,
@@ -50,23 +51,23 @@ func main() {
 		panic(ldbErr)
 	}
 
-	var hldb = hld.ApplyHeightLimitedDB(
+	hldb := hld.ApplyHeightLimitedDB(
 		ldb,
 		&hld.HeightLimitedDBConfig{
 			Debug: true,
 		},
 	)
 
-	batched := safe_batch.NewSafeBatchDB(hldb)
-	batchedOrigin := batched.(safe_batch.SafeBatchDBCloser)
+	batched := safebatch.NewSafeBatchDB(hldb)
+	batchedOrigin := batched.(safebatch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
-	codec := cosmoscmd.MakeEncodingConfig(terra.ModuleBasics)
+	codec := cosmoscmd.MakeEncodingConfig(abci.ModuleBasics)
 
 	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
 	vpr := viper.GetViper()
 
-	app := terra.New(
+	app := abci.New(
 		logger,
 		batched,
 		nil,
@@ -83,7 +84,7 @@ func main() {
 	)
 
 	// create app...
-	var appCreator = mantlemint.NewConcurrentQueryClientCreator(app)
+	appCreator := mantlemint.NewConcurrentQueryClientCreator(app)
 	appConns := proxy.NewAppConns(appCreator)
 	appConns.SetLogger(logger)
 	if startErr := appConns.OnStart(); startErr != nil {
@@ -95,8 +96,8 @@ func main() {
 		fmt.Println(a)
 	}()
 
-	var executor = mantlemint.NewMantlemintExecutor(batched, appConns.Consensus())
-	var mm = mantlemint.NewMantlemint(
+	executor := mantlemint.NewMantlemintExecutor(batched, appConns.Consensus())
+	mm := mantlemint.NewMantlemint(
 		batched,
 		appConns,
 		executor,
@@ -156,7 +157,7 @@ func main() {
 	indexerInstance.RegisterIndexerService("richlist", richlist.IndexRichlist)
 
 	abcicli, _ := appCreator.NewABCIClient()
-	rpccli := rpc.NewRpcClient(abcicli)
+	rpccli := rpc.NewRPCClient(abcicli)
 
 	// rest cache invalidate channel
 	cacheInvalidateChan := make(chan int64)
@@ -188,9 +189,11 @@ func main() {
 	}
 
 	// start subscribing to block
+	//nolint:nestif
 	if mantlemintConfig.DisableSync {
 		fmt.Println("running without sync...")
 		forever()
+		return
 	} else if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
 		panic(blockFeedErr)
 	} else {
@@ -247,7 +250,7 @@ func fauxMerkleModeOpt(app *baseapp.BaseApp) {
 }
 
 func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
-	jsonBlob, _ := ioutil.ReadFile(genesisPath)
+	jsonBlob, _ := os.ReadFile(genesisPath)
 	shasum := sha1.New()
 	shasum.Write(jsonBlob)
 	sum := hex.EncodeToString(shasum.Sum(nil))

@@ -1,9 +1,9 @@
 package rpc
 
+//nolint:staticcheck
 import (
 	"fmt"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,10 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
-
 	"github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/gorilla/mux"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
@@ -22,10 +22,11 @@ import (
 	mconfig "github.com/terra-money/mantlemint/config"
 )
 
+//nolint:funlen
 func StartRPC(
 	app *cosmoscmd.App,
 	rpcclient rpcclient.Client,
-	chainId string,
+	chainID string,
 	encodingConfig cosmoscmd.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
@@ -44,7 +45,7 @@ func StartRPC(
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithHomeDir(terra.DefaultNodeHome).
-		WithChainID(chainId)
+		WithChainID(chainID)
 
 	// create backends for response cache
 	// - cache: used for latest states without `height` parameter
@@ -56,6 +57,7 @@ func StartRPC(
 	go func() {
 		for {
 			height := <-invalidateTrigger
+			//nolint:forbidigo
 			fmt.Printf("[cache-middleware] purging cache at height %d\n", height)
 
 			cache.Metric()
@@ -67,7 +69,7 @@ func StartRPC(
 	}()
 
 	// start new api server
-	apiSrv := api.New(context, tmlog.NewTMLogger(ioutil.Discard))
+	apiSrv := api.New(context, tmlog.NewTMLogger(io.Discard))
 
 	// register custom routes to default api server
 	registerCustomRoutes(apiSrv.Router)

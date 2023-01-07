@@ -1,4 +1,4 @@
-package safe_batch
+package safebatch
 
 import (
 	"fmt"
@@ -7,26 +7,30 @@ import (
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
-var _ tmdb.DB = (*SafeBatchDB)(nil)
-var _ SafeBatchDBCloser = (*SafeBatchDB)(nil)
+var (
+	_ tmdb.DB           = (*SafeBatchDB)(nil)
+	_ SafeBatchDBCloser = (*SafeBatchDB)(nil)
+)
 
+//nolint:revive
 type SafeBatchDBCloser interface {
 	tmdb.DB
 	Open()
 	Flush() (tmdb.Batch, error)
 }
 
+//nolint:revive
 type SafeBatchDB struct {
 	db    tmdb.DB
 	batch tmdb.Batch
 }
 
-// open batch
+// open batch.
 func (s *SafeBatchDB) Open() {
 	s.batch = s.db.NewBatch()
 }
 
-// flush batch and return rollback batch if rollbackable
+// flush batch and return rollback batch if rollbackable.
 func (s *SafeBatchDB) Flush() (tmdb.Batch, error) {
 	defer func() {
 		if s.batch != nil {
@@ -37,9 +41,9 @@ func (s *SafeBatchDB) Flush() (tmdb.Batch, error) {
 
 	if batch, ok := s.batch.(rollbackable.HasRollbackBatch); ok {
 		return batch.RollbackBatch(), s.batch.WriteSync()
-	} else {
-		return nil, s.batch.WriteSync()
 	}
+
+	return nil, s.batch.WriteSync()
 }
 
 func NewSafeBatchDB(db tmdb.DB) tmdb.DB {
@@ -60,9 +64,9 @@ func (s *SafeBatchDB) Has(key []byte) (bool, error) {
 func (s *SafeBatchDB) Set(key, value []byte) error {
 	if s.batch != nil {
 		return s.batch.Set(key, value)
-	} else {
-		return s.db.Set(key, value)
 	}
+
+	return s.db.Set(key, value)
 }
 
 func (s *SafeBatchDB) SetSync(key, value []byte) error {
@@ -72,9 +76,9 @@ func (s *SafeBatchDB) SetSync(key, value []byte) error {
 func (s *SafeBatchDB) Delete(key []byte) error {
 	if s.batch != nil {
 		return s.batch.Delete(key)
-	} else {
-		return s.db.Delete(key)
 	}
+
+	return s.db.Delete(key)
 }
 
 func (s *SafeBatchDB) DeleteSync(key []byte) error {
@@ -96,10 +100,10 @@ func (s *SafeBatchDB) Close() error {
 func (s *SafeBatchDB) NewBatch() tmdb.Batch {
 	if s.batch != nil {
 		return NewSafeBatchNullify(s.batch)
-	} else {
-		fmt.Println("=== warn! should never enter here")
-		return s.db.NewBatch()
 	}
+	//nolint:forbidigo
+	fmt.Println("=== warn! should never enter here")
+	return s.db.NewBatch()
 }
 
 func (s *SafeBatchDB) Print() error {

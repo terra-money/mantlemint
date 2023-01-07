@@ -2,6 +2,8 @@ package db
 
 // DB defines mantlemint specific db interface, based off tm-db@0.6.4.
 // All future tmdb compat versions need to be provided in each version provider
+//
+//nolint:interfacebloat
 type DB interface {
 	// Get fetches the value of the given key, or nil if it does not exist.
 	// CONTRACT: key, value readonly []byte
@@ -93,13 +95,14 @@ type Batch interface {
 // var itr Iterator = ...
 // defer itr.Close()
 //
-// for ; itr.Valid(); itr.Next() {
-//   k, v := itr.Key(); itr.Value()
-//   ...
-// }
-// if err := itr.Error(); err != nil {
-//   ...
-// }
+//	for ; itr.Valid(); itr.Next() {
+//	  k, v := itr.Key(); itr.Value()
+//	  ...
+//	}
+//
+//	if err := itr.Error(); err != nil {
+//	  ...
+//	}
 type Iterator interface {
 	// Domain returns the start (inclusive) and end (exclusive) limits of the iterator.
 	// CONTRACT: start, end readonly []byte

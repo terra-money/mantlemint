@@ -14,7 +14,7 @@ func ConcatBytes(items ...[]byte) []byte {
 }
 
 func UintToBigEndian(n uint64) []byte {
-	var buf = make([]byte, 8)
+	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, n)
 
 	return buf

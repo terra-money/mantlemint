@@ -1,9 +1,8 @@
 package rootmulti
 
 import (
-	"github.com/tendermint/tendermint/crypto/merkle"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/tendermint/crypto/merkle"
 )
 
 // RequireProof returns whether proof is required for the subpath.

@@ -25,6 +25,7 @@ type Iterator struct {
 
 func NewLevelDBIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterator, error) {
 	pdb := tmdb.NewPrefixDB(d.session, cKeysForIteratorPrefix)
+
 	iter, err := pdb.Iterator(start, end)
 	if err != nil {
 		return nil, err
@@ -39,6 +40,7 @@ func NewLevelDBIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterato
 		end:       end,
 	}, nil
 }
+
 func NewLevelDBReverseIterator(d *Driver, maxHeight int64, start, end []byte) (*Iterator, error) {
 	pdb := tmdb.NewPrefixDB(d.session, cKeysForIteratorPrefix)
 	iter, err := pdb.ReverseIterator(start, end)
@@ -77,7 +79,6 @@ func (i *Iterator) Valid() bool {
 		}
 	}
 	return false
-
 }
 
 func (i *Iterator) Value() (value []byte) {

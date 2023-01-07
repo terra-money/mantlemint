@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 
 	abcicli "github.com/tendermint/tendermint/abci/client"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -20,7 +19,7 @@ type MantlemintRPCClient struct {
 	client abcicli.Client
 }
 
-func NewRpcClient(client abcicli.Client) rpcclient.Client {
+func NewRPCClient(client abcicli.Client) rpcclient.Client {
 	return &MantlemintRPCClient{client: client}
 }
 
@@ -28,34 +27,43 @@ func (m *MantlemintRPCClient) ABCIInfo(ctx context.Context) (*coretypes.ResultAB
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) ABCIQuery(ctx context.Context, path string, data bytes.HexBytes) (*coretypes.ResultABCIQuery, error) {
-	if resp, err := m.client.QuerySync(abci.RequestQuery{
+func (m *MantlemintRPCClient) ABCIQuery(
+	ctx context.Context, path string, data bytes.HexBytes,
+) (*coretypes.ResultABCIQuery, error) {
+	resp, err := m.client.QuerySync(abci.RequestQuery{
 		Data:   data,
 		Path:   path,
 		Height: 0,
 		Prove:  false,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, err
-	} else {
-		return &coretypes.ResultABCIQuery{
-			Response: *resp,
-		}, nil
 	}
+
+	return &coretypes.ResultABCIQuery{
+		Response: *resp,
+	}, nil
 }
 
-func (m *MantlemintRPCClient) ABCIQueryWithOptions(ctx context.Context, path string, data bytes.HexBytes, opts rpcclient.ABCIQueryOptions) (*coretypes.ResultABCIQuery, error) {
-	if resp, err := m.client.QuerySync(abci.RequestQuery{
+func (m *MantlemintRPCClient) ABCIQueryWithOptions(
+	ctx context.Context,
+	path string,
+	data bytes.HexBytes,
+	opts rpcclient.ABCIQueryOptions,
+) (*coretypes.ResultABCIQuery, error) {
+	resp, err := m.client.QuerySync(abci.RequestQuery{
 		Data:   data,
 		Path:   path,
 		Height: opts.Height,
 		Prove:  opts.Prove,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, err
-	} else {
-		return &coretypes.ResultABCIQuery{
-			Response: *resp,
-		}, nil
 	}
+
+	return &coretypes.ResultABCIQuery{
+		Response: *resp,
+	}, nil
 }
 
 func (m *MantlemintRPCClient) Start() error {
@@ -98,19 +106,27 @@ func (m *MantlemintRPCClient) SetLogger(logger tmlog.Logger) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BroadcastTxCommit(ctx context.Context, tx tendermint.Tx) (*coretypes.ResultBroadcastTxCommit, error) {
+func (m *MantlemintRPCClient) BroadcastTxCommit(
+	ctx context.Context, tx tendermint.Tx,
+) (*coretypes.ResultBroadcastTxCommit, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BroadcastTxAsync(ctx context.Context, tx tendermint.Tx) (*coretypes.ResultBroadcastTx, error) {
+func (m *MantlemintRPCClient) BroadcastTxAsync(
+	ctx context.Context, tx tendermint.Tx,
+) (*coretypes.ResultBroadcastTx, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BroadcastTxSync(ctx context.Context, tx tendermint.Tx) (*coretypes.ResultBroadcastTx, error) {
+func (m *MantlemintRPCClient) BroadcastTxSync(
+	ctx context.Context, tx tendermint.Tx,
+) (*coretypes.ResultBroadcastTx, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) Subscribe(ctx context.Context, subscriber, query string, outCapacity ...int) (out <-chan coretypes.ResultEvent, err error) {
+func (m *MantlemintRPCClient) Subscribe(
+	ctx context.Context, subscriber, query string, outCapacity ...int,
+) (out <-chan coretypes.ResultEvent, err error) {
 	panic("implement me")
 }
 
@@ -126,11 +142,15 @@ func (m *MantlemintRPCClient) Genesis(ctx context.Context) (*coretypes.ResultGen
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) GenesisChunked(ctx context.Context, u uint) (*coretypes.ResultGenesisChunk, error) {
+func (m *MantlemintRPCClient) GenesisChunked(
+	ctx context.Context, u uint,
+) (*coretypes.ResultGenesisChunk, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BlockchainInfo(ctx context.Context, minHeight, maxHeight int64) (*coretypes.ResultBlockchainInfo, error) {
+func (m *MantlemintRPCClient) BlockchainInfo(
+	ctx context.Context, minHeight, maxHeight int64,
+) (*coretypes.ResultBlockchainInfo, error) {
 	panic("implement me")
 }
 
@@ -146,7 +166,9 @@ func (m *MantlemintRPCClient) ConsensusState(ctx context.Context) (*coretypes.Re
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) ConsensusParams(ctx context.Context, height *int64) (*coretypes.ResultConsensusParams, error) {
+func (m *MantlemintRPCClient) ConsensusParams(
+	ctx context.Context, height *int64,
+) (*coretypes.ResultConsensusParams, error) {
 	panic("implement me")
 }
 
@@ -156,9 +178,6 @@ func (m *MantlemintRPCClient) Health(ctx context.Context) (*coretypes.ResultHeal
 
 func (m *MantlemintRPCClient) Block(ctx context.Context, height *int64) (*coretypes.ResultBlock, error) {
 	return core.Block(nil, height)
-	fmt.Println("is it you")
-
-	panic("implement me")
 }
 
 func (m *MantlemintRPCClient) BlockByHash(ctx context.Context, hash []byte) (*coretypes.ResultBlock, error) {
@@ -173,7 +192,9 @@ func (m *MantlemintRPCClient) Commit(ctx context.Context, height *int64) (*coret
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) Validators(ctx context.Context, height *int64, page, perPage *int) (*coretypes.ResultValidators, error) {
+func (m *MantlemintRPCClient) Validators(
+	ctx context.Context, height *int64, page, perPage *int,
+) (*coretypes.ResultValidators, error) {
 	panic("implement me")
 }
 
@@ -181,11 +202,15 @@ func (m *MantlemintRPCClient) Tx(ctx context.Context, hash []byte, prove bool) (
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) TxSearch(ctx context.Context, query string, prove bool, page, perPage *int, orderBy string) (*coretypes.ResultTxSearch, error) {
+func (m *MantlemintRPCClient) TxSearch(
+	ctx context.Context, query string, prove bool, page, perPage *int, orderBy string,
+) (*coretypes.ResultTxSearch, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BlockSearch(ctx context.Context, query string, page, perPage *int, orderBy string) (*coretypes.ResultBlockSearch, error) {
+func (m *MantlemintRPCClient) BlockSearch(
+	ctx context.Context, query string, page, perPage *int, orderBy string,
+) (*coretypes.ResultBlockSearch, error) {
 	panic("implement me")
 }
 
@@ -193,11 +218,14 @@ func (m *MantlemintRPCClient) Status(ctx context.Context) (*coretypes.ResultStat
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) BroadcastEvidence(ctx context.Context, evidence tendermint.Evidence) (*coretypes.ResultBroadcastEvidence, error) {
+func (m *MantlemintRPCClient) BroadcastEvidence(
+	ctx context.Context, evidence tendermint.Evidence,
+) (*coretypes.ResultBroadcastEvidence, error) {
 	panic("implement me")
 }
 
-func (m *MantlemintRPCClient) UnconfirmedTxs(ctx context.Context, limit *int) (*coretypes.ResultUnconfirmedTxs, error) {
+func (m *MantlemintRPCClient) UnconfirmedTxs(ctx context.Context, limit *int,
+) (*coretypes.ResultUnconfirmedTxs, error) {
 	panic("implement me")
 }
 

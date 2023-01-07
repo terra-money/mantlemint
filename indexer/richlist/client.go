@@ -6,16 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/pkg/errors"
-
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
 
-var (
-	EndpointGETBlocksHeight = "/index/richlist/{height}"
-)
+var EndpointGETBlocksHeight = "/index/richlist/{height}"
 
 var (
 	ErrorInvalidHeight    = func(height string) string { return fmt.Sprintf("invalid height %s", height) }
@@ -35,21 +32,21 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
 		if !ok {
-			http.Error(writer, ErrorInvalidHeight(height), 400)
+			http.Error(writer, ErrorInvalidHeight(height), http.StatusBadRequest)
 		}
 		if height == "latest" {
 			height = "0"
 		}
 
 		if list, err := richlistByHeightHandler(indexerDB, height); err != nil {
-			http.Error(writer, indexer.ErrorInternal(err), 500)
+			http.Error(writer, indexer.ErrorInternal(err), http.StatusInternalServerError)
 			return
 		} else if list == nil {
 			// block not seen;
-			http.Error(writer, ErrorRichlistNotFound(height), 400)
+			http.Error(writer, ErrorRichlistNotFound(height), http.StatusBadRequest)
 			return
 		} else {
-			writer.WriteHeader(200)
+			writer.WriteHeader(http.StatusOK)
 			writer.Write(list)
 			return
 		}

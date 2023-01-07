@@ -8,11 +8,13 @@ import (
 	"github.com/terra-money/mantlemint/lib"
 )
 
+//nolint:revive
 type TxRecord struct {
 	Tx         json.RawMessage `json:"tx"`
 	TxResponse json.RawMessage `json:"tx_response"`
 }
 
+//nolint:revive
 type TxByHeightRecord struct {
 	Code      uint32          `json:"code"`
 	Codespace string          `json:"codespace"`
@@ -26,15 +28,19 @@ type TxByHeightRecord struct {
 	Tx        json.RawMessage `json:"tx"`
 }
 
-var txPrefix = []byte("tx/hash:")
-var getKey = func(hash string) []byte {
-	return lib.ConcatBytes(txPrefix, []byte(hash))
-}
+var (
+	txPrefix = []byte("tx/hash:")
+	getKey   = func(hash string) []byte {
+		return lib.ConcatBytes(txPrefix, []byte(hash))
+	}
+)
 
-var byHeightPrefix = []byte("tx/height:")
-var getByHeightKey = func(height uint64) []byte {
-	return lib.ConcatBytes(byHeightPrefix, lib.UintToBigEndian(height))
-}
+var (
+	byHeightPrefix = []byte("tx/height:")
+	getByHeightKey = func(height uint64) []byte {
+		return lib.ConcatBytes(byHeightPrefix, lib.UintToBigEndian(height))
+	}
+)
 
 type ResponseDeliverTx struct {
 	Code      uint32  `json:"code"`

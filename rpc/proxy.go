@@ -1,11 +1,12 @@
 package rpc
 
 import (
-	"github.com/tendermint/tendermint/libs/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/tendermint/tendermint/libs/rand"
 )
 
 type ProxyMiddleware struct {
@@ -13,17 +14,19 @@ type ProxyMiddleware struct {
 	proxies []*httputil.ReverseProxy
 }
 
-func NewProxyMiddleware(lcdUrls []string) ProxyMiddleware {
-	var proxies []*httputil.ReverseProxy
-	for _, u := range lcdUrls {
-		lcdUrl, err := url.Parse(u)
+func NewProxyMiddleware(lcdURLs []string) ProxyMiddleware {
+	proxies := []*httputil.ReverseProxy{}
+
+	for _, u := range lcdURLs {
+		lcdURL, err := url.Parse(u)
 		if err != nil {
 			panic(err)
 		}
-		proxies = append(proxies, httputil.NewSingleHostReverseProxy(lcdUrl))
+		proxies = append(proxies, httputil.NewSingleHostReverseProxy(lcdURL))
 	}
+
 	return ProxyMiddleware{
-		lcdUrls: lcdUrls,
+		lcdUrls: lcdURLs,
 		proxies: proxies,
 	}
 }
@@ -39,5 +42,4 @@ func (pm ProxyMiddleware) HandleRequest(writer http.ResponseWriter, request *htt
 	}
 	writer.WriteHeader(recorder.Code)
 	writer.Write(recorder.Body.Bytes())
-	return
 }

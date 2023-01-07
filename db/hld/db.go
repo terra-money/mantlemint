@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/terra-money/mantlemint/lib"
-
 	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint/lib"
 )
 
 const (
@@ -21,11 +20,9 @@ const (
 	debugKeyGetResult
 )
 
-var HeightLimitedDelimiter = []byte{'@'}
-var LatestHeightBuf = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-
 var (
-	errInvalidWriteHeight = "invalid operation: writeHeight is not set"
+	HeightLimitedDelimiter = []byte{'@'}
+	LatestHeightBuf        = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 )
 
 var _ HLD = (*HeightLimitedDB)(nil)
@@ -60,43 +57,43 @@ func ApplyHeightLimitedDB(db HeightLimitEnabledDB, config *HeightLimitedDBConfig
 func (hld *HeightLimitedDB) BranchHeightLimitedDB(height int64) *HeightLimitedDB {
 	newOne := ApplyHeightLimitedDB(hld.odb, hld.config)
 	newOne.SetReadHeight(height)
+
 	return newOne
 }
 
 // SetReadHeight sets a target read height in the db driver.
 // It acts differently if the db mode is writer or reader:
-// - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
-//   allowing full block snapshot history
+//   - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
+//     allowing full block snapshot history
 func (hld *HeightLimitedDB) SetReadHeight(height int64) {
 	hld.readHeight = height
 }
 
-// ClearReadHeight sets internal readHeight to LatestHeight
+// ClearReadHeight sets internal readHeight to LatestHeight.
 func (hld *HeightLimitedDB) ClearReadHeight() int64 {
 	lastKnownReadHeight := hld.readHeight
 	hld.readHeight = LatestHeight
+
 	return lastKnownReadHeight
 }
 
-// GetCurrentReadHeight gets the current readHeight
+// GetCurrentReadHeight gets the current readHeight.
 func (hld *HeightLimitedDB) GetCurrentReadHeight() int64 {
 	return hld.readHeight
 }
 
 // SetWriteHeight sets a target write height in the db driver.
 // - Writer uses writeHeight to append along with the key, so later when fetching with the driver
-// you can find the latest known key/value pair before the writeHeight
+// you can find the latest known key/value pair before the writeHeight.
 func (hld *HeightLimitedDB) SetWriteHeight(height int64) {
 	if height != 0 {
 		hld.writeHeight = height
-		// hld.writeBatch = hld.NewBatch()
 	}
 }
 
 // ClearWriteHeight sets the next target write Height
-// NOTE: evaluate the actual usage of it
+// NOTE: evaluate the actual usage of it.
 func (hld *HeightLimitedDB) ClearWriteHeight() int64 {
-	fmt.Println("!!! clearing write height...")
 	lastKnownWriteHeight := hld.writeHeight
 	hld.writeHeight = InvalidHeight
 	// if batchErr := hld.writeBatch.Write(); batchErr != nil {
@@ -106,25 +103,25 @@ func (hld *HeightLimitedDB) ClearWriteHeight() int64 {
 	return lastKnownWriteHeight
 }
 
-// GetCurrentWriteHeight gets the current write height
+// GetCurrentWriteHeight gets the current write height.
 func (hld *HeightLimitedDB) GetCurrentWriteHeight() int64 {
 	return hld.writeHeight
 }
 
 // Get fetches the value of the given key, or nil if it does not exist.
-// CONTRACT: key, value readonly []byte
+// CONTRACT: key, value readonly []byte.
 func (hld *HeightLimitedDB) Get(key []byte) ([]byte, error) {
 	return hld.odb.Get(hld.GetCurrentReadHeight(), key)
 }
 
 // Has checks if a key exists.
-// CONTRACT: key, value readonly []byte
+// CONTRACT: key, value readonly []byte.
 func (hld *HeightLimitedDB) Has(key []byte) (bool, error) {
 	return hld.odb.Has(hld.GetCurrentReadHeight(), key)
 }
 
 // Set sets the value for the given key, replacing it if it already exists.
-// CONTRACT: key, value readonly []byte
+// CONTRACT: key, value readonly []byte.
 func (hld *HeightLimitedDB) Set(key []byte, value []byte) error {
 	return hld.odb.Set(hld.writeHeight, key, value)
 }
@@ -150,7 +147,7 @@ func (hld *HeightLimitedDB) DeleteSync(key []byte) error {
 // Close when done. End is exclusive, and start must be less than end. A nil start iterates
 // from the first key, and a nil end iterates to the last key (inclusive).
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-// CONTRACT: start, end readonly []byte
+// CONTRACT: start, end readonly []byte.
 func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
 	return hld.odb.Iterator(hld.GetCurrentReadHeight(), start, end)
 }
@@ -159,7 +156,7 @@ func (hld *HeightLimitedDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
 // must call Close when done. End is exclusive, and start must be less than end. A nil end
 // iterates from the last key (inclusive), and a nil start iterates to the first key (inclusive).
 // CONTRACT: No writes may happen within a domain while an iterator exists over it.
-// CONTRACT: start, end readonly []byte
+// CONTRACT: start, end readonly []byte.
 func (hld *HeightLimitedDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
 	return hld.odb.ReverseIterator(hld.GetCurrentReadHeight(), start, end)
 }
@@ -198,6 +195,7 @@ func (hld *HeightLimitedDB) Stats() map[string]string {
 	return hld.odb.Stats()
 }
 
+//nolint:forbidigo
 func (hld *HeightLimitedDB) Debug(debugType int, key []byte, value []byte) {
 	if !hld.config.Debug {
 		return
@@ -207,6 +205,7 @@ func (hld *HeightLimitedDB) Debug(debugType int, key []byte, value []byte) {
 	keyHeight := key[len(key)-8:]
 
 	var debugPrefix string
+
 	switch debugType {
 	case debugKeyGet:
 		debugPrefix = "get"
@@ -216,13 +215,12 @@ func (hld *HeightLimitedDB) Debug(debugType int, key []byte, value []byte) {
 		debugPrefix = "get/it"
 	case debugKeyReverseIterator:
 		debugPrefix = "get/rit"
-
 	case debugKeyGetResult:
 		debugPrefix = "get/response"
 	}
 
 	var actualKeyHeight int64
-	if bytes.Compare(keyHeight, LatestHeightBuf) == 0 {
+	if bytes.Equal(keyHeight, LatestHeightBuf) {
 		actualKeyHeight = -1
 	} else {
 		actualKeyHeight = int64(lib.BigEndianToUint(keyHeight))

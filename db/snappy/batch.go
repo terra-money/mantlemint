@@ -7,6 +7,7 @@ import (
 
 var _ tmdb.Batch = (*SnappyBatch)(nil)
 
+//nolint:revive
 type SnappyBatch struct {
 	batch tmdb.Batch
 }
