@@ -1,27 +1,19 @@
 package mantlemint
 
 import (
-	// "fmt"
-	// abcicli "github.com/tendermint/tendermint/abci/client"
-	// abci "github.com/tendermint/tendermint/abci/types"
+	"log"
+	"sync"
+
 	"github.com/tendermint/tendermint/consensus"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
-
-	"log"
-	"sync"
-
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 )
 
 var _ Mantlemint = (*Instance)(nil)
-
-var (
-	errNoBlock = "block is never injected"
-)
 
 type Instance struct {
 	executor   Executor
@@ -50,12 +42,10 @@ func NewMantlemint(
 	runBefore MantlemintCallbackBefore,
 	runAfter MantlemintCallbackAfter,
 ) Mantlemint {
+	stateStore := state.NewStore(db, state.StoreOptions{DiscardABCIResponses: false})
+	blockStore := store.NewBlockStore(db)
 
-	// here we go!
-	var stateStore = state.NewStore(db, state.StoreOptions{DiscardABCIResponses: false})
-	var blockStore = store.NewBlockStore(db)
-	var lastState, err = stateStore.Load()
-
+	lastState, err := stateStore.Load()
 	if err != nil {
 		panic(err)
 	}
@@ -90,11 +80,11 @@ func (mm *Instance) Init(genesis *tendermint.GenesisDoc) error {
 	log.Printf("genesisTime=%v, chainId=%v", genesis.GenesisTime, genesis.ChainID)
 
 	if mm.lastHeight == 0 {
-		if genstate, err := state.MakeGenesisState(genesis); err != nil {
+		genstate, err := state.MakeGenesisState(genesis)
+		if err != nil {
 			return err
-		} else {
-			mm.lastState = genstate
 		}
+		mm.lastState = genstate
 
 		// need a handshaker
 		hs := consensus.NewHandshaker(mm.stateStore, mm.lastState, mm.blockStore, genesis)
@@ -103,28 +93,29 @@ func (mm *Instance) Init(genesis *tendermint.GenesisDoc) error {
 		if _, err := hs.ReplayBlocks(mm.lastState, initialAppHash, 0, mm.conn); err != nil {
 			return err
 		}
-
 	}
 
 	return nil
 }
 
 func (mm *Instance) LoadInitialState() error {
-	if lastState, err := mm.stateStore.Load(); err != nil {
+	lastState, err := mm.stateStore.Load()
+	if err != nil {
 		return err
-	} else {
-		mm.lastState = lastState
 	}
+
+	mm.lastState = lastState
 
 	if mm.lastHeight == 0 {
 		mm.lastState.LastResultsHash = merkle.HashFromByteSlices(nil)
 	}
+
 	return nil
 }
 
 func (mm *Instance) Inject(block *tendermint.Block) error {
-	var currentState = mm.lastState
-	var blockID = tendermint.BlockID{
+	currentState := mm.lastState
+	blockID := tendermint.BlockID{
 		Hash:          block.Hash(),
 		PartSetHeader: block.MakePartSet(tendermint.BlockPartSizeBytes).Header(),
 	}
@@ -153,7 +144,10 @@ func (mm *Instance) Inject(block *tendermint.Block) error {
 		return err
 	}
 
-	log.Printf("[mantlemint/inject] nextState.LastBlockHeight=%d, nextState.LastResultsHash=%x", nextState.LastBlockHeight, nextState.LastResultsHash)
+	log.Printf(
+		"[mantlemint/inject] nextState.LastBlockHeight=%d, nextState.LastResultsHash=%x",
+		nextState.LastBlockHeight, nextState.LastResultsHash,
+	)
 
 	// save cache of last state
 	mm.lastBlock = block
@@ -171,9 +165,8 @@ func (mm *Instance) Inject(block *tendermint.Block) error {
 func (mm *Instance) GetCurrentHeight() int64 {
 	if mm.lastState.LastBlockHeight != 0 {
 		return mm.lastState.LastBlockHeight
-	} else {
-		return mm.lastState.InitialHeight - 1
 	}
+	return mm.lastState.InitialHeight - 1
 }
 
 func (mm *Instance) GetCurrentBlock() *tendermint.Block {
@@ -195,15 +188,13 @@ func (mm *Instance) GetCurrentEventCollector() *EventCollector {
 func (mm *Instance) safeRunBefore(block *tendermint.Block) error {
 	if mm.runBefore != nil {
 		return mm.runBefore(block)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (mm *Instance) safeRunAfter(block *tendermint.Block, events *EventCollector) error {
 	if mm.runBefore != nil {
 		return mm.runAfter(block, events)
-	} else {
-		return nil
 	}
+	return nil
 }

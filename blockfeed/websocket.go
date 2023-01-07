@@ -1,9 +1,10 @@
-package block_feed
+package blockfeed
 
 import (
 	"encoding/json"
-	"github.com/gorilla/websocket"
 	"log"
+
+	"github.com/gorilla/websocket"
 )
 
 var _ BlockFeed = (*WSSubscription)(nil)
@@ -33,8 +34,8 @@ func NewWSSubscription(wsEndpoints []string) (*WSSubscription, error) {
 }
 
 func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
+	//nolint:bodyclose
 	socket, _, err := websocket.DefaultDialer.Dial(ws.wsEndpoints[rpcIndex], nil)
-
 	// return err, handle failures gracefully
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 
 	ws.ws = socket
 
-	var request = &handshake{
+	request := &handshake{
 		JSONRPC: "2.0",
 		Method:  "subscribe",
 		ID:      0,
@@ -82,10 +83,9 @@ func (ws *WSSubscription) Close() error {
 
 // tendermint rpc sends the "subscription ok" for the intiail response
 // filter that out by only sending through channel when there is
-// "data" field present
+// "data" field present.
 func handleInitialHandhake(ws *websocket.Conn) error {
 	_, _, err := ws.ReadMessage()
-
 	if err != nil {
 		return err
 	}
@@ -93,12 +93,11 @@ func handleInitialHandhake(ws *websocket.Conn) error {
 	return nil
 }
 
-// TODO: handle errors here
+// TODO: handle errors here.
 func receiveBlockEvents(ws *websocket.Conn, c chan *BlockResult) {
 	defer close(c)
 	for {
 		_, message, err := ws.ReadMessage()
-
 		// if read message failed,
 		// scrap the whole ws thing
 		if err != nil {

@@ -1,4 +1,4 @@
-package block_feed
+package blockfeed
 
 import (
 	tendermint "github.com/tendermint/tendermint/types"
@@ -6,7 +6,7 @@ import (
 
 // BlockFeed is a standard interface to provide subscription over blocks
 // There is only one method OnBlockFound and it gives you access to the
-// BlockFeed channel
+// BlockFeed channel.
 type BlockFeed interface {
 	// Close closes underlying subscriber
 	Close() error

@@ -2,7 +2,7 @@ package tx
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -10,21 +10,22 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
+//nolint:forbidigo
 func TestIndexTx(t *testing.T) {
 	db := tmdb.NewMemDB()
 	block := &tendermint.Block{}
 	blockFile, _ := os.Open("../fixtures/block_4814775.json")
-	blockJSON, _ := ioutil.ReadAll(blockFile)
+	blockJSON, _ := io.ReadAll(blockFile)
 	if err := tmjson.Unmarshal(blockJSON, block); err != nil {
 		t.Fail()
 	}
 
 	eventFile, _ := os.Open("../fixtures/response_4814775.json")
-	eventJSON, _ := ioutil.ReadAll(eventFile)
+	eventJSON, _ := io.ReadAll(eventFile)
 	evc := mantlemint.NewMantlemintEventCollector()
 	event := tendermint.EventDataTx{}
 	if err := tmjson.Unmarshal(eventJSON, &event.Result); err != nil {
@@ -33,11 +34,12 @@ func TestIndexTx(t *testing.T) {
 
 	_ = evc.PublishEventTx(event)
 
-	safebatch := safe_batch.NewSafeBatchDB(db)
-	if err := IndexTx(*safebatch.(*safe_batch.SafeBatchDB), block, nil, evc, nil); err != nil {
+	batch := safebatch.NewSafeBatchDB(db)
+
+	if err := IndexTx(*batch.(*safebatch.SafeBatchDB), block, nil, evc, nil); err != nil {
 		panic(err)
 	}
-	safebatch.(safe_batch.SafeBatchDBCloser).Flush()
+	batch.(safebatch.SafeBatchDBCloser).Flush()
 
 	txn, err := txByHashHandler(db, "C794D5CE7179AED455C10E8E7645FE8F8A40BA0C97F1275AB87B5E88A52CB2C3")
 	assert.Nil(t, err)

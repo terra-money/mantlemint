@@ -1,4 +1,4 @@
-package block_feed
+package blockfeed
 
 import (
 	abci "github.com/tendermint/tendermint/abci/types"

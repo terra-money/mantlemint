@@ -1,9 +1,10 @@
-package safe_batch
+package safebatch
 
 import tmdb "github.com/tendermint/tm-db"
 
 var _ tmdb.Batch = (*SafeBatchNullified)(nil)
 
+//nolint:revive
 type SafeBatchNullified struct {
 	batch tmdb.Batch
 }

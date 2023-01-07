@@ -30,18 +30,19 @@ func (d *Driver) newInnerIterator(requestHeight int64, pdb *tmdb.PrefixDB) (tmdb
 	if d.mode == DriverModeKeySuffixAsc {
 		heightEnd := lib.UintToBigEndian(uint64(requestHeight + 1))
 		return pdb.ReverseIterator(nil, heightEnd)
-	} else {
-		heightStart := lib.UintToBigEndian(math.MaxUint64 - uint64(requestHeight))
-		return pdb.Iterator(heightStart, nil)
 	}
+
+	heightStart := lib.UintToBigEndian(math.MaxUint64 - uint64(requestHeight))
+
+	return pdb.Iterator(heightStart, nil)
 }
 
 func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 	if maxHeight == 0 {
 		return d.session.Get(prefixCurrentDataKey(key))
 	}
-	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
-	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
+	requestHeight := hld.Height(maxHeight).CurrentOrLatest().ToInt64()
+	requestHeightMin := hld.Height(0).CurrentOrNever().ToInt64()
 
 	// check if requestHeightMin is
 	if requestHeightMin > requestHeight {
@@ -62,20 +63,21 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 	deleted := value[0]
 	if deleted == 1 {
 		return nil, nil
-	} else {
-		if len(value) > 1 {
-			return value[1:], nil
-		}
-		return []byte{}, nil
 	}
+
+	if len(value) > 1 {
+		return value[1:], nil
+	}
+
+	return []byte{}, nil
 }
 
 func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 	if maxHeight == 0 {
 		return d.session.Has(prefixCurrentDataKey(key))
 	}
-	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
-	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
+	requestHeight := hld.Height(maxHeight).CurrentOrLatest().ToInt64()
+	requestHeightMin := hld.Height(0).CurrentOrNever().ToInt64()
 
 	// check if requestHeightMin is
 	if requestHeightMin > requestHeight {
@@ -96,9 +98,9 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 
 	if deleted == 1 {
 		return false, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 func (d *Driver) Set(atHeight int64, key, value []byte) error {
@@ -125,6 +127,7 @@ func (d *Driver) Iterator(maxHeight int64, start, end []byte) (hld.HeightLimitEn
 		pdb := tmdb.NewPrefixDB(d.session, cCurrentDataPrefix)
 		return pdb.Iterator(start, end)
 	}
+
 	return NewLevelDBIterator(d, maxHeight, start, end)
 }
 
@@ -133,6 +136,7 @@ func (d *Driver) ReverseIterator(maxHeight int64, start, end []byte) (hld.Height
 		pdb := tmdb.NewPrefixDB(d.session, cCurrentDataPrefix)
 		return pdb.ReverseIterator(start, end)
 	}
+
 	return NewLevelDBReverseIterator(d, maxHeight, start, end)
 }
 
@@ -145,7 +149,7 @@ func (d *Driver) NewBatch(atHeight int64) hld.HeightLimitEnabledBatch {
 	return NewLevelDBBatch(atHeight, d)
 }
 
-// TODO: Implement me
+// TODO: Implement me.
 func (d *Driver) Print() error {
 	return nil
 }

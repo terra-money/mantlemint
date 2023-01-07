@@ -1,16 +1,19 @@
 package richlist
 
+//nolint:gci,staticcheck
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
-	terra "github.com/terra-money/alliance/app"
 	"sync"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/google/btree"
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	abci "github.com/terra-money/alliance/app"
 	"github.com/terra-money/mantlemint/lib"
 )
 
@@ -52,7 +55,7 @@ func (ranker *Ranker) Unlist(accAddress string) ( /*isEmpty*/ bool /*err*/, erro
 	for i, listed := range ranker.Addresses {
 		if listed == accAddress {
 			ranker.Addresses = append(ranker.Addresses[:i], ranker.Addresses[i+1:]...)
-			return len(ranker.Addresses) <= 0, nil
+			return len(ranker.Addresses) == 0, nil
 		}
 	}
 	return false, fmt.Errorf("%s is not on the ranker list", accAddress)
@@ -111,7 +114,7 @@ func (list *Richlist) Unrank(ranker Ranker) (err error) {
 	item := list.Rankers.Get(ranker)
 	list.mutex.RUnlock()
 	if item == nil {
-		return fmt.Errorf("failed to unrank: cannot find %+v\n", ranker)
+		return fmt.Errorf("failed to unrank: cannot find %+v", ranker)
 	}
 
 	unranked := item.(Ranker)
@@ -159,7 +162,7 @@ func (list *Richlist) Count() (count int) {
 	return
 }
 
-func (list *Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extracted *Richlist, err error) {
+func (list *Richlist) Extract(height uint64, length int, threshold *sdk.Coin) (extracted *Richlist, err error) {
 	if list.Len() < 1 {
 		return nil, fmt.Errorf("richlist empty")
 	}
@@ -172,7 +175,7 @@ func (list *Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extr
 	defer list.mutex.RUnlock()
 	list.Rankers.Descend(func(entry btree.Item) bool {
 		ranker := entry.(Ranker)
-		if (extracted.Count() >= len) || (threshold != nil && ranker.Less(temp)) {
+		if (extracted.Count() >= length) || (threshold != nil && ranker.Less(temp)) {
 			return false
 		}
 		extracted.mutex.Lock()
@@ -183,10 +186,10 @@ func (list *Richlist) Extract(height uint64, len int, threshold *sdk.Coin) (extr
 	return
 }
 
-func (list *Richlist) Apply(changes map[string]sdk.Int, capp *cosmoscmd.App, height uint64, denom string) (err error) {
-	app, ok := (*capp).(*terra.App)
+func (list *Richlist) Apply(changes map[string]math.Int, capp *cosmoscmd.App, height uint64, denom string) (err error) {
+	app, ok := (*capp).(*abci.App)
 	if !ok {
-		return fmt.Errorf("invalid app expect: %T got %T", terra.App{}, capp)
+		return fmt.Errorf("invalid app expect: %T got %T", abci.App{}, capp)
 	}
 	ctx := app.NewContext(true, tmproto.Header{})
 
@@ -202,21 +205,23 @@ func (list *Richlist) Apply(changes map[string]sdk.Int, capp *cosmoscmd.App, hei
 
 		amountPrev := app.BankKeeper.GetBalance(ctx, accAddress, denom)
 		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(amount))
-		//fmt.Printf("[DEBUG] addr:%+v, amountPrev:%+v\n", accAddress, amountPrev)
+		// fmt.Printf("[DEBUG] addr:%+v, amountPrev:%+v\n", accAddress, amountPrev)
 
 		ranker := Ranker{Addresses: []string{address}}
 		// remove outdated rank
 		ranker.Score = amountPrev
 		err = list.Unrank(ranker)
 		if err != nil {
+			//nolint:forbidigo
 			fmt.Printf("unrank failed: %+v\n", err)
-			//return // don't return! it's normal for the new ranker
+			// return // don't return! it's normal for the new ranker
 		}
 
 		// apply new rank
 		ranker.Score = amountAfter
 		err = list.Rank(ranker)
 		if err != nil {
+			//nolint:forbidigo
 			fmt.Printf("rank failed: %+v\n", err)
 			return
 		}

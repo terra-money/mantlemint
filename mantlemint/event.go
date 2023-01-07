@@ -17,7 +17,7 @@ func NewMantlemintEventCollector() *EventCollector {
 	return &EventCollector{}
 }
 
-// PublishEventNewBlock collects block, ResponseBeginBlock, ResponseEndBlock
+// PublishEventNewBlock collects block, ResponseBeginBlock, ResponseEndBlock.
 func (ev *EventCollector) PublishEventNewBlock(
 	block tm.EventDataNewBlock,
 ) error {
@@ -29,7 +29,7 @@ func (ev *EventCollector) PublishEventNewBlock(
 	return nil
 }
 
-// PublishEventTx collect txResult in order
+// PublishEventTx collect txResult in order.
 func (ev *EventCollector) PublishEventTx(
 	txEvent tm.EventDataTx,
 ) error {
@@ -37,21 +37,21 @@ func (ev *EventCollector) PublishEventTx(
 	return nil
 }
 
-// PublishEventNewBlockHeader unused
+// PublishEventNewBlockHeader unused.
 func (ev *EventCollector) PublishEventNewBlockHeader(
 	_ tm.EventDataNewBlockHeader,
 ) error {
 	return nil
 }
 
-// PublishEventValidatorSetUpdates unused
+// PublishEventValidatorSetUpdates unused.
 func (ev *EventCollector) PublishEventValidatorSetUpdates(
 	_ tm.EventDataValidatorSetUpdates,
 ) error {
 	return nil
 }
 
-// PublishEventNewEvidence unused
+// PublishEventNewEvidence unused.
 func (ev *EventCollector) PublishEventNewEvidence(_ tm.EventDataNewEvidence) error {
 	return nil
 }

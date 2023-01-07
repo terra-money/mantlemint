@@ -1,17 +1,25 @@
 package height
 
+//nolint:staticcheck
 import (
 	"fmt"
 
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
-	terra "github.com/terra-money/alliance/app"
-	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
-var IndexHeight = indexer.CreateIndexer(func(indexerDB safe_batch.SafeBatchDB, block *tm.Block, _ *tm.BlockID, _ *mantlemint.EventCollector, _ *terra.App) error {
+var IndexHeight = indexer.CreateIndexer(func(
+	indexerDB safebatch.SafeBatchDB,
+	block *tm.Block,
+	blockID *tm.BlockID,
+	evc *mantlemint.EventCollector,
+	app *cosmoscmd.App,
+) error {
+	//nolint:forbidigo
 	defer fmt.Printf("[indexer/height] indexing done for height %d\n", block.Height)
 	height := block.Height
 

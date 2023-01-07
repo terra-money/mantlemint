@@ -2,10 +2,11 @@ package snappy
 
 import (
 	"encoding/json"
+	"sync"
+
 	"github.com/golang/snappy"
 	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
-	"sync"
 )
 
 const (
@@ -25,6 +26,8 @@ var _ tmdb.DB = (*SnappyDB)(nil)
 // which never makes use of iterators anyway
 // NOTE: implement when needed
 // NOTE2: monitor mem pressure, optimize by pre-allocating dst buf when there is bottleneck
+//
+//nolint:revive
 type SnappyDB struct {
 	db         tmdb.DB
 	mtx        *sync.Mutex
@@ -40,34 +43,35 @@ func NewSnappyDB(db tmdb.DB, compatMode int) *SnappyDB {
 }
 
 func (s *SnappyDB) Get(key []byte) ([]byte, error) {
-	if item, err := s.db.Get(key); err != nil {
+	item, err := s.db.Get(key)
+	if err != nil {
 		return nil, err
-	} else if item == nil && err == nil {
-		return nil, nil
-	} else {
-		decoded, decodeErr := snappy.Decode(nil, item)
-
-		// if snappy decode fails, try to replace the underlying
-		// only recover & replace when the blob is a valid json
-		if s.compatMode == CompatModeEnabled {
-			if decodeErr != nil {
-				if json.Valid(item) {
-					s.mtx.Lock()
-					// run item by Set() to encode & replace
-					_ = s.db.Set(key, item)
-					defer s.mtx.Unlock()
-
-					return item, nil
-				} else {
-					return nil, errUnknownData
-				}
-			} else {
-				return decoded, nil
-			}
-		}
-
-		return decoded, decodeErr
 	}
+
+	if item == nil {
+		return nil, nil
+	}
+
+	decoded, decodeErr := snappy.Decode(nil, item)
+
+	// if snappy decode fails, try to replace the underlying
+	// only recover & replace when the blob is a valid json
+	if s.compatMode == CompatModeEnabled {
+		if decodeErr != nil {
+			if json.Valid(item) {
+				s.mtx.Lock()
+				// run item by Set() to encode & replace
+				_ = s.db.Set(key, item)
+				defer s.mtx.Unlock()
+
+				return item, nil
+			}
+			return nil, errUnknownData
+		}
+		return decoded, nil
+	}
+
+	return decoded, decodeErr
 }
 
 func (s *SnappyDB) Has(key []byte) (bool, error) {

@@ -8,12 +8,14 @@ import (
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
-var _ hld.HeightLimitEnabledBatch = (*LevelBatch)(nil)
-var _ rollbackable.HasRollbackBatch = (*LevelBatch)(nil)
+var (
+	_ hld.HeightLimitEnabledBatch   = (*LevelBatch)(nil)
+	_ rollbackable.HasRollbackBatch = (*LevelBatch)(nil)
+)
 
 type LevelBatch struct {
 	height int64
-	batch  *rollbackable.RollbackableBatch
+	batch  *rollbackable.Batch
 	mode   int
 }
 
@@ -43,6 +45,7 @@ func (b *LevelBatch) Set(key, value []byte) error {
 	if err := b.batch.Set(prefixKeysForIteratorKey(key), []byte{}); err != nil {
 		return err
 	}
+
 	return b.batch.Set(newKey, buf)
 }
 
@@ -77,6 +80,7 @@ func (b *LevelBatch) RollbackBatch() tmdb.Batch {
 	return b.batch.RollbackBatch
 }
 
+//nolint:forbidigo
 func (b *LevelBatch) Metric() {
 	fmt.Printf("[rollback-batch] rollback batch for height %d's record length %d\n",
 		b.height,

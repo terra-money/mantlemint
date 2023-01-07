@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,9 +35,18 @@ func TestRanker(t *testing.T) {
 func TestRichlist(t *testing.T) {
 	threshold := sdk.NewCoin("uluna", sdk.NewInt(1_000))
 	list := NewRichlist(0, &threshold)
-	smallRanker := Ranker{Addresses: []string{"terra1x46rqay4d3cssq8gxxvqz8xt6nwlz4td20k38v"}, Score: sdk.NewCoin("uluna", sdk.NewInt(999))}
-	enoughRanker := Ranker{Addresses: []string{"terra1x46rqay4d3cssq8gxxvqz8xt6nwlz4td20k38v"}, Score: sdk.NewCoin("uluna", sdk.NewInt(1000))}
-	enoughRanker2 := Ranker{Addresses: []string{"terra17lmam6zguazs5q5u6z5mmx76uj63gldnse2pdp"}, Score: sdk.NewCoin("uluna", sdk.NewInt(1001))}
+	smallRanker := Ranker{
+		Addresses: []string{"terra1x46rqay4d3cssq8gxxvqz8xt6nwlz4td20k38v"},
+		Score:     sdk.NewCoin("uluna", sdk.NewInt(999)),
+	}
+	enoughRanker := Ranker{
+		Addresses: []string{"terra1x46rqay4d3cssq8gxxvqz8xt6nwlz4td20k38v"},
+		Score:     sdk.NewCoin("uluna", sdk.NewInt(1000)),
+	}
+	enoughRanker2 := Ranker{
+		Addresses: []string{"terra17lmam6zguazs5q5u6z5mmx76uj63gldnse2pdp"},
+		Score:     sdk.NewCoin("uluna", sdk.NewInt(1001)),
+	}
 
 	assert.Zero(t, list.Count())
 

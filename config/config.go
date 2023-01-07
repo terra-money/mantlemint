@@ -19,6 +19,7 @@ type Config struct {
 	ChainID              string
 	RPCEndpoints         []string
 	WSEndpoints          []string
+	LCDEndpoints         []string
 	MantlemintDB         string
 	IndexerDB            string
 	DisableSync          bool
@@ -31,16 +32,19 @@ type Config struct {
 
 var singleton Config
 
+//nolint:gochecknoinits
 func init() {
 	singleton = newConfig()
 }
 
-// GetConfig returns singleton config
+// GetConfig returns singleton config.
 func GetConfig() *Config {
 	return &singleton
 }
 
 // newConfig converts envvars into consumable config chunks
+//
+//nolint:funlen
 func newConfig() Config {
 	cfg := Config{
 		// GenesisPath sets the location of genesis
@@ -51,9 +55,9 @@ func newConfig() Config {
 
 		// ChainID sets expected chain id for this mantlemint instance
 		ChainID: getValidEnv("CHAIN_ID"),
-		//Feather chains are going to have different prefixes
+		// Feather chains are going to have different prefixes
 		AccountAddressPrefix: getValidEnv("ACCOUNT_ADDRESS_PREFIX"),
-		//Feather chains are going to have different denoms
+		// Feather chains are going to have different denoms
 		BondDenom: getValidEnv("BOND_DENOM"),
 		// RPCEndpoints is where to pull txs from when fast-syncing
 		RPCEndpoints: func() []string {
@@ -67,14 +71,19 @@ func newConfig() Config {
 			return strings.Split(endpoints, ",")
 		}(),
 
+		// LCDEndpoints is where to forward unhandled queries to a node
+		LCDEndpoints: func() []string {
+			endpoints := getValidEnv("LCD_ENDPOINTS")
+			return strings.Split(endpoints, ",")
+		}(),
+
 		// MantlemintDB is the db name for mantlemint. Defaults to mantlemint
 		MantlemintDB: func() string {
 			mantlemintDB := getValidEnv("MANTLEMINT_DB")
 			if mantlemintDB == "" {
 				return "mantlemint"
-			} else {
-				return mantlemintDB
 			}
+			return mantlemintDB
 		}(),
 
 		// IndexerDB is the db name for indexed data
@@ -115,7 +124,7 @@ func newConfig() Config {
 
 			thresholdCoin, err := sdk.ParseCoinNormalized(getValidEnv("RICHLIST_THRESHOLD"))
 			if err != nil {
-				panic(fmt.Errorf("RICHLIST_THRESHOLD is invalid: %v", err))
+				panic(fmt.Errorf("RICHLIST_THRESHOLD is invalid: %w", err))
 			}
 			return &thresholdCoin
 		}(),
@@ -139,6 +148,7 @@ func newConfig() Config {
 	return cfg
 }
 
+//nolint:forbidigo
 func (cfg Config) Print() {
 	fmt.Printf("%+v\n", cfg)
 }

@@ -1,7 +1,6 @@
 package heleveldb
 
 import (
-	"encoding/binary"
 	"math"
 
 	"github.com/terra-money/mantlemint/lib"
@@ -28,23 +27,26 @@ func prefixKeysForIteratorKey(key []byte) []byte {
 
 func prefixDataWithHeightKey(key []byte) []byte {
 	result := make([]byte, 0, len(cDataWithHeightPrefix)+len(key))
+
 	result = append(result, cDataWithHeightPrefix...)
+
 	result = append(result, key...)
+
 	return result
 }
 
 func serializeHeight(mode int, height int64) []byte {
 	if mode == DriverModeKeySuffixAsc {
 		return lib.UintToBigEndian(uint64(height))
-	} else {
-		return lib.UintToBigEndian(math.MaxUint64 - uint64(height))
 	}
+
+	return lib.UintToBigEndian(math.MaxUint64 - uint64(height))
 }
 
-func deserializeHeight(mode int, data []byte) int64 {
-	if mode == DriverModeKeySuffixAsc {
-		return int64(binary.BigEndian.Uint64(data))
-	} else {
-		return int64(math.MaxUint64 - binary.BigEndian.Uint64(data))
-	}
-}
+// func deserializeHeight(mode int, data []byte) int64 {
+// 	if mode == DriverModeKeySuffixAsc {
+// 		return int64(binary.BigEndian.Uint64(data))
+// 	} else {
+// 		return int64(math.MaxUint64 - binary.BigEndian.Uint64(data))
+// 	}
+// }

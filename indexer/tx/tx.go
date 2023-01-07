@@ -1,21 +1,28 @@
 package tx
 
+//nolint:staticcheck
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 
+	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	terra "github.com/terra-money/alliance/app"
-	"github.com/terra-money/mantlemint/db/safe_batch"
+	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 var cdc = cosmoscmd.MakeEncodingConfig(terra.ModuleBasics)
 
-var IndexTx = indexer.CreateIndexer(func(batch safe_batch.SafeBatchDB, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector, _ *cosmoscmd.App) error {
+var IndexTx = indexer.CreateIndexer(func(
+	batch safebatch.SafeBatchDB,
+	block *tm.Block,
+	blockID *tm.BlockID,
+	evc *mantlemint.EventCollector,
+	_ *cosmoscmd.App,
+) error {
 	// encoder; proto -> mem -> json
 	txDecoder := cdc.TxConfig.TxDecoder()
 	jsonEncoder := cdc.TxConfig.TxJSONEncoder()
@@ -64,10 +71,9 @@ var IndexTx = indexer.CreateIndexer(func(batch safe_batch.SafeBatchDB, block *tm
 		byHeightPayload[txIndex].Logs = func() json.RawMessage {
 			if response.Code == 0 {
 				return []byte(response.Log)
-			} else {
-				out, _ := json.Marshal([]string{})
-				return out
 			}
+			out, _ := json.Marshal([]string{})
+			return out
 		}()
 		byHeightPayload[txIndex].TxHash = fmt.Sprintf("%X", hash)
 		byHeightPayload[txIndex].Timestamp = block.Time

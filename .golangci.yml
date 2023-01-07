@@ -1,0 +1,74 @@
+linters:
+  # Enable all available linters.
+  # Default: false
+  enable-all: true
+  enable:
+    - bodyclose
+    - decorder
+    - depguard
+    - dogsled
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - gocritic
+    - gofumpt
+    - revive
+    - gosimple
+    - govet
+    - grouper
+    - ineffassign
+    - misspell
+    - nakedret
+    - nolintlint
+    - exportloopref
+    - staticcheck
+    - reassign
+    - stylecheck
+    - typecheck
+    - unconvert
+    - tenv
+    - thelper
+    - unused
+    - unparam
+    - misspell
+  # Disable specific linter
+  # https://golangci-lint.run/usage/linters/#disabled-by-default
+  disable:
+    - nosnakecase     # deprecated
+    - scopelint       # deprecated
+    - ifshort         # unwanted
+    - testpackage
+    - nlreturn        # unwanted
+    - tagliatelle     # unwanted
+    - gomoddirectives # replacements not allowed
+    - gomnd           # annoying
+    - dupword         #
+    - goconst         # annoying
+    - godox           # should ignore
+    - interfacer
+    - errcheck
+    - gosec
+    - wrapcheck
+    # later
+    - gochecknoglobals
+    - forcetypeassert
+    - wsl
+    - godot
+  # Run only fast linters from enabled linters set (first run won't be fast)
+  # Default: false
+  fast: true
+
+linters-settings:
+  funlen:
+    # Checks the number of lines in a function.
+    # If lower than 0, disable the check.
+    # Default: 60
+    lines: 80
+    # Checks the number of statements in a function.
+    # If lower than 0, disable the check.
+    # Default: 40
+    statements: 40
+  gocognit:
+    # Minimal code complexity to report.
+    # Default: 30 (but we recommend 10-20)
+    min-complexity: 30

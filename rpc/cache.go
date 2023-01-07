@@ -51,7 +51,7 @@ func (cb *CacheBackend) Set(cacheKey string, status int, body []byte) *ResponseC
 		status: status,
 		body:   body,
 	}
-	if evicted := cb.lru.Add(cacheKey, response); evicted != false {
+	if evicted := cb.lru.Add(cacheKey, response); evicted {
 		cb.evictionCount++
 	}
 
@@ -68,6 +68,7 @@ func (cb *CacheBackend) Get(cacheKey string) *ResponseCache {
 	return data
 }
 
+//nolint:forbidigo
 func (cb *CacheBackend) Metric() {
 	fmt.Printf("[rpc/%s] cache length %d, eviction count %d, serveCount %d, cacheServeCount %d\n",
 		cb.cacheType,
@@ -87,6 +88,7 @@ func (cb *CacheBackend) Purge() {
 	cb.mtx.Unlock()
 }
 
+//nolint:funlen
 func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *http.Request, handler http.Handler) {
 	cb.mtx.Lock()
 	cb.serveCount++
@@ -170,7 +172,7 @@ func (cb *CacheBackend) HandleCachedHTTP(writer http.ResponseWriter, request *ht
 		writer.WriteHeader(response.status)
 		writer.Write(response.body)
 	} else {
-		writer.WriteHeader(503)
+		writer.WriteHeader(http.StatusServiceUnavailable)
 		writer.Write([]byte("Service Unavailable"))
 	}
 }

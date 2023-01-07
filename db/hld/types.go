@@ -12,6 +12,7 @@ type HLD interface {
 	ClearWriteHeight() int64
 }
 
+//nolint:interfacebloat
 type HeightLimitEnabledDB interface {
 	// Get fetches the value of the given key, or nil if it does not exist.
 	// CONTRACT: key, value readonly []byte

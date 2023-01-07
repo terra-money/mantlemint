@@ -1,13 +1,14 @@
 package snappy
 
 import (
+	"io"
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestSnappyDB(t *testing.T) {
@@ -51,6 +52,7 @@ func TestSnappyDB(t *testing.T) {
 	assert.Nil(t, batch.Close())
 
 	v, err = snappy.Get([]byte("key"))
+	assert.NoError(t, err)
 	assert.Equal(t, []byte("batchedValue"), v)
 
 	batch = snappy.NewBatch()
@@ -83,7 +85,7 @@ func TestSnappyDBCompat(t *testing.T) {
 func indexSampleTx(mdb db.DB, key []byte) {
 	block := &tendermint.Block{}
 	blockFile, _ := os.Open("../../indexer/fixtures/block_4814775.json")
-	blockJSON, _ := ioutil.ReadAll(blockFile)
+	blockJSON, _ := io.ReadAll(blockFile)
 	if err := tmjson.Unmarshal(blockJSON, block); err != nil {
 		panic(err)
 	}

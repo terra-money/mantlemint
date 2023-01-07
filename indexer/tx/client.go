@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/pkg/errors"
-
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
@@ -36,18 +35,18 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		hash, ok := vars["hash"]
 		if !ok {
-			http.Error(writer, ErrorInvalidHash(hash), 400)
+			http.Error(writer, ErrorInvalidHash(hash), http.StatusBadRequest)
 			return
 		}
 
 		if txn, err := txByHashHandler(indexerDB, hash); err != nil {
-			http.Error(writer, indexer.ErrorInternal(err), 500)
+			http.Error(writer, indexer.ErrorInternal(err), http.StatusInternalServerError)
 			return
 		} else if txn == nil {
-			http.Error(writer, ErrorTxNotFound(hash), 400)
+			http.Error(writer, ErrorTxNotFound(hash), http.StatusBadRequest)
 			return
 		} else {
-			writer.WriteHeader(200)
+			writer.WriteHeader(http.StatusOK)
 			writer.Write(txn)
 			return
 		}
@@ -57,18 +56,18 @@ var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexer
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
 		if !ok {
-			http.Error(writer, ErrorInvalidHeight(height), 400)
+			http.Error(writer, ErrorInvalidHeight(height), http.StatusBadRequest)
 			return
 		}
 
 		if txns, err := txsByHeightHandler(indexerDB, height); err != nil {
-			http.Error(writer, indexer.ErrorInternal(err), 400)
+			http.Error(writer, indexer.ErrorInternal(err), http.StatusBadRequest)
 			return
 		} else if txns == nil {
-			http.Error(writer, ErrorTxsNotFound(height), 400)
+			http.Error(writer, ErrorTxsNotFound(height), http.StatusBadRequest)
 			return
 		} else {
-			writer.WriteHeader(200)
+			writer.WriteHeader(http.StatusOK)
 			writer.Write(txns)
 			return
 		}

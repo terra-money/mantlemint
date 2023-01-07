@@ -8,9 +8,9 @@ type HasRollbackBatch interface {
 	RollbackBatch() tmdb.Batch
 }
 
-var _ tmdb.Batch = (*RollbackableBatch)(nil)
+var _ tmdb.Batch = (*Batch)(nil)
 
-type RollbackableBatch struct {
+type Batch struct {
 	tmdb.Batch
 
 	db            tmdb.DB
@@ -18,38 +18,41 @@ type RollbackableBatch struct {
 	RecordCount   int
 }
 
-func NewRollbackableBatch(db tmdb.DB) *RollbackableBatch {
-	return &RollbackableBatch{
+func NewRollbackableBatch(db tmdb.DB) *Batch {
+	return &Batch{
 		db:            db,
 		Batch:         db.NewBatch(),
 		RollbackBatch: db.NewBatch(),
 	}
 }
 
-// revert value for key to previous state
-func (b *RollbackableBatch) backup(key []byte) error {
+// revert value for key to previous state.
+func (b *Batch) backup(key []byte) error {
 	b.RecordCount++
+
 	data, err := b.db.Get(key)
 	if err != nil {
 		return err
 	}
+
 	if data == nil {
 		return b.RollbackBatch.Delete(key)
-	} else {
-		return b.RollbackBatch.Set(key, data)
 	}
+	return b.RollbackBatch.Set(key, data)
 }
 
-func (b *RollbackableBatch) Set(key, value []byte) error {
+func (b *Batch) Set(key, value []byte) error {
 	if err := b.backup(key); err != nil {
 		return err
 	}
+
 	return b.Batch.Set(key, value)
 }
 
-func (b *RollbackableBatch) Delete(key []byte) error {
+func (b *Batch) Delete(key []byte) error {
 	if err := b.backup(key); err != nil {
 		return err
 	}
+
 	return b.Batch.Delete(key)
 }

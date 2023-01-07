@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint:forbidigo
 func TestCacheBackend(t *testing.T) {
 	cb := NewCacheBackend(1, "test")
 
@@ -23,12 +24,12 @@ func TestCacheBackend(t *testing.T) {
 	assert.Equal(t, []byte("error"), cached2.body)
 
 	testReq := httptest.NewRequest(
-		"get",
+		http.MethodGet,
 		"/test/request?param=1",
 		nil,
 	)
 	testRes := httptest.NewRecorder()
-	var callCount = 0
+	callCount := 0
 
 	handler := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		callCount++
@@ -59,5 +60,4 @@ func TestCacheBackend(t *testing.T) {
 
 	fmt.Println(callCount)
 	assert.Equal(t, callCount, 1)
-
 }
