@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/types"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store/cachemulti"
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
@@ -95,7 +95,7 @@ func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 	return &Store{
 		db:            db,
 		hldb:          hldb,
-		pruningOpts:   pruningtypes.NewPruningOptions(pruningtypes.PruningNothing),
+		pruningOpts:   pruningtypes.PruneNothing,
 		iavlCacheSize: iavl.DefaultIAVLCacheSize,
 		storesParams:  make(map[types.StoreKey]storeParams),
 		stores:        make(map[types.StoreKey]types.CommitKVStore),
@@ -583,12 +583,14 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 	path := req.Path
 	storeName, subpath, err := parsePath(path)
 	if err != nil {
-		return sdkerrors.QueryResult(err, false)
+		return sdkerrors.QueryResult(err)
 	}
 
 	store := rs.getStoreByName(storeName)
 	if store == nil {
-		return sdkerrors.QueryResult(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "no such store: %s", storeName), false)
+		return sdkerrors.QueryResult(
+			sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "no such store: %s", storeName),
+		)
 	}
 
 	queryable, ok := store.(types.Queryable)
@@ -598,7 +600,7 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 				sdkerrors.ErrUnknownRequest,
 				"store %s (type %T) doesn't support queries",
 				storeName, store,
-			), false)
+			))
 	}
 
 	// trim the path and make the query
@@ -614,7 +616,7 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 			sdkerrors.Wrap(
 				sdkerrors.ErrInvalidRequest,
 				"proof is unexpectedly empty; ensure height has not been pruned",
-			), false,
+			),
 		)
 	}
 
@@ -628,7 +630,7 @@ func (rs *Store) Query(req abci.RequestQuery) abci.ResponseQuery {
 	} else {
 		commitInfo, err = getCommitInfo(rs.db, res.Height)
 		if err != nil {
-			return sdkerrors.QueryResult(err, false)
+			return sdkerrors.QueryResult(err)
 		}
 	}
 

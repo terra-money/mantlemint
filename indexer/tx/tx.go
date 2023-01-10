@@ -5,27 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
+	"github.com/cosmos/cosmos-sdk/client"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
-	terra "github.com/terra-money/alliance/app"
 	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
-var cdc = cosmoscmd.MakeEncodingConfig(terra.ModuleBasics)
-
 var IndexTx = indexer.CreateIndexer(func(
-	batch safebatch.SafeBatchDB,
+	indexerDB safebatch.SafeBatchDB,
 	block *tm.Block,
 	blockID *tm.BlockID,
 	evc *mantlemint.EventCollector,
-	_ *cosmoscmd.App,
+	app indexer.ABCIApp,
+	txConfig client.TxConfig,
 ) error {
 	// encoder; proto -> mem -> json
-	txDecoder := cdc.TxConfig.TxDecoder()
-	jsonEncoder := cdc.TxConfig.TxJSONEncoder()
+	txDecoder := txConfig.TxDecoder()
+	jsonEncoder := txConfig.TxJSONEncoder()
 
 	txHashes := make([]string, len(block.Txs))
 	txRecords := make([]TxRecord, len(block.Txs))
@@ -87,7 +85,7 @@ var IndexTx = indexer.CreateIndexer(func(
 			return marshalErr
 		}
 
-		batchSetErr := batch.Set(getKey(txHashes[txIndex]), txRecordJSON)
+		batchSetErr := indexerDB.Set(getKey(txHashes[txIndex]), txRecordJSON)
 		if batchSetErr != nil {
 			return batchSetErr
 		}
@@ -99,7 +97,7 @@ var IndexTx = indexer.CreateIndexer(func(
 		return byHeightErr
 	}
 
-	batchSetErr := batch.Set(getByHeightKey(uint64(block.Height)), byHeightJSON)
+	batchSetErr := indexerDB.Set(getByHeightKey(uint64(block.Height)), byHeightJSON)
 	if batchSetErr != nil {
 		return batchSetErr
 	}

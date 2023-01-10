@@ -14,20 +14,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/gorilla/mux"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/spf13/viper"
+	abci "github.com/crescent-network/crescent/v4/app"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	terra "github.com/terra-money/alliance/app"
 	mconfig "github.com/terra-money/mantlemint/config"
+	"github.com/crescent-network/crescent/v4/app/params"
 )
 
 //nolint:funlen
 func StartRPC(
-	app *cosmoscmd.App,
+	app *abci.App,
 	rpcclient rpcclient.Client,
 	chainID string,
-	encodingConfig cosmoscmd.EncodingConfig,
+	encodingConfig params.EncodingConfig,
 	invalidateTrigger chan int64,
 	registerCustomRoutes func(router *mux.Router),
 	getIsSynced func() bool,
@@ -44,7 +44,7 @@ func StartRPC(
 		WithTxConfig(encodingConfig.TxConfig).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithLegacyAmino(encodingConfig.Amino).
-		WithHomeDir(terra.DefaultNodeHome).
+		WithHomeDir(abci.DefaultNodeHome).
 		WithChainID(chainID)
 
 	// create backends for response cache

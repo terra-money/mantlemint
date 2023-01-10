@@ -1,10 +1,9 @@
 package height
 
-//nolint:staticcheck
 import (
 	"fmt"
 
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
+	"github.com/cosmos/cosmos-sdk/client"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	"github.com/terra-money/mantlemint/db/safebatch"
@@ -17,7 +16,8 @@ var IndexHeight = indexer.CreateIndexer(func(
 	block *tm.Block,
 	blockID *tm.BlockID,
 	evc *mantlemint.EventCollector,
-	app *cosmoscmd.App,
+	app indexer.ABCIApp,
+	txConfig client.TxConfig,
 ) error {
 	//nolint:forbidigo
 	defer fmt.Printf("[indexer/height] indexing done for height %d\n", block.Height)

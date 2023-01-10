@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/gorilla/mux"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/safebatch"
@@ -18,10 +18,11 @@ type Indexer struct {
 	db          tmdb.DB
 	indexerTags []string
 	indexers    []IndexFunc
-	app         *cosmoscmd.App
+	app         ABCIApp
+	txConfig    client.TxConfig
 }
 
-func NewIndexer(dbName, path string, app *cosmoscmd.App) (*Indexer, error) {
+func NewIndexer(dbName, path string, app ABCIApp, txConfig client.TxConfig) (*Indexer, error) {
 	indexerDB, indexerDBError := tmdb.NewGoLevelDB(dbName, path)
 	if indexerDBError != nil {
 		return nil, indexerDBError
@@ -30,10 +31,11 @@ func NewIndexer(dbName, path string, app *cosmoscmd.App) (*Indexer, error) {
 	indexerDBCompressed := snappy.NewSnappyDB(indexerDB, snappy.CompatModeEnabled)
 
 	return &Indexer{
-		db:          indexerDBCompressed,
-		indexerTags: []string{},
-		indexers:    []IndexFunc{},
-		app:         app,
+		db:             indexerDBCompressed,
+		indexerTags:    []string{},
+		indexers:       []IndexFunc{},
+		app:            app,
+		txConfig:       txConfig,
 	}, nil
 }
 
@@ -50,7 +52,7 @@ func (idx *Indexer) Run(block *tm.Block, blockID *tm.BlockID, evc *mantlemint.Ev
 
 	tStart := time.Now()
 	for _, indexerFunc := range idx.indexers {
-		if indexerErr := indexerFunc(*batch.(*safebatch.SafeBatchDB), block, blockID, evc, idx.app); indexerErr != nil {
+		if indexerErr := indexerFunc(*batch.(*safebatch.SafeBatchDB), block, blockID, evc, idx.app, idx.txConfig); indexerErr != nil {
 			return indexerErr
 		}
 	}

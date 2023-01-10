@@ -36,7 +36,7 @@ func TestIndexTx(t *testing.T) {
 
 	batch := safebatch.NewSafeBatchDB(db)
 
-	if err := IndexTx(*batch.(*safebatch.SafeBatchDB), block, nil, evc, nil); err != nil {
+	if err := IndexTx(*batch.(*safebatch.SafeBatchDB), block, nil, evc, nil, nil); err != nil {
 		panic(err)
 	}
 	batch.(safebatch.SafeBatchDBCloser).Flush()

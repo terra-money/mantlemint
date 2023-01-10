@@ -23,7 +23,7 @@ func TestIndexBlock(t *testing.T) {
 
 	batch := safebatch.NewSafeBatchDB(db)
 	batch.(safebatch.SafeBatchDBCloser).Open()
-	if err := IndexBlock(*batch.(*safebatch.SafeBatchDB), record.Block, record.BlockID, nil, nil); err != nil {
+	if err := IndexBlock(*batch.(*safebatch.SafeBatchDB), record.Block, record.BlockID, nil, nil, nil); err != nil {
 		panic(err)
 	}
 	batch.(safebatch.SafeBatchDBCloser).Flush()

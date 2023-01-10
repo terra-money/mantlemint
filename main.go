@@ -10,15 +10,13 @@ import (
 	"runtime/debug"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	abci "github.com/crescent-network/crescent/v4/app"
 	"github.com/gorilla/mux"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/spf13/viper"
-	"github.com/tendermint/spn/cmd"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	abci "github.com/terra-money/alliance/app"
 	blockFeeder "github.com/terra-money/mantlemint/blockfeed"
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/heleveldb"
@@ -26,7 +24,6 @@ import (
 	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/indexer/block"
-	"github.com/terra-money/mantlemint/indexer/richlist"
 	"github.com/terra-money/mantlemint/indexer/tx"
 	"github.com/terra-money/mantlemint/mantlemint"
 	"github.com/terra-money/mantlemint/rpc"
@@ -40,7 +37,7 @@ func main() {
 	mantlemintConfig := config.GetConfig()
 	mantlemintConfig.Print()
 
-	cmd.SetPrefixes(abci.AccountAddressPrefix)
+	//cmd.SetPrefixes(abci.AccountAddressPrefix)
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
 		Name: mantlemintConfig.MantlemintDB,
@@ -61,13 +58,13 @@ func main() {
 	batched := safebatch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safebatch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
-	codec := cosmoscmd.MakeEncodingConfig(abci.ModuleBasics)
+	encodingConfig := abci.MakeEncodingConfig()  
 
 	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
 	vpr := viper.GetViper()
 
-	app := abci.New(
+	app := abci.NewApp(
 		logger,
 		batched,
 		nil,
@@ -75,7 +72,7 @@ func main() {
 		make(map[int64]bool),
 		mantlemintConfig.Home,
 		0,
-		codec,
+		encodingConfig,
 		vpr,
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
@@ -147,14 +144,15 @@ func main() {
 	)
 
 	// create indexer service
-	indexerInstance, indexerInstanceErr := indexer.NewIndexer(mantlemintConfig.IndexerDB, mantlemintConfig.Home, &app)
+	indexerInstance, indexerInstanceErr := indexer.NewIndexer(
+		mantlemintConfig.IndexerDB, mantlemintConfig.Home, app, encodingConfig.TxConfig,
+	)
 	if indexerInstanceErr != nil {
 		panic(indexerInstanceErr)
 	}
 
 	indexerInstance.RegisterIndexerService("tx", tx.IndexTx)
 	indexerInstance.RegisterIndexerService("block", block.IndexBlock)
-	indexerInstance.RegisterIndexerService("richlist", richlist.IndexRichlist)
 
 	abcicli, _ := appCreator.NewABCIClient()
 	rpccli := rpc.NewRPCClient(abcicli)
@@ -164,10 +162,10 @@ func main() {
 
 	// start RPC server
 	rpcErr := rpc.StartRPC(
-		&app,
+		app,
 		rpccli,
 		mantlemintConfig.ChainID,
-		codec,
+		encodingConfig,
 		cacheInvalidateChan,
 
 		// callback for registering custom routers; primarily for indexers
@@ -176,7 +174,6 @@ func main() {
 		func(router *mux.Router) {
 			indexerInstance.RegisterRESTRoute(router, tx.RegisterRESTRoute)
 			indexerInstance.RegisterRESTRoute(router, block.RegisterRESTRoute)
-			indexerInstance.RegisterRESTRoute(router, richlist.RegisterRESTRoute)
 		},
 
 		// inject flag checker for synced

@@ -7,12 +7,15 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/mantlemint"
+	"github.com/cosmos/cosmos-sdk/client"
 )
+
+type ABCIApp interface {
+}
 
 type (
 	IndexFunc func(
@@ -20,7 +23,8 @@ type (
 		block *tm.Block,
 		blockId *tm.BlockID,
 		evc *mantlemint.EventCollector,
-		app *cosmoscmd.App,
+		app ABCIApp,
+		txConfig client.TxConfig,
 	) error
 	ClientHandler       func(w http.ResponseWriter, r *http.Request) error
 	RESTRouteRegisterer func(router *mux.Router, indexerDB tmdb.DB)
