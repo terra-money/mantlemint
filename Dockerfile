@@ -34,7 +34,7 @@ RUN set -eux &&\
     -mod=readonly \
     -ldflags="-extldflags '-L/go/src/mimalloc/build -lmimalloc -static'" \
     -o /go/bin/mantlemint \
-    ./sync.go
+    ./main.go
 
 ###############################################################################
 FROM alpine:3.14
@@ -60,6 +60,7 @@ ENV CHAIN_ID="localterra" \
     RICHLIST_THRESHOLD="0uluna" \
     ACCOUNT_ADDRESS_PREFIX="terra" \
     BOND_DENOM="uluna" \
+    LCD_ENDPOINTS="http://localhost:1317" \
     RPC_ENDPOINTS="http://localhost:26657" \
     WS_ENDPOINTS="ws://localhost:26657/websocket" 
 
