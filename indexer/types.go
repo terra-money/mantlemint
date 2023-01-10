@@ -1,21 +1,19 @@
 package indexer
 
-//nolint:staticcheck
 import (
 	"log"
 	"net/http"
 	"runtime"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/mantlemint"
-	"github.com/cosmos/cosmos-sdk/client"
 )
 
-type ABCIApp interface {
-}
+type ABCIApp interface{}
 
 type (
 	IndexFunc func(

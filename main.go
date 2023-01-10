@@ -1,6 +1,5 @@
 package main
 
-//nolint:staticcheck
 import (
 	"crypto/sha1"
 	"encoding/hex"
@@ -37,7 +36,7 @@ func main() {
 	mantlemintConfig := config.GetConfig()
 	mantlemintConfig.Print()
 
-	//cmd.SetPrefixes(abci.AccountAddressPrefix)
+	// cmd.SetPrefixes(abci.AccountAddressPrefix)
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
 		Name: mantlemintConfig.MantlemintDB,
@@ -58,7 +57,7 @@ func main() {
 	batched := safebatch.NewSafeBatchDB(hldb)
 	batchedOrigin := batched.(safebatch.SafeBatchDBCloser)
 	logger := tmlog.NewTMLogger(os.Stdout)
-	encodingConfig := abci.MakeEncodingConfig()  
+	encodingConfig := abci.MakeEncodingConfig()
 
 	// customize CMS to limit kv store's read height on query
 	cms := rootmulti.NewStore(batched, hldb)
@@ -247,18 +246,21 @@ func fauxMerkleModeOpt(app *baseapp.BaseApp) {
 }
 
 func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
-	jsonBlob, _ := os.ReadFile(genesisPath)
+	jsonBlob, err := os.ReadFile(genesisPath)
+	if err != nil {
+		panic(err)
+	}
 	shasum := sha1.New()
 	shasum.Write(jsonBlob)
 	sum := hex.EncodeToString(shasum.Sum(nil))
 
 	log.Printf("[v0.34.x/sync] genesis shasum=%s", sum)
 
-	if genesis, genesisErr := tendermint.GenesisDocFromFile(genesisPath); genesisErr != nil {
+	genesis, genesisErr := tendermint.GenesisDocFromFile(genesisPath)
+	if genesisErr != nil {
 		panic(genesisErr)
-	} else {
-		return genesis
 	}
+	return genesis
 }
 
 func forever() {

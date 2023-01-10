@@ -1,6 +1,5 @@
 package rpc
 
-//nolint:staticcheck
 import (
 	"fmt"
 	"io"
@@ -13,13 +12,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	abci "github.com/crescent-network/crescent/v4/app"
+	"github.com/crescent-network/crescent/v4/app/params"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
-	abci "github.com/crescent-network/crescent/v4/app"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	mconfig "github.com/terra-money/mantlemint/config"
-	"github.com/crescent-network/crescent/v4/app/params"
 )
 
 //nolint:funlen

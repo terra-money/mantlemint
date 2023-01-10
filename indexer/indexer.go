@@ -1,6 +1,5 @@
 package indexer
 
-//nolint:staticcheck
 import (
 	"fmt"
 	"time"
@@ -31,11 +30,11 @@ func NewIndexer(dbName, path string, app ABCIApp, txConfig client.TxConfig) (*In
 	indexerDBCompressed := snappy.NewSnappyDB(indexerDB, snappy.CompatModeEnabled)
 
 	return &Indexer{
-		db:             indexerDBCompressed,
-		indexerTags:    []string{},
-		indexers:       []IndexFunc{},
-		app:            app,
-		txConfig:       txConfig,
+		db:          indexerDBCompressed,
+		indexerTags: []string{},
+		indexers:    []IndexFunc{},
+		app:         app,
+		txConfig:    txConfig,
 	}, nil
 }
 
@@ -52,8 +51,15 @@ func (idx *Indexer) Run(block *tm.Block, blockID *tm.BlockID, evc *mantlemint.Ev
 
 	tStart := time.Now()
 	for _, indexerFunc := range idx.indexers {
-		if indexerErr := indexerFunc(*batch.(*safebatch.SafeBatchDB), block, blockID, evc, idx.app, idx.txConfig); indexerErr != nil {
-			return indexerErr
+		err := indexerFunc(
+			*batch.(*safebatch.SafeBatchDB),
+			block, blockID,
+			evc,
+			idx.app,
+			idx.txConfig,
+		)
+		if err != nil {
+			return err
 		}
 	}
 	tEnd := time.Now()

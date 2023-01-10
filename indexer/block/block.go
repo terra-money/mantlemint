@@ -3,12 +3,12 @@ package block
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	"github.com/terra-money/mantlemint/db/safebatch"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
-	"github.com/cosmos/cosmos-sdk/client"
 )
 
 var IndexBlock = indexer.CreateIndexer(func(

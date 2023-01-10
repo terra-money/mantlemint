@@ -1,6 +1,5 @@
 package tx
 
-//nolint:staticcheck
 import (
 	"encoding/json"
 	"fmt"

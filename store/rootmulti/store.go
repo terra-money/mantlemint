@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/types"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store/cachemulti"
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
@@ -47,7 +46,7 @@ type Store struct {
 	db              dbm.DB
 	hldb            *hld.HeightLimitedDB
 	lastCommitInfo  *types.CommitInfo
-	pruningOpts     pruningtypes.PruningOptions
+	pruningOpts     types.PruningOptions
 	iavlCacheSize   int
 	storesParams    map[types.StoreKey]storeParams
 	stores          map[types.StoreKey]types.CommitKVStore
@@ -95,7 +94,7 @@ func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 	return &Store{
 		db:            db,
 		hldb:          hldb,
-		pruningOpts:   pruningtypes.PruneNothing,
+		pruningOpts:   types.PruneNothing,
 		iavlCacheSize: iavl.DefaultIAVLCacheSize,
 		storesParams:  make(map[types.StoreKey]storeParams),
 		stores:        make(map[types.StoreKey]types.CommitKVStore),
@@ -106,14 +105,14 @@ func NewStore(db dbm.DB, hldb *hld.HeightLimitedDB) *Store {
 }
 
 // GetPruning fetches the pruning strategy from the root store.
-func (rs *Store) GetPruning() pruningtypes.PruningOptions {
+func (rs *Store) GetPruning() types.PruningOptions {
 	return rs.pruningOpts
 }
 
 // SetPruning sets the pruning strategy on the root store and all the sub-stores.
 // Note, calling SetPruning on the root store prior to LoadVersion or
 // LoadLatestVersion performs a no-op as the stores aren't mounted yet.
-func (rs *Store) SetPruning(pruningOpts pruningtypes.PruningOptions) {
+func (rs *Store) SetPruning(pruningOpts types.PruningOptions) {
 	rs.pruningOpts = pruningOpts
 }
 
@@ -866,7 +865,6 @@ func (rs *Store) loadCommitStoreFromParams(
 		db = dbm.NewPrefixDB(rs.db, prefix)
 	}
 
-	//nolint:exhaustive
 	switch params.typ {
 	case types.StoreTypeMulti:
 		panic("recursive MultiStores not yet supported")
