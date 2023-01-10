@@ -6,7 +6,7 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	exit 1
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/mantlemint ./sync.go
+	go build -mod=readonly $(BUILD_FLAGS) -o build/mantlemint ./main.go
 endif
 
 
