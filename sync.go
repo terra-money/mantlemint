@@ -153,7 +153,7 @@ func main() {
 	)
 
 	// create indexer service
-	indexerInstance, indexerInstanceErr := indexer.NewIndexer("indexer", mantlemintConfig.Home)
+	indexerInstance, indexerInstanceErr := indexer.NewIndexer(mantlemintConfig.IndexerDB, mantlemintConfig.Home)
 	if indexerInstanceErr != nil {
 		panic(indexerInstanceErr)
 	}
