@@ -469,7 +469,7 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 	for k, v := range rs.stores {
 		stores[k] = v
 	}
-	return cachemulti.NewStore(rs.db, stores, rs.keysByName, rs.traceWriter, rs.traceContext, rs.listeners)
+	return cachemulti.NewStore(rs.db, stores, rs.keysByName, rs.traceWriter, rs.traceContext)
 }
 
 // CacheMultiStoreWithVersion is analogous to CacheMultiStore except that it
@@ -510,7 +510,7 @@ func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStor
 		}
 	}
 
-	return cachemulti.NewStore(hldb, cachedStores, rs.keysByName, rs.traceWriter, rs.traceContext, rs.listeners), nil
+	return cachemulti.NewStore(hldb, cachedStores, rs.keysByName, rs.traceWriter, rs.traceContext), nil
 }
 
 // GetStore returns a mounted Store for a given StoreKey. If the StoreKey does
