@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	terra "github.com/classic-terra/core/app"
+	"github.com/classic-terra/core/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -16,8 +18,6 @@ import (
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	terra "github.com/terra-money/core/app"
-	"github.com/terra-money/core/app/params"
 )
 
 func StartRPC(
