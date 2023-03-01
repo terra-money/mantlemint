@@ -3,10 +3,11 @@ package tx
 import (
 	"encoding/json"
 	"fmt"
+
+	terra "github.com/classic-terra/core/app"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
-	terra "github.com/terra-money/core/app"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
 )

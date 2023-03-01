@@ -2,13 +2,14 @@ package config
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	terra "github.com/terra-money/core/app"
 	"os"
 	"path/filepath"
 	"strings"
+
+	terra "github.com/classic-terra/core/app"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
