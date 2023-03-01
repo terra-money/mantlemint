@@ -111,11 +111,11 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
+	github.com/classic-terra/core => github.com/terra-money/classic-core v1.1.0-noupgrade
 	github.com/cosmos/cosmos-sdk => github.com/classic-terra/cosmos-sdk v0.44.6-0.20221016182956-c5c6f52d0a59
 	github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/terra-money/tendermint v0.34.14-terra.3
 	github.com/tendermint/tm-db => github.com/terra-money/tm-db v0.6.4-performance.7
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
-	github.com/classic-terra/core => github.com/terra-money/classic-core v1.1.0-nomig
 )
