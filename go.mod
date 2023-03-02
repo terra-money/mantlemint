@@ -111,7 +111,7 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
-	github.com/classic-terra/core => github.com/terra-money/classic-core v1.1.0-nov2
+	github.com/classic-terra/core => github.com/terra-money/classic-core v1.1.0-mantlemint
 	github.com/cosmos/cosmos-sdk => github.com/classic-terra/cosmos-sdk v0.44.6-0.20221016182956-c5c6f52d0a59
 	github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
