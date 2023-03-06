@@ -158,8 +158,6 @@ github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMn
 github.com/cilium/ebpf v0.6.2/go.mod h1:4tRaxcgiL706VnOzHOdBlY8IEAIdxINsQBcU4xJJXRs=
 github.com/circonus-labs/circonus-gometrics v2.3.1+incompatible/go.mod h1:nmEj6Dob7S7YxXgwXpfOuvO54S+tGdZdw9fuRZt25Ag=
 github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp5jckzBHf4XRpQvBOLI+I=
-github.com/classic-terra/core v1.1.0 h1:lExsTXevci1hCfMiyaZfm9WbU7yP3ll0O7hCJbXp+uE=
-github.com/classic-terra/core v1.1.0/go.mod h1:UMWrBTHjLBFu5sAMMZ8JadjeeQdo/xY0sxx4U+CH3L4=
 github.com/classic-terra/cosmos-sdk v0.44.6-0.20221016182956-c5c6f52d0a59 h1:aEO8kp0lD+AIqZlyJxA5w6WHg/qMTZnzG7c2BGN1Od0=
 github.com/classic-terra/cosmos-sdk v0.44.6-0.20221016182956-c5c6f52d0a59/go.mod h1:pTH1UR4ZKkchlqIeNIc4U2v9aB36Jdl28iui7pZsluU=
 github.com/clbanning/x2j v0.0.0-20191024224557-825249438eec/go.mod h1:jMjuTZXRI4dUb/I5gc9Hdhagfvm9+RyrPryS/auMzxE=
@@ -849,6 +847,8 @@ github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 h1:hqAk8riJvK4RM
 github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15/go.mod h1:z4YtwM70uOnk8h0pjJYlj3zdYwi9l03By6iAIF5j/Pk=
 github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2lyGa2E=
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
+github.com/terra-money/classic-core v1.1.0-mantlemint h1:zTu3eqeIaek5G7l3axWlbk4M2BzWm70HulS6wOeDx68=
+github.com/terra-money/classic-core v1.1.0-mantlemint/go.mod h1:UMWrBTHjLBFu5sAMMZ8JadjeeQdo/xY0sxx4U+CH3L4=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
 github.com/terra-money/ledger-terra-go v0.11.2/go.mod h1:ClJ2XMj1ptcnONzKH+GhVPi7Y8pXIT+UzJ0TNt0tfZE=
 github.com/terra-money/tendermint v0.34.14-terra.3 h1:6ZKViOBESN3/2csQ8jWHmALdeGMUp7citxh7drtBicI=
