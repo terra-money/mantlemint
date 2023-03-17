@@ -65,8 +65,8 @@ func (hld *HeightLimitedDB) BranchHeightLimitedDB(height int64) *HeightLimitedDB
 
 // SetReadHeight sets a target read height in the db driver.
 // It acts differently if the db mode is writer or reader:
-// - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
-//   allowing full block snapshot history
+//   - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
+//     allowing full block snapshot history
 func (hld *HeightLimitedDB) SetReadHeight(height int64) {
 	hld.readHeight = height
 }
