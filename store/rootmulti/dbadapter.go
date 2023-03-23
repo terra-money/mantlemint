@@ -1,6 +1,7 @@
 package rootmulti
 
 import (
+	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	dbm "github.com/tendermint/tm-db"
@@ -32,11 +33,13 @@ func (cdsa commitDBStoreAdapter) LastCommitID() types.CommitID {
 	}
 }
 
-func (cdsa commitDBStoreAdapter) SetPruning(_ types.PruningOptions) {}
+func (cdsa commitDBStoreAdapter) SetPruning(_ pruningtypes.PruningOptions) {}
 
 // GetPruning is a no-op as pruning options cannot be directly set on this store.
 // They must be set on the root commit multi-store.
-func (cdsa commitDBStoreAdapter) GetPruning() types.PruningOptions { return types.PruningOptions{} }
+func (cdsa commitDBStoreAdapter) GetPruning() pruningtypes.PruningOptions {
+	return pruningtypes.PruningOptions{}
+}
 
 func (cdsa *commitDBStoreAdapter) BranchStoreWithHeightLimitedDB(hldb dbm.DB) types.CommitKVStore {
 	var db = dbm.NewPrefixDB(hldb, cdsa.prefix)
