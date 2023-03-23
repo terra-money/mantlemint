@@ -894,11 +894,13 @@ loop:
 func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID, params storeParams) (types.CommitKVStore, error) {
 	var db dbm.DB
 
+	var prefix []byte
 	if params.db != nil {
-		db = dbm.NewPrefixDB(params.db, []byte("s/_/"))
+		prefix = []byte("s/_/")
+		db = dbm.NewPrefixDB(params.db, prefix)
 	} else {
-		prefix := "s/k:" + params.key.Name() + "/"
-		db = dbm.NewPrefixDB(rs.db, []byte(prefix))
+		prefix = []byte("s/k:" + params.key.Name() + "/")
+		db = dbm.NewPrefixDB(rs.db, prefix)
 	}
 
 	switch params.typ {
@@ -929,7 +931,7 @@ func (rs *Store) loadCommitStoreFromParams(key types.StoreKey, id types.CommitID
 		return store, err
 
 	case types.StoreTypeDB:
-		return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}}, nil
+		return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}, prefix: prefix}, nil
 
 	case types.StoreTypeTransient:
 		_, ok := key.(*types.TransientStoreKey)
