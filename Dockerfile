@@ -1,6 +1,6 @@
 # docker build . -t cosmwasm/wasmd:latest
 # docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.18-alpine3.14 AS go-builder
+FROM golang:1.18-alpine3.16 AS go-builder
 
 COPY . src/mantlemint
 
@@ -37,13 +37,28 @@ RUN set -eux &&\
     ./sync.go
 
 ###############################################################################
-FROM alpine:3.14
+FROM alpine:3.16
 
 WORKDIR /root
 
 COPY --from=go-builder /go/bin/mantlemint /usr/local/bin/mantlemint
 
-RUN apk add bash
+ENV CHAIN_ID="localterra" \
+    MANTLEMINT_HOME="/app" \
+    ## db paths relative to MANTLEMINT_HOME
+    INDEXER_DB="/data/indexer" \ 
+    MANTLEMINT_DB="/data/mantlemint" \
+    GENESIS_PATH="/app/config/genesis.json" \
+    DISABLE_SYNC="false" \
+    RUST_BACKTRACE="full" \
+    ENABLE_EXPORT_MODULE="false" \
+    RICHLIST_LENGTH="100" \
+    RICHLIST_THRESHOLD="0uluna" \
+    ACCOUNT_ADDRESS_PREFIX="terra" \
+    BOND_DENOM="uluna" \
+    LCD_ENDPOINTS="http://localhost:1317" \
+    RPC_ENDPOINTS="http://localhost:26657" \
+    WS_ENDPOINTS="ws://localhost:26657/websocket" 
 
 # lcd & grpc ports
 EXPOSE 1317
