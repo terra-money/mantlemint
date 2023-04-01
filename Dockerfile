@@ -18,7 +18,7 @@ COPY . /code/
 ADD https://github.com/cosmwasm/wasmvm/releases/download/v0.16.6/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
 # use mimalloc for musl
-RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
+RUN git clone --depth 1 --branch v2.0.9 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
 RUN LEDGER_ENABLED=false go build -work -tags muslc,linux -mod=readonly -ldflags="-extldflags '-L/code/mimalloc/build -lmimalloc -static'" -o build/mantlemint ./sync.go
