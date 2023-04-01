@@ -18,7 +18,7 @@ RUN set -eux &&\
 
 # use mimalloc for musl
 RUN set -eux &&\
-    git clone --depth 1 https://github.com/microsoft/mimalloc src/mimalloc &&\
+    git clone --depth 1 --branch v2.0.9 https://github.com/microsoft/mimalloc src/mimalloc &&\
     mkdir -p src/mimalloc/build &&\
     cd src/mimalloc/build &&\
     cmake .. &&\
