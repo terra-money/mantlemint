@@ -1,6 +1,6 @@
 # docker build . -t cosmwasm/wasmd:latest
 # docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.18-alpine3.16 AS go-builder
+FROM golang:1.17-alpine3.16 AS go-builder
 
 COPY . src/mantlemint
 
