@@ -1,11 +1,15 @@
-# docker build . -t cosmwasm/wasmd:latest
-# docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.18-alpine3.16 AS go-builder
+ARG GO_VERSION="1.18"
+ARG ALPINE_VERSION="3.16"
+ARG BUILDPLATFORM=linux/amd64
+ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
+FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} as base
 
-COPY . src/mantlemint
+###############################################################################
+# Builder
+###############################################################################
+FROM base as builder-stage-1
 
-# See https://github.com/CosmWasm/wasmvm/releases
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+ARG BUILDPLATFORM
 
 # NOTE: add libusb-dev to run with LEDGER_ENABLED=true
 RUN set -eux &&\
@@ -16,18 +20,42 @@ RUN set -eux &&\
     cmake \
     git
 
+WORKDIR /go/src/mimalloc
+
 # use mimalloc for musl
 RUN set -eux &&\
-    git clone --depth 1 --branch v2.0.9 https://github.com/microsoft/mimalloc src/mimalloc &&\
-    mkdir -p src/mimalloc/build &&\
-    cd src/mimalloc/build &&\
+    git clone --depth 1 --branch v2.0.9 \
+        https://github.com/microsoft/mimalloc . &&\
+    mkdir -p build &&\
+    cd build &&\
     cmake .. &&\
     make -j$(nproc) &&\
     make install
 
+WORKDIR /go/src/mantlemint
+COPY . .
+
+# Cosmwasm - Download correct libwasmvm version
+# See https://github.com/CosmWasm/wasmvm/releases
+RUN set -eux &&\
+    WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | cut -d ' ' -f 2) && \
+    WASMVM_DOWNLOADS="https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}"; \
+    wget ${WASMVM_DOWNLOADS}/checksums.txt -O /tmp/checksums.txt; \
+    if [ ${BUILDPLATFORM} = "linux/amd64" ]; then \
+        WASMVM_URL="${WASMVM_DOWNLOADS}/libwasmvm_muslc.x86_64.a"; \
+    elif [ ${BUILDPLATFORM} = "linux/arm64" ]; then \
+        WASMVM_URL="${WASMVM_DOWNLOADS}/libwasmvm_muslc.aarch64.a"; \
+    else \
+        echo "Unsupported Build Platfrom ${BUILDPLATFORM}"; \
+        exit 1; \
+    fi; \
+    wget ${WASMVM_URL} -O /lib/libwasmvm_muslc.a; \
+    CHECKSUM=`sha256sum /lib/libwasmvm_muslc.a | cut -d" " -f1`; \
+    grep ${CHECKSUM} /tmp/checksums.txt; \
+    rm /tmp/checksums.txt 
+
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
 RUN set -eux &&\
-    cd src/mantlemint &&\
     LEDGER_ENABLED=false \
     go build -work \
     -tags muslc,linux \
@@ -37,11 +65,11 @@ RUN set -eux &&\
     ./sync.go
 
 ###############################################################################
-FROM alpine:3.16
+FROM alpine:${ALPINE_VERSION} as terra-core
 
 WORKDIR /root
 
-COPY --from=go-builder /go/bin/mantlemint /usr/local/bin/mantlemint
+COPY --from=builder-stage-1 /go/bin/mantlemint /usr/local/bin/mantlemint
 
 ENV CHAIN_ID="localterra" \
     MANTLEMINT_HOME="/app" \
