@@ -17,8 +17,8 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	core "github.com/terra-money/core/v2/app"
 	terra "github.com/terra-money/core/v2/app"
+	coreconfig "github.com/terra-money/core/v2/app/config"
 	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
 
@@ -43,14 +43,14 @@ func main() {
 	mantlemintConfig.Print()
 
 	sdkConfig := sdk.GetConfig()
-	sdkConfig.SetCoinType(core.CoinType)
-	accountPubKeyPrefix := core.AccountAddressPrefix + "pub"
-	validatorAddressPrefix := core.AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := core.AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := core.AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := core.AccountAddressPrefix + "valconspub"
+	sdkConfig.SetCoinType(coreconfig.CoinType)
+	accountPubKeyPrefix := coreconfig.AccountAddressPrefix + "pub"
+	validatorAddressPrefix := coreconfig.AccountAddressPrefix + "valoper"
+	validatorPubKeyPrefix := coreconfig.AccountAddressPrefix + "valoperpub"
+	consNodeAddressPrefix := coreconfig.AccountAddressPrefix + "valcons"
+	consNodePubKeyPrefix := coreconfig.AccountAddressPrefix + "valconspub"
 
-	sdkConfig.SetBech32PrefixForAccount(core.AccountAddressPrefix, accountPubKeyPrefix)
+	sdkConfig.SetBech32PrefixForAccount(coreconfig.AccountAddressPrefix, accountPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
@@ -79,7 +79,7 @@ func main() {
 	codec := terra.MakeEncodingConfig()
 
 	// customize CMS to limit kv store's read height on query
-	cms := rootmulti.NewStore(batched, hldb)
+	cms := rootmulti.NewStore(batched, hldb, logger)
 	vpr := viper.GetViper()
 
 	var app = terra.NewTerraApp(
