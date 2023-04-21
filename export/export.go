@@ -51,11 +51,13 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 		}
 		return false
 	})
-	totalSupply, err := app.BankKeeper.TotalSupply(sdktypes.WrapSDKContext(ctx), &banktypes.QueryTotalSupplyRequest{})
+	totalSupply, err := app.BankKeeper.SupplyOf(sdktypes.WrapSDKContext(ctx), &banktypes.QuerySupplyOfRequest{
+		Denom: "uluna",
+	})
 	if err != nil {
 		return sdktypes.Int{}, err
 	}
-	lunaTotalSupply := totalSupply.Supply.AmountOf("uluna")
+	lunaTotalSupply := totalSupply.Amount.Amount
 	communityPool, err := app.DistrKeeper.CommunityPool(sdktypes.WrapSDKContext(ctx), &distrotypes.QueryCommunityPoolRequest{})
 	if err != nil {
 		return sdktypes.Int{}, err
