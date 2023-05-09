@@ -9,9 +9,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	terra "github.com/classic-terra/core/app"
-	core "github.com/classic-terra/core/types"
-	wasmconfig "github.com/classic-terra/core/x/wasm/config"
+	terra "github.com/classic-terra/core/v2/app"
+	core "github.com/classic-terra/core/v2/types"
+	wasmconfig "github.com/classic-terra/core/v2/x/wasm/config"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
