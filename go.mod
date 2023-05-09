@@ -3,7 +3,7 @@ module github.com/terra-money/mantlemint
 go 1.18
 
 require (
-	github.com/classic-terra/core v1.2.0
+	github.com/classic-terra/core/v2 v2.0.1
 	github.com/cosmos/cosmos-sdk v0.45.13
 	github.com/cosmos/iavl v0.19.5
 	github.com/gogo/protobuf v1.3.3
@@ -112,7 +112,6 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
-	//github.com/classic-terra/core => github.com/terra-money/classic-core v1.2.0
 	github.com/cosmos/cosmos-sdk => github.com/classic-terra/cosmos-sdk v0.45.13-classic
 	github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

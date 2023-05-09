@@ -523,8 +523,8 @@ github.com/cilium/ebpf v0.6.2/go.mod h1:4tRaxcgiL706VnOzHOdBlY8IEAIdxINsQBcU4xJJ
 github.com/cilium/ebpf v0.7.0/go.mod h1:/oI2+1shJiTGAMgl6/RgJr36Eo1jzrRcAWbcXO2usCA=
 github.com/circonus-labs/circonus-gometrics v2.3.1+incompatible/go.mod h1:nmEj6Dob7S7YxXgwXpfOuvO54S+tGdZdw9fuRZt25Ag=
 github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp5jckzBHf4XRpQvBOLI+I=
-github.com/classic-terra/core v1.2.0 h1:0gNRo3H7MnU5YwNfuMJh+P9N5jTpFsdWlZ4lpVBBUU4=
-github.com/classic-terra/core v1.2.0/go.mod h1:TXtOfFU95EpA/TbW8KXmqkbktAW8PsPom04nLi+EUjw=
+github.com/classic-terra/core/v2 v2.0.1 h1:nLOVdDRd7MDBlqLCxwLA+SaygnUDoc8Gh1QZHngKCvo=
+github.com/classic-terra/core/v2 v2.0.1/go.mod h1:BGUE3+UNLVQvR8QpOkDkaZSxQ8j1H+fReDc+HE6k/Kk=
 github.com/classic-terra/cosmos-sdk v0.45.13-classic h1:gJ1waM0wDVoa4XpJqTn/AvtUOcjJUohnwiG9haiAIuE=
 github.com/classic-terra/cosmos-sdk v0.45.13-classic/go.mod h1:KaUwQKijD7mOiKnPa/7JOJoGfDt4Mq+1CGlODMHPmfM=
 github.com/classic-terra/tendermint v0.34.24-terra.0 h1:ZGaJpmKfxjlmmLO80t03jlK2SBQfJKlLsF+ItDbXtko=

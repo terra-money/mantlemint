@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	terra "github.com/classic-terra/core/app"
+	terra "github.com/classic-terra/core/v2/app"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

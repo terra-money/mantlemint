@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	terra "github.com/classic-terra/core/app"
-	"github.com/classic-terra/core/app/params"
+	terra "github.com/classic-terra/core/v2/app"
+	"github.com/classic-terra/core/v2/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
