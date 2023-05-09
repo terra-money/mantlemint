@@ -30,7 +30,7 @@ func StartRPC(
 	getIsSynced func() bool,
 ) error {
 	vp := viper.GetViper()
-	cfg := config.GetConfig(vp)
+	cfg, _ := config.GetConfig(vp)
 
 	// create terra client; register all codecs
 	context := client.
