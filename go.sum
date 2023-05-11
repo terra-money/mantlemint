@@ -279,8 +279,6 @@ github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbi
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d h1:nalkkPQcITbvhmL4+C4cKA87NW0tfm3Kl9VXRoPywFg=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
-github.com/CosmWasm/wasmvm v0.16.7 h1:3skB4RX6XMgPgwNIlxwQvxJGcdaWPJQALWgiVlqXvGc=
-github.com/CosmWasm/wasmvm v0.16.7/go.mod h1:saGLYYSj6rRVFL6EaWZHzXbLD3Rgn8ZEK+0H+UjKOE4=
 github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
@@ -529,6 +527,8 @@ github.com/classic-terra/cosmos-sdk v0.45.13-classic h1:gJ1waM0wDVoa4XpJqTn/AvtU
 github.com/classic-terra/cosmos-sdk v0.45.13-classic/go.mod h1:KaUwQKijD7mOiKnPa/7JOJoGfDt4Mq+1CGlODMHPmfM=
 github.com/classic-terra/tendermint v0.34.24-terra.0 h1:ZGaJpmKfxjlmmLO80t03jlK2SBQfJKlLsF+ItDbXtko=
 github.com/classic-terra/tendermint v0.34.24-terra.0/go.mod h1:rXVrl4OYzmIa1I91av3iLv2HS0fGSiucyW9J4aMTpKI=
+github.com/classic-terra/wasmvm v0.16.8-beta5 h1:I/E+7ya8BY88wMu95r9QkbIeh4Nq7MDJSu6ZbZSBUY4=
+github.com/classic-terra/wasmvm v0.16.8-beta5/go.mod h1:saGLYYSj6rRVFL6EaWZHzXbLD3Rgn8ZEK+0H+UjKOE4=
 github.com/clbanning/mxj v1.8.4/go.mod h1:BVjHeAH+rl9rs6f+QIpeRl0tfu10SXn1pUSa5PVGJng=
 github.com/clbanning/x2j v0.0.0-20191024224557-825249438eec/go.mod h1:jMjuTZXRI4dUb/I5gc9Hdhagfvm9+RyrPryS/auMzxE=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
