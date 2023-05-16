@@ -52,7 +52,9 @@ func NewMantlemint(
 ) Mantlemint {
 
 	// here we go!
-	var stateStore = state.NewStore(db)
+	var stateStore = state.NewStore(db, state.StoreOptions{
+		DiscardABCIResponses: false,
+	})
 	var blockStore = store.NewBlockStore(db)
 	var lastState, err = stateStore.Load()
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	terra "github.com/classic-terra/core/app"
+	terra "github.com/classic-terra/core/v2/app"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"

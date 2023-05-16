@@ -9,9 +9,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	terra "github.com/classic-terra/core/app"
-	core "github.com/classic-terra/core/types"
-	wasmconfig "github.com/classic-terra/core/x/wasm/config"
+	terra "github.com/classic-terra/core/v2/app"
+	core "github.com/classic-terra/core/v2/types"
+	wasmconfig "github.com/classic-terra/core/v2/x/wasm/config"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
@@ -41,7 +41,6 @@ func main() {
 
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetCoinType(core.CoinType)
-	sdkConfig.SetFullFundraiserPath(core.FullFundraiserPath)
 	sdkConfig.SetBech32PrefixForAccount(core.Bech32PrefixAccAddr, core.Bech32PrefixAccPub)
 	sdkConfig.SetBech32PrefixForValidator(core.Bech32PrefixValAddr, core.Bech32PrefixValPub)
 	sdkConfig.SetBech32PrefixForConsensusNode(core.Bech32PrefixConsAddr, core.Bech32PrefixConsPub)
@@ -70,7 +69,7 @@ func main() {
 	codec := terra.MakeEncodingConfig()
 
 	// customize CMS to limit kv store's read height on query
-	cms := rootmulti.NewStore(batched, hldb)
+	cms := rootmulti.NewStore(batched, logger, hldb)
 	vpr := viper.GetViper()
 
 	var app = terra.NewTerraApp(
