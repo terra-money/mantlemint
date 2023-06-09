@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	terra "github.com/classic-terra/core/v2/app"
 	core "github.com/classic-terra/core/v2/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -44,7 +45,7 @@ func main() {
 	sdkConfig.SetBech32PrefixForAccount(core.Bech32PrefixAccAddr, core.Bech32PrefixAccPub)
 	sdkConfig.SetBech32PrefixForValidator(core.Bech32PrefixValAddr, core.Bech32PrefixValPub)
 	sdkConfig.SetBech32PrefixForConsensusNode(core.Bech32PrefixConsAddr, core.Bech32PrefixConsPub)
-	sdkConfig.SetAddressVerifier(core.AddressVerifier)
+	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	sdkConfig.Seal()
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
