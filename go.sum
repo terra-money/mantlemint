@@ -143,8 +143,8 @@ github.com/circonus-labs/circonus-gometrics v2.3.1+incompatible/go.mod h1:nmEj6D
 github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp5jckzBHf4XRpQvBOLI+I=
 github.com/classic-terra/core/v2 v2.1.0 h1:5JdcsB55isKg3a6j7UXUpuSPMzWv+CAvSW/gdXYSSw4=
 github.com/classic-terra/core/v2 v2.1.0/go.mod h1:eFcGtA69MzqowaXsvY3H/fccj8lwdzIXnHo46we1t5c=
-github.com/classic-terra/cosmos-sdk v0.45.14-classic.tainted h1:xd6sQ/T5FQXX/oG+WVcJWMc8eogBMEuXnFqdFkakU1o=
-github.com/classic-terra/cosmos-sdk v0.45.14-classic.tainted/go.mod h1:KaUwQKijD7mOiKnPa/7JOJoGfDt4Mq+1CGlODMHPmfM=
+github.com/classic-terra/cosmos-sdk v0.45.14-classic h1:R3WBEoqnBDGef3LCCq0uTWEqFO8pwwqkIv3nQWv5Z+E=
+github.com/classic-terra/cosmos-sdk v0.45.14-classic/go.mod h1:KaUwQKijD7mOiKnPa/7JOJoGfDt4Mq+1CGlODMHPmfM=
 github.com/classic-terra/tendermint v0.34.24-terra.0 h1:ZGaJpmKfxjlmmLO80t03jlK2SBQfJKlLsF+ItDbXtko=
 github.com/classic-terra/tendermint v0.34.24-terra.0/go.mod h1:rXVrl4OYzmIa1I91av3iLv2HS0fGSiucyW9J4aMTpKI=
 github.com/classic-terra/wasmd v0.30.0-terra.2 h1:qaZx4mloPU6xaJP7TAd3CNzN4iziJ47ClOEkJV5de/Q=
