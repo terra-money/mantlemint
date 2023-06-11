@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/CosmWasm/wasmd v0.30.0
-	github.com/classic-terra/core/v2 v2.1.0
+	github.com/classic-terra/core/v2 v2.1.1
 	github.com/cosmos/cosmos-sdk v0.45.14
 	github.com/cosmos/iavl v0.19.5
 	github.com/gogo/protobuf v1.3.3
