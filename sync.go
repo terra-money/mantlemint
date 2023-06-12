@@ -9,9 +9,10 @@ import (
 	"os"
 	"runtime/debug"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	terra "github.com/classic-terra/core/v2/app"
 	core "github.com/classic-terra/core/v2/types"
-	wasmconfig "github.com/classic-terra/core/v2/x/wasm/config"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
@@ -44,7 +45,7 @@ func main() {
 	sdkConfig.SetBech32PrefixForAccount(core.Bech32PrefixAccAddr, core.Bech32PrefixAccPub)
 	sdkConfig.SetBech32PrefixForValidator(core.Bech32PrefixValAddr, core.Bech32PrefixValPub)
 	sdkConfig.SetBech32PrefixForConsensusNode(core.Bech32PrefixConsAddr, core.Bech32PrefixConsPub)
-	sdkConfig.SetAddressVerifier(core.AddressVerifier)
+	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	sdkConfig.Seal()
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
@@ -72,6 +73,7 @@ func main() {
 	cms := rootmulti.NewStore(batched, logger, hldb)
 	vpr := viper.GetViper()
 
+	var wasmOpts []wasm.Option
 	var app = terra.NewTerraApp(
 		logger,
 		batched,
@@ -82,7 +84,7 @@ func main() {
 		0,
 		codec,
 		vpr,
-		wasmconfig.GetConfig(vpr),
+		wasmOpts,
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
