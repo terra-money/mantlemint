@@ -1,0 +1,55 @@
+version: '3.8'
+
+x-mm-env: &mm-env
+  -  CHAIN_ID=localterra 
+  -  MANTLEMINT_HOME=/app 
+  -  INDEXER_DB=/data/indexer  
+  -  MANTLEMINT_DB=/data/mantlemint 
+  -  GENESIS_PATH=/app/config/genesis.json 
+  -  DISABLE_SYNC=false 
+  -  RUST_BACKTRACE=full 
+  -  ENABLE_EXPORT_MODULE=false 
+  -  RICHLIST_LENGTH=100
+  -  RICHLIST_THRESHOLD=1uluna 
+  -  ACCOUNT_ADDRESS_PREFIX=terra 
+  -  BOND_DENOM=uluna 
+  -  LCD_ENDPOINTS=http://terrad:1317 
+  -  RPC_ENDPOINTS=http://terrad:26657 
+  -  WS_ENDPOINTS=ws://terrad:26657/websocket 
+
+services:
+  terrad:
+    image: ghcr.io/terra-money/localterra:${TERRA_VERSION:-latest}
+    hostname: terrad
+    volumes:
+      - terra:/app
+    networks:
+      - default
+    ports:
+      - "8080:8080"
+      - "26657:26657"
+
+  mantlemint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/terra-money/mantlemint:${TERRA_VERSION:-latest}
+    hostname: mantlemint
+    command: /usr/local/bin/mantlemint
+    environment: *mm-env
+    restart: unless-stopped
+    volumes:
+      - terra:/app
+    networks:
+      - default
+    ports:
+      - 1317:1317
+      - 9090:9090
+
+volumes:
+  terra:
+
+networks:
+  default:
+
+
