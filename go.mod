@@ -17,7 +17,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tendermint/tendermint v0.34.28
-	github.com/tendermint/tm-db v0.6.8
+	github.com/tendermint/tm-db v0.6.8-0.20221109095132-774cdfe7e6b0
 	github.com/terra-money/core/v2 v2.4.0-rc4
 )
 
@@ -51,6 +51,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.6 // indirect
+	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/ibc-go/v6 v6.1.1 // indirect
 	github.com/cosmos/interchain-accounts v0.4.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.2 // indirect
@@ -104,7 +105,6 @@ require (
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
-	github.com/linxGnu/grocksdb v1.7.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -166,11 +166,10 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
+	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/CosmWasm/wasmd => github.com/terra-money/wasmd v0.30.0-sdk469.5
-	github.com/cosmos/cosmos-sdk => github.com/terra-money/cosmos-sdk v0.46.11-terra.1
+	github.com/cosmos/cosmos-sdk => github.com/terra-money/cosmos-sdk v0.46.13-terra.3
 	github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/terra-money/tendermint v0.34.27-terra.rc.1
-	github.com/tendermint/tm-db => github.com/terra-money/tm-db v0.6.7-terra.1
-	google.golang.org/grpc => google.golang.org/grpc v1.52.3
 )
