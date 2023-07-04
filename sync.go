@@ -55,6 +55,11 @@ func main() {
 	sdkConfig.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 	sdkConfig.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 
+	err := sdk.RegisterDenom(coreconfig.BondDenom, sdk.NewDecWithPrec(1, 6))
+	if err != nil {
+		panic(err)
+	}
+
 	sdkConfig.Seal()
 
 	ldb, ldbErr := heleveldb.NewLevelDBDriver(&heleveldb.DriverConfig{
