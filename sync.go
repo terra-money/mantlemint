@@ -92,7 +92,7 @@ func main() {
 		batched,
 		nil,
 		true, // need this so KVStores are set
-		make(map[int64]bool),
+		mantlemintConfig.SkipUpgradeHeights,
 		mantlemintConfig.Home,
 		0,
 		codec,
