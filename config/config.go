@@ -26,6 +26,7 @@ type Config struct {
 	EnableExportModule bool
 	RichlistLength     int
 	RichlistThreshold  *sdk.Coin
+	SkipUpgradeHeights map[int64]bool
 }
 
 var singleton Config
@@ -114,6 +115,20 @@ func newConfig() Config {
 				panic(fmt.Errorf("RICHLIST_THRESHOLD is invalid: %v", err))
 			}
 			return &thresholdCoin
+		}(),
+		SkipUpgradeHeights: func() map[int64]bool {
+			skipUpgradeHeightsStr := getValidEnv("SKIP_UPGRADE_HEIGHTS")
+			heightsMap := make(map[int64]bool)
+
+			heights := strings.Split(skipUpgradeHeightsStr, ",")
+			for _, h := range heights {
+				height, err := strconv.ParseInt(h, 10, 64)
+				if err != nil {
+					panic(fmt.Errorf("invalid height in SKIP_UPGRADE_HEIGHTS: %s", h))
+				}
+				heightsMap[height] = true
+			}
+			return heightsMap
 		}(),
 	}
 
