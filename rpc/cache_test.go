@@ -28,7 +28,7 @@ func TestCacheBackend(t *testing.T) {
 		nil,
 	)
 	testRes := httptest.NewRecorder()
-	var callCount = 0
+	callCount := 0
 
 	handler := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		callCount++
@@ -59,5 +59,4 @@ func TestCacheBackend(t *testing.T) {
 
 	fmt.Println(callCount)
 	assert.Equal(t, callCount, 1)
-
 }

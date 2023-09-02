@@ -11,18 +11,18 @@ var _ BlockFeed = (*RPCSubscription)(nil)
 
 type RPCSubscription struct {
 	rpcEndpoints []string
-	cSub     chan *BlockResult
+	cSub         chan *BlockResult
 }
 
 func NewRpcSubscription(rpcEndpoints []string) (*RPCSubscription, error) {
 	return &RPCSubscription{
 		rpcEndpoints: rpcEndpoints,
-		cSub:     make(chan *BlockResult),
+		cSub:         make(chan *BlockResult),
 	}, nil
 }
 
 func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64, rpcIndex int) {
-	var cSub = rpc.cSub
+	cSub := rpc.cSub
 
 	log.Printf("[block_feed/rpc] subscription started, from=%d, to=%d\n", from, to)
 

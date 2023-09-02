@@ -21,11 +21,9 @@ const (
 	debugKeyGetResult
 )
 
-var HeightLimitedDelimiter = []byte{'@'}
-var LatestHeightBuf = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-
 var (
-	errInvalidWriteHeight = "invalid operation: writeHeight is not set"
+	HeightLimitedDelimiter = []byte{'@'}
+	LatestHeightBuf        = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 )
 
 var _ HLD = (*HeightLimitedDB)(nil)
@@ -65,8 +63,8 @@ func (hld *HeightLimitedDB) BranchHeightLimitedDB(height int64) *HeightLimitedDB
 
 // SetReadHeight sets a target read height in the db driver.
 // It acts differently if the db mode is writer or reader:
-// - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
-//   allowing full block snapshot history
+//   - Reader uses readHeight as the max height at which the retrieved key/value pair is limited to,
+//     allowing full block snapshot history
 func (hld *HeightLimitedDB) SetReadHeight(height int64) {
 	hld.readHeight = height
 }
@@ -222,7 +220,7 @@ func (hld *HeightLimitedDB) Debug(debugType int, key []byte, value []byte) {
 	}
 
 	var actualKeyHeight int64
-	if bytes.Compare(keyHeight, LatestHeightBuf) == 0 {
+	if bytes.Equal(keyHeight, LatestHeightBuf) {
 		actualKeyHeight = -1
 	} else {
 		actualKeyHeight = int64(lib.BigEndianToUint(keyHeight))

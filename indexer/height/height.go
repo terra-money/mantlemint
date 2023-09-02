@@ -2,6 +2,7 @@ package height
 
 import (
 	"fmt"
+
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"

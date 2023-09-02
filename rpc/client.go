@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 
 	abcicli "github.com/tendermint/tendermint/abci/client"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -156,9 +155,6 @@ func (m *MantlemintRPCClient) Health(ctx context.Context) (*coretypes.ResultHeal
 
 func (m *MantlemintRPCClient) Block(ctx context.Context, height *int64) (*coretypes.ResultBlock, error) {
 	return core.Block(nil, height)
-	fmt.Println("is it you")
-
-	panic("implement me")
 }
 
 func (m *MantlemintRPCClient) BlockByHash(ctx context.Context, hash []byte) (*coretypes.ResultBlock, error) {

@@ -2,12 +2,13 @@ package block
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmdb "github.com/tendermint/tm-db"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmdb "github.com/tendermint/tm-db"
 )
 
 func TestIndexBlock(t *testing.T) {

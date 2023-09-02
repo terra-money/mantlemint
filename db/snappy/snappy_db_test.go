@@ -1,13 +1,14 @@
 package snappy
 
 import (
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestSnappyDB(t *testing.T) {
@@ -52,6 +53,7 @@ func TestSnappyDB(t *testing.T) {
 
 	v, err = snappy.Get([]byte("key"))
 	assert.Equal(t, []byte("batchedValue"), v)
+	assert.Nil(t, err)
 
 	batch = snappy.NewBatch()
 	assert.Nil(t, batch.Delete([]byte("key")))

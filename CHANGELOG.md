@@ -1,5 +1,8 @@
 # Changelog
 
+## [v2.1.0](https://github.com/classic-terra/mantlemint/tree/v2.1.0) (2023-09-02)
+This release contains a dependency upgrade for [core](https://github.com/classic-terra/core)@v2.1.x
+
 ## [v0.1.2](https://github.com/terra-money/mantlemint/tree/v0.1.2) (2022-04-14)
 
 This release contains a depencency upgrade for [core](https://github.com/terra-money/core)@0.5.17...@0.5.18. Apart from the dependency bump all functionalities should be exactly the same as v0.1.1.
