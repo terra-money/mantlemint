@@ -2,18 +2,19 @@ package block
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmdb "github.com/tendermint/tm-db"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func TestIndexBlock(t *testing.T) {
 	db := tmdb.NewMemDB()
 	blockFile, _ := os.Open("../fixtures/block_4724005_raw.json")
-	blockJSON, _ := ioutil.ReadAll(blockFile)
+	blockJSON, _ := io.ReadAll(blockFile)
 
 	record := BlockRecord{}
 	_ = tmjson.Unmarshal(blockJSON, &record)

@@ -8,8 +8,10 @@ import (
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
-var _ hld.HeightLimitEnabledBatch = (*LevelBatch)(nil)
-var _ rollbackable.HasRollbackBatch = (*LevelBatch)(nil)
+var (
+	_ hld.HeightLimitEnabledBatch   = (*LevelBatch)(nil)
+	_ rollbackable.HasRollbackBatch = (*LevelBatch)(nil)
+)
 
 type LevelBatch struct {
 	height int64

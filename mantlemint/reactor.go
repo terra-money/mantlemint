@@ -1,27 +1,20 @@
 package mantlemint
 
 import (
-	// "fmt"
-	// abcicli "github.com/tendermint/tendermint/abci/client"
-	// abci "github.com/tendermint/tendermint/abci/types"
+	"log"
+	"sync"
+
 	"github.com/tendermint/tendermint/consensus"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 
-	"log"
-	"sync"
-
 	tendermint "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 )
 
 var _ Mantlemint = (*Instance)(nil)
-
-var (
-	errNoBlock = "block is never injected"
-)
 
 type Instance struct {
 	executor   Executor
@@ -50,14 +43,12 @@ func NewMantlemint(
 	runBefore MantlemintCallbackBefore,
 	runAfter MantlemintCallbackAfter,
 ) Mantlemint {
-
 	// here we go!
-	var stateStore = state.NewStore(db, state.StoreOptions{
+	stateStore := state.NewStore(db, state.StoreOptions{
 		DiscardABCIResponses: false,
 	})
-	var blockStore = store.NewBlockStore(db)
-	var lastState, err = stateStore.Load()
-
+	blockStore := store.NewBlockStore(db)
+	lastState, err := stateStore.Load()
 	if err != nil {
 		panic(err)
 	}
@@ -125,8 +116,8 @@ func (mm *Instance) LoadInitialState() error {
 }
 
 func (mm *Instance) Inject(block *tendermint.Block) error {
-	var currentState = mm.lastState
-	var blockID = tendermint.BlockID{
+	currentState := mm.lastState
+	blockID := tendermint.BlockID{
 		Hash:          block.Hash(),
 		PartSetHeader: block.MakePartSet(tendermint.BlockPartSizeBytes).Header(),
 	}

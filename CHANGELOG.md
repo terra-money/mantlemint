@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+This release contains a dependency upgrade for [classic-terra/core](https://github.com/classic-terra/core)@v2.1.2 with AppHash fix caused by legacy wasm codec
+
+## [v2.1.1](https://github.com/classic-terra/mantlemint/tree/v2.1.1) (2023-06-11)
+This release contains a dependency upgrade for [classic-terra/core](https://github.com/classic-terra/core)@v2.1.1
+
+## [v2.0.2](https://github.com/classic-terra/mantlemint/tree/v2.1.1) (2023-05-12)
+This release contains a dependency upgrade for [classic-terra/core](https://github.com/classic-terra/core)@v2.0.2
+
+## [v1.1.0]
+This release contains a dependency upgrade for [classic-terra/core](https://github.com/classic-terra/core)@v1.1.0
+
+## [v1.0.5]
+This release contains a dependency upgrade for [classic-terra/core](https://github.com/classic-terra/core)@v1.0.5
+
 ## [v0.1.2](https://github.com/terra-money/mantlemint/tree/v0.1.2) (2022-04-14)
 
 This release contains a depencency upgrade for [core](https://github.com/terra-money/core)@0.5.17...@0.5.18. Apart from the dependency bump all functionalities should be exactly the same as v0.1.1.

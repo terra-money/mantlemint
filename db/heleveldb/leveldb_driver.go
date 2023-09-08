@@ -40,8 +40,8 @@ func (d *Driver) Get(maxHeight int64, key []byte) ([]byte, error) {
 	if maxHeight == 0 {
 		return d.session.Get(prefixCurrentDataKey(key))
 	}
-	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
-	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
+	requestHeight := hld.Height(maxHeight).CurrentOrLatest().ToInt64()
+	requestHeightMin := hld.Height(0).CurrentOrNever().ToInt64()
 
 	// check if requestHeightMin is
 	if requestHeightMin > requestHeight {
@@ -74,8 +74,8 @@ func (d *Driver) Has(maxHeight int64, key []byte) (bool, error) {
 	if maxHeight == 0 {
 		return d.session.Has(prefixCurrentDataKey(key))
 	}
-	var requestHeight = hld.Height(maxHeight).CurrentOrLatest().ToInt64()
-	var requestHeightMin = hld.Height(0).CurrentOrNever().ToInt64()
+	requestHeight := hld.Height(maxHeight).CurrentOrLatest().ToInt64()
+	requestHeightMin := hld.Height(0).CurrentOrNever().ToInt64()
 
 	// check if requestHeightMin is
 	if requestHeightMin > requestHeight {

@@ -1,12 +1,13 @@
 package mantlemint
 
 import (
+	"os"
+
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/mempool/mock"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
 	tmdb "github.com/tendermint/tm-db"
-	"os"
 )
 
 // NewMantlemintExecutor creates stock tendermint block executor, with stubbed mempool and evidence pool

@@ -21,7 +21,9 @@ type Executor interface {
 	SetEventBus(publisher tendermint.BlockEventPublisher)
 }
 
-type MantlemintCallbackBefore func(block *tendermint.Block) error
-type MantlemintCallbackAfter func(block *tendermint.Block, events *EventCollector) error
+type (
+	MantlemintCallbackBefore func(block *tendermint.Block) error
+	MantlemintCallbackAfter  func(block *tendermint.Block, events *EventCollector) error
+)
 
 // --- internal types

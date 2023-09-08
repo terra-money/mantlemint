@@ -7,8 +7,10 @@ import (
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
-var _ tmdb.DB = (*SafeBatchDB)(nil)
-var _ SafeBatchDBCloser = (*SafeBatchDB)(nil)
+var (
+	_ tmdb.DB           = (*SafeBatchDB)(nil)
+	_ SafeBatchDBCloser = (*SafeBatchDB)(nil)
+)
 
 type SafeBatchDBCloser interface {
 	tmdb.DB
