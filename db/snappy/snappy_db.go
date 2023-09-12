@@ -2,9 +2,9 @@ package snappy
 
 import (
 	"encoding/json"
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/golang/snappy"
 	"github.com/pkg/errors"
-	tmdb "github.com/tendermint/tm-db"
 	"sync"
 )
 

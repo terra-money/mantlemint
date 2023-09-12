@@ -6,17 +6,17 @@ import (
 	"os"
 	"testing"
 
+	tmdb "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/assert"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 func TestIndexTx(t *testing.T) {
 	db := tmdb.NewMemDB()
-	block := &tendermint.Block{}
+	block := &cometbfttypes.Block{}
 	blockFile, _ := os.Open("../fixtures/block_4814775.json")
 	blockJSON, _ := ioutil.ReadAll(blockFile)
 	if err := tmjson.Unmarshal(blockJSON, block); err != nil {
@@ -26,7 +26,7 @@ func TestIndexTx(t *testing.T) {
 	eventFile, _ := os.Open("../fixtures/response_4814775.json")
 	eventJSON, _ := ioutil.ReadAll(eventFile)
 	evc := mantlemint.NewMantlemintEventCollector()
-	event := tendermint.EventDataTx{}
+	event := cometbfttypes.EventDataTx{}
 	if err := tmjson.Unmarshal(eventJSON, &event.Result); err != nil {
 		panic(err)
 	}

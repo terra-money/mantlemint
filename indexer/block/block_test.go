@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	tmdb "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/stretchr/testify/assert"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 )
 

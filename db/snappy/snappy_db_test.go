@@ -1,10 +1,10 @@
 package snappy
 
 import (
+	db "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/assert"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tendermint "github.com/tendermint/tendermint/types"
-	db "github.com/tendermint/tm-db"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -81,7 +81,7 @@ func TestSnappyDBCompat(t *testing.T) {
 }
 
 func indexSampleTx(mdb db.DB, key []byte) {
-	block := &tendermint.Block{}
+	block := &cometbfttypes.Block{}
 	blockFile, _ := os.Open("../../indexer/fixtures/block_4814775.json")
 	blockJSON, _ := ioutil.ReadAll(blockFile)
 	if err := tmjson.Unmarshal(blockJSON, block); err != nil {

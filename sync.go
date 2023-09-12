@@ -10,13 +10,13 @@ import (
 	"runtime/debug"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	tmlog "github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/proxy"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/proxy"
-	tendermint "github.com/tendermint/tendermint/types"
 	terra "github.com/terra-money/core/v2/app"
 	coreconfig "github.com/terra-money/core/v2/app/config"
 	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
@@ -34,7 +34,7 @@ import (
 	"github.com/terra-money/mantlemint/rpc"
 	"github.com/terra-money/mantlemint/store/rootmulti"
 
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
 )
 
 // initialize mantlemint for v0.34.x
@@ -102,11 +102,12 @@ func main() {
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
 		},
+		baseapp.SetChainID(mantlemintConfig.ChainID),
 	)
 
 	// create app...
 	var appCreator = mantlemint.NewConcurrentQueryClientCreator(app)
-	appConns := proxy.NewAppConns(appCreator)
+	appConns := proxy.NewAppConns(appCreator, proxy.NopMetrics())
 	appConns.SetLogger(logger)
 	if startErr := appConns.OnStart(); startErr != nil {
 		panic(startErr)
@@ -268,7 +269,7 @@ func fauxMerkleModeOpt(app *baseapp.BaseApp) {
 	app.SetFauxMerkleMode()
 }
 
-func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
+func getGenesisDoc(genesisPath string) *cometbfttypes.GenesisDoc {
 	jsonBlob, _ := ioutil.ReadFile(genesisPath)
 	shasum := sha1.New()
 	shasum.Write(jsonBlob)
@@ -276,7 +277,7 @@ func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
 
 	log.Printf("[v0.34.x/sync] genesis shasum=%s", sum)
 
-	if genesis, genesisErr := tendermint.GenesisDocFromFile(genesisPath); genesisErr != nil {
+	if genesis, genesisErr := cometbfttypes.GenesisDocFromFile(genesisPath); genesisErr != nil {
 		panic(genesisErr)
 	} else {
 		return genesis

@@ -6,19 +6,20 @@ import (
 	"strings"
 	"time"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrikeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	distrotypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	terra "github.com/terra-money/core/v2/app"
+	app "github.com/terra-money/core/v2/app"
 )
 
 var IsAccountExportWorkerRunning = false
 
-func ExportAllAccounts(app *terra.TerraApp) error {
+func ExportAllAccounts(app *app.TerraApp) error {
 	if IsAccountExportWorkerRunning {
 		return fmt.Errorf("exporting is still running")
 	}
@@ -27,11 +28,12 @@ func ExportAllAccounts(app *terra.TerraApp) error {
 	return nil
 }
 
-func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
+func ExportCirculatingSupply(app *app.TerraApp) (sdktypes.Int, error) {
 	height := app.LastBlockHeight()
 	ctx := app.NewContext(true, tmproto.Header{Height: height})
 	time := time.Now()
 	totalVesting := sdktypes.NewInt(0)
+	distQuerier := distrikeeper.NewQuerier(app.DistrKeeper)
 	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		switch account.(type) {
 		case *vestingtypes.PeriodicVestingAccount:
@@ -58,7 +60,7 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 		return sdktypes.Int{}, err
 	}
 	lunaTotalSupply := totalSupply.Amount.Amount
-	communityPool, err := app.DistrKeeper.CommunityPool(sdktypes.WrapSDKContext(ctx), &distrotypes.QueryCommunityPoolRequest{})
+	communityPool, err := distQuerier.CommunityPool(sdktypes.WrapSDKContext(ctx), &distrotypes.QueryCommunityPoolRequest{})
 	if err != nil {
 		return sdktypes.Int{}, err
 	}
@@ -67,7 +69,7 @@ func ExportCirculatingSupply(app *terra.TerraApp) (sdktypes.Int, error) {
 	return lunaTotalSupply.Sub(lunaCommunityPool).Sub(totalVesting), nil
 }
 
-func runAccountExportWorker(app *terra.TerraApp) {
+func runAccountExportWorker(app *app.TerraApp) {
 	app.Logger().Info("[export] exporting accounts")
 	height := app.LastBlockHeight()
 	ctx := app.NewContext(true, tmproto.Header{Height: height})
@@ -75,9 +77,10 @@ func runAccountExportWorker(app *terra.TerraApp) {
 	time := time.Now()
 	var accounts []string
 	count := 0
+	distQuerier := distrikeeper.NewQuerier(app.DistrKeeper)
 	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), "uluna").Amount
-		delegationRewards, err := app.DistrKeeper.DelegationTotalRewards(sdktypes.WrapSDKContext(ctx), &types.QueryDelegationTotalRewardsRequest{
+		delegationRewards, err := distQuerier.DelegationTotalRewards(sdktypes.WrapSDKContext(ctx), &types.QueryDelegationTotalRewardsRequest{
 			DelegatorAddress: account.GetAddress().String(),
 		})
 		if err != nil {

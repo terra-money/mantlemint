@@ -7,8 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/gorilla/mux"
-	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
 

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"runtime"
 
+	tmdb "github.com/cometbft/cometbft-db"
+	tm "github.com/cometbft/cometbft/types"
 	"github.com/gorilla/mux"
-	tm "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/mantlemint"

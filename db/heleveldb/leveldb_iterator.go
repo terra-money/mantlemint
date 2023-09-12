@@ -3,7 +3,7 @@ package heleveldb
 import (
 	"bytes"
 
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/terra-money/mantlemint/db/hld"
 )
 

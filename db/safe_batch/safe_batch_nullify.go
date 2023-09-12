@@ -1,6 +1,6 @@
 package safe_batch
 
-import tmdb "github.com/tendermint/tm-db"
+import tmdb "github.com/cometbft/cometbft-db"
 
 var _ tmdb.Batch = (*SafeBatchNullified)(nil)
 

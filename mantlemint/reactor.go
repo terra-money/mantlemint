@@ -2,19 +2,19 @@ package mantlemint
 
 import (
 	// "fmt"
-	// abcicli "github.com/tendermint/tendermint/abci/client"
-	// abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/consensus"
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
+	// abcicli "github.com/cometbft/cometbft/abci/client"
+	// abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/consensus"
+	"github.com/cometbft/cometbft/crypto/merkle"
+	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/state"
+	"github.com/cometbft/cometbft/store"
 
 	"log"
 	"sync"
 
-	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 )
 
 var _ Mantlemint = (*Instance)(nil)
@@ -34,7 +34,7 @@ type Instance struct {
 	// mem-cached LastState for faster retrieval
 	lastState  state.State
 	lastHeight int64
-	lastBlock  *tendermint.Block
+	lastBlock  *cometbfttypes.Block
 
 	evc *EventCollector
 
@@ -81,9 +81,9 @@ func NewMantlemint(
 	}
 }
 
-// Init is port of ReplayBlocks() from tendermint,
+// Init is port of ReplayBlocks() from cometbfttypes,
 // where it only handles initializing the chain.
-func (mm *Instance) Init(genesis *tendermint.GenesisDoc) error {
+func (mm *Instance) Init(genesis *cometbfttypes.GenesisDoc) error {
 	// loaded state has LastBlockHeight 0,
 	// meaning chain was never initialized
 	// run genesis
@@ -122,17 +122,20 @@ func (mm *Instance) LoadInitialState() error {
 	return nil
 }
 
-func (mm *Instance) Inject(block *tendermint.Block) error {
+func (mm *Instance) Inject(block *cometbfttypes.Block) error {
 	var currentState = mm.lastState
-	var blockID = tendermint.BlockID{
+	partSet, err := block.MakePartSet(cometbfttypes.BlockPartSizeBytes)
+	if err != nil {
+		return err
+	}
+	var blockID = cometbfttypes.BlockID{
 		Hash:          block.Hash(),
-		PartSetHeader: block.MakePartSet(tendermint.BlockPartSizeBytes).Header(),
+		PartSetHeader: partSet.Header(),
 	}
 
 	// apply this block
 	var nextState state.State
 	var retainHeight int64
-	var err error
 
 	// patch AppHash of lastState to the current block's last app hash
 	// because we still want to use fauxMerkleTree for speed (way faster this way!)
@@ -176,7 +179,7 @@ func (mm *Instance) GetCurrentHeight() int64 {
 	}
 }
 
-func (mm *Instance) GetCurrentBlock() *tendermint.Block {
+func (mm *Instance) GetCurrentBlock() *cometbfttypes.Block {
 	return mm.lastBlock
 }
 
@@ -192,7 +195,7 @@ func (mm *Instance) GetCurrentEventCollector() *EventCollector {
 	return mm.evc
 }
 
-func (mm *Instance) safeRunBefore(block *tendermint.Block) error {
+func (mm *Instance) safeRunBefore(block *cometbfttypes.Block) error {
 	if mm.runBefore != nil {
 		return mm.runBefore(block)
 	} else {
@@ -200,7 +203,7 @@ func (mm *Instance) safeRunBefore(block *tendermint.Block) error {
 	}
 }
 
-func (mm *Instance) safeRunAfter(block *tendermint.Block, events *EventCollector) error {
+func (mm *Instance) safeRunAfter(block *cometbfttypes.Block, events *EventCollector) error {
 	if mm.runBefore != nil {
 		return mm.runAfter(block, events)
 	} else {

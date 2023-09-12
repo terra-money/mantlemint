@@ -2,30 +2,30 @@ package rootmulti
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/pruning"
 	"io"
 	"math"
 	"sort"
 	"strings"
 	"sync"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	protoio "github.com/cosmos/gogoproto/io"
 	iavltree "github.com/cosmos/iavl"
-	protoio "github.com/gogo/protobuf/io"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/hld"
 
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/store/cachemulti"
 	"github.com/cosmos/cosmos-sdk/store/dbadapter"
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/listenkv"
 	"github.com/cosmos/cosmos-sdk/store/mem"
+	"github.com/cosmos/cosmos-sdk/store/pruning"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/store/tracekv"
 	"github.com/cosmos/cosmos-sdk/store/transient"
 	"github.com/cosmos/cosmos-sdk/store/types"
@@ -783,7 +783,7 @@ func (rs *Store) Snapshot(height uint64, protoWriter protoio.Writer) error {
 
 		for {
 			node, err := exporter.Next()
-			if err == iavltree.ExportDone {
+			if err == iavltree.ErrorExportDone {
 				break
 			} else if err != nil {
 				return err

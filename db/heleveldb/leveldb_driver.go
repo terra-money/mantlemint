@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/terra-money/mantlemint/db/hld"
 	"github.com/terra-money/mantlemint/lib"
 )

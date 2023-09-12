@@ -1,7 +1,7 @@
 package block
 
 import (
-	tm "github.com/tendermint/tendermint/types"
+	tm "github.com/cometbft/cometbft/types"
 	"github.com/terra-money/mantlemint/lib"
 )
 

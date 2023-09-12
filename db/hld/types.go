@@ -1,7 +1,7 @@
 package hld
 
 import (
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
 )
 
 type HLD interface {

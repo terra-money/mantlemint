@@ -1,10 +1,10 @@
 package mantlemint
 
 import (
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/types"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/proxy"
+	abcicli "github.com/cometbft/cometbft/abci/client"
+	"github.com/cometbft/cometbft/abci/types"
+	tmsync "github.com/cometbft/cometbft/libs/sync"
+	"github.com/cometbft/cometbft/proxy"
 )
 
 type localClientCreator struct {

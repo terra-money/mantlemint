@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tm "github.com/tendermint/tendermint/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tm "github.com/cometbft/cometbft/types"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/safe_batch"

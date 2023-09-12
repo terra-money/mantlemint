@@ -3,8 +3,8 @@ package block
 import (
 	"fmt"
 
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tm "github.com/tendermint/tendermint/types"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tm "github.com/cometbft/cometbft/types"
 	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/indexer"

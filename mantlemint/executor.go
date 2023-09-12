@@ -1,15 +1,14 @@
 package mantlemint
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mempool/mock"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/state"
-	tmdb "github.com/tendermint/tm-db"
+	tmdb "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/state"
 	"os"
 )
 
-// NewMantlemintExecutor creates stock tendermint block executor, with stubbed mempool and evidence pool
+// NewMantlemintExecutor creates stock cometbft block executor, with stubbed mempool and evidence pool
 func NewMantlemintExecutor(
 	db tmdb.DB,
 	conn proxy.AppConnConsensus,
@@ -26,7 +25,7 @@ func NewMantlemintExecutor(
 		conn,
 
 		// no mempool, as mantlemint doesn't handle tx broadcasts
-		mock.Mempool{},
+		Mempool{},
 
 		// no evidence pool, as mantlemint only receives evidence from other peers
 		state.EmptyEvidencePool{},

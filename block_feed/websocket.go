@@ -51,7 +51,7 @@ func (ws *WSSubscription) Subscribe(rpcIndex int) (chan *BlockResult, error) {
 		},
 	}
 
-	log.Print("Subscribing to tendermint rpc...")
+	log.Print("Subscribing to cometbft rpc...")
 
 	// should not fail here
 	if err := ws.ws.WriteJSON(request); err != nil {

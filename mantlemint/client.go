@@ -1,10 +1,10 @@
 package mantlemint
 
 import (
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	abcicli "github.com/cometbft/cometbft/abci/client"
+	"github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/service"
+	tmsync "github.com/cometbft/cometbft/libs/sync"
 )
 
 // NewConcurrentQueryClient creates a local client, which will be directly calling the
@@ -35,6 +35,44 @@ type localClient struct {
 	mtx *tmsync.RWMutex
 	types.Application
 	abcicli.Callback
+}
+
+func (app *localClient) PrepareProposalAsync(req types.RequestPrepareProposal) *abcicli.ReqRes {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
+
+	res := app.Application.PrepareProposal(req)
+	return app.callback(
+		types.ToRequestPrepareProposal(req),
+		types.ToResponsePrepareProposal(res),
+	)
+}
+
+func (app *localClient) ProcessProposalAsync(req types.RequestProcessProposal) *abcicli.ReqRes {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
+
+	res := app.Application.ProcessProposal(req)
+	return app.callback(
+		types.ToRequestProcessProposal(req),
+		types.ToResponseProcessProposal(res),
+	)
+}
+
+func (app *localClient) PrepareProposalSync(req types.RequestPrepareProposal) (*types.ResponsePrepareProposal, error) {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
+
+	res := app.Application.PrepareProposal(req)
+	return &res, nil
+}
+
+func (app *localClient) ProcessProposalSync(req types.RequestProcessProposal) (*types.ResponseProcessProposal, error) {
+	app.mtx.Lock()
+	defer app.mtx.Unlock()
+
+	res := app.Application.ProcessProposal(req)
+	return &res, nil
 }
 
 func (app *localClient) SetResponseCallback(cb abcicli.Callback) {
@@ -71,17 +109,6 @@ func (app *localClient) InfoAsync(req types.RequestInfo) *abcicli.ReqRes {
 	return app.callback(
 		types.ToRequestInfo(req),
 		types.ToResponseInfo(res),
-	)
-}
-
-func (app *localClient) SetOptionAsync(req types.RequestSetOption) *abcicli.ReqRes {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.SetOption(req)
-	return app.callback(
-		types.ToRequestSetOption(req),
-		types.ToResponseSetOption(res),
 	)
 }
 
@@ -218,14 +245,6 @@ func (app *localClient) InfoSync(req types.RequestInfo) (*types.ResponseInfo, er
 	defer app.mtx.RUnlock()
 
 	res := app.Application.Info(req)
-	return &res, nil
-}
-
-func (app *localClient) SetOptionSync(req types.RequestSetOption) (*types.ResponseSetOption, error) {
-	app.mtx.Lock()
-	defer app.mtx.Unlock()
-
-	res := app.Application.SetOption(req)
 	return &res, nil
 }
 
