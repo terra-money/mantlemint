@@ -1,22 +1,30 @@
-# docker build . -t cosmwasm/wasmd:latest
-# docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.18-alpine3.17 AS go-builder
+ARG GO_VERSION="1.20"
+ARG ALPINE_VERSION="3.16"
 ARG BUILDPLATFORM=linux/amd64
+ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
+FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} as base
+
+###############################################################################
+# Builder
+###############################################################################
+FROM base as builder-stage-1
+
+ARG BUILDPLATFORM
 
 # NOTE: add libusb-dev to run with LEDGER_ENABLED=true
 RUN set -eux &&\
-    apk update &&\
     apk add --no-cache \
-    ca-certificates \
     linux-headers \
+    ca-certificates \
     build-base \
     cmake \
     git
 
+WORKDIR /go/src/mimalloc
+
 # use mimalloc for musl
-WORKDIR ${GOPATH}/src/mimalloc
 RUN set -eux &&\
-    git clone --depth 1 \
+    git clone --depth 1 --branch v2.0.9 \
         https://github.com/microsoft/mimalloc . &&\
     mkdir -p build &&\
     cd build &&\
@@ -24,10 +32,11 @@ RUN set -eux &&\
     make -j$(nproc) &&\
     make install
 
-WORKDIR /code
-COPY . /code/
+WORKDIR /go/src/mantlemint
+COPY . .
 
-# Cosmwasm - Download correct libwasmvm version and verify checksum
+# Cosmwasm - Download correct libwasmvm version
+# See https://github.com/CosmWasm/wasmvm/releases
 RUN set -eux &&\
     WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | cut -d ' ' -f 2) && \
     WASMVM_DOWNLOADS="https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}"; \
@@ -43,29 +52,44 @@ RUN set -eux &&\
     wget ${WASMVM_URL} -O /lib/libwasmvm_muslc.a; \
     CHECKSUM=`sha256sum /lib/libwasmvm_muslc.a | cut -d" " -f1`; \
     grep ${CHECKSUM} /tmp/checksums.txt; \
-    rm /tmp/checksums.txt
+    rm /tmp/checksums.txt 
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
-RUN LEDGER_ENABLED=false \
-  go build \
+RUN set -eux &&\
+    LEDGER_ENABLED=false \
+    go build -work \
+    -tags muslc,linux \
     -mod=readonly \
-    -tags "muslc,linux" \
-    -ldflags " \
-      -w -s -linkmode=external -extldflags \
-      '-L/go/src/mimalloc/build -lmimalloc -Wl,-z,muldefs -static' \
-    " \
-    -trimpath \
-    -o build/mantlemint ./sync.go
+    -ldflags="-extldflags '-L/go/src/mimalloc/build -lmimalloc -static'" \
+    -o /go/bin/mantlemint \
+    ./sync.go
 
-FROM alpine:3.17
+###############################################################################
+FROM alpine:${ALPINE_VERSION} as terra-core
 
 WORKDIR /root
 
-COPY --from=go-builder /code/build/mantlemint /usr/local/bin/mantlemint
+COPY --from=builder-stage-1 /go/bin/mantlemint /usr/local/bin/mantlemint
 
-# rest server
+ENV CHAIN_ID="localterra" \
+    MANTLEMINT_HOME="/app" \
+    ## db paths relative to MANTLEMINT_HOME
+    INDEXER_DB="/data/indexer" \ 
+    MANTLEMINT_DB="/data/mantlemint" \
+    GENESIS_PATH="/app/config/genesis.json" \
+    DISABLE_SYNC="false" \
+    RUST_BACKTRACE="full" \
+    ENABLE_EXPORT_MODULE="false" \
+    RICHLIST_LENGTH="100" \
+    RICHLIST_THRESHOLD="0uluna" \
+    ACCOUNT_ADDRESS_PREFIX="terra" \
+    BOND_DENOM="uluna" \
+    LCD_ENDPOINTS="http://localhost:1317" \
+    RPC_ENDPOINTS="http://localhost:26657" \
+    WS_ENDPOINTS="ws://localhost:26657/websocket" 
+
+# lcd & grpc ports
 EXPOSE 1317
-# grpc
 EXPOSE 9090
 
 CMD ["/usr/local/bin/mantlemint"]
