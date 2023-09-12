@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 func TestIndexBlock(t *testing.T) {
-	db := tmdb.NewMemDB()
+	db := dbm.NewMemDB()
 	blockFile, _ := os.Open("../fixtures/block_4724005_raw.json")
 	blockJSON, _ := io.ReadAll(blockFile)
 

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gorilla/mux"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
 
@@ -19,11 +19,11 @@ var (
 	ErrorTxNotFound    = func(hash string) string { return fmt.Sprintf("tx (%s) not found... yet or forever.", hash) }
 )
 
-func txByHashHandler(indexerDB tmdb.DB, txHash string) ([]byte, error) {
+func txByHashHandler(indexerDB dbm.DB, txHash string) ([]byte, error) {
 	return indexerDB.Get(getKey(txHash))
 }
 
-func txsByHeightHandler(indexerDB tmdb.DB, height string) ([]byte, error) {
+func txsByHeightHandler(indexerDB dbm.DB, height string) ([]byte, error) {
 	heightInInt, err := strconv.Atoi(height)
 	if err != nil {
 		return nil, errors.New(ErrorInvalidHeight(height))
@@ -31,7 +31,7 @@ func txsByHeightHandler(indexerDB tmdb.DB, height string) ([]byte, error) {
 	return indexerDB.Get(getByHeightKey(uint64(heightInInt)))
 }
 
-var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB tmdb.DB) {
+var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB dbm.DB) {
 	router.HandleFunc("/index/tx/by_hash/{hash}", func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
 		hash, ok := vars["hash"]

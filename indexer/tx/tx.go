@@ -7,14 +7,14 @@ import (
 	terra "github.com/classic-terra/core/v2/app"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tm "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 var cdc = terra.MakeEncodingConfig()
 
-var IndexTx = indexer.CreateIndexer(func(batch tmdb.Batch, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector) error {
+var IndexTx = indexer.CreateIndexer(func(batch dbm.Batch, block *tm.Block, blockID *tm.BlockID, evc *mantlemint.EventCollector) error {
 	// encoder; proto -> mem -> json
 	txDecoder := cdc.TxConfig.TxDecoder()
 	jsonEncoder := cdc.TxConfig.TxJSONEncoder()

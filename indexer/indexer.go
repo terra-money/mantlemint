@@ -6,19 +6,19 @@ import (
 
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/snappy"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 type Indexer struct {
-	db          tmdb.DB
+	db          dbm.DB
 	indexerTags []string
 	indexers    []IndexFunc
 }
 
 func NewIndexer(dbName, path string) (*Indexer, error) {
-	indexerDB, indexerDBError := tmdb.NewGoLevelDB(dbName, path)
+	indexerDB, indexerDBError := dbm.NewGoLevelDB(dbName, path)
 	if indexerDBError != nil {
 		return nil, indexerDBError
 	}

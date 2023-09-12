@@ -1,15 +1,15 @@
 package hld
 
-import tmdb "github.com/tendermint/tm-db"
+import dbm "github.com/tendermint/tm-db"
 
-var _ tmdb.Iterator = (*HeightLimitedDBIterator)(nil)
+var _ dbm.Iterator = (*HeightLimitedDBIterator)(nil)
 
 type HeightLimitedDBIterator struct {
-	oit      tmdb.Iterator
+	oit      dbm.Iterator
 	atHeight int64
 }
 
-func NewHeightLimitedIterator(atHeight int64, oit tmdb.Iterator) tmdb.Iterator {
+func NewHeightLimitedIterator(atHeight int64, oit dbm.Iterator) dbm.Iterator {
 	return &HeightLimitedDBIterator{
 		oit:      oit,
 		atHeight: atHeight,

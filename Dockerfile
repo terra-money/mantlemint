@@ -1,6 +1,6 @@
 # docker build . -t cosmwasm/wasmd:latest
 # docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.18-alpine3.17 AS go-builder
+FROM golang:1.20-alpine3.17 AS go-builder
 ARG BUILDPLATFORM=linux/amd64
 
 # NOTE: add libusb-dev to run with LEDGER_ENABLED=true

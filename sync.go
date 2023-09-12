@@ -31,7 +31,7 @@ import (
 	"github.com/terra-money/mantlemint/rpc"
 	"github.com/terra-money/mantlemint/store/rootmulti"
 
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 // initialize mantlemint for v0.34.x
@@ -199,7 +199,7 @@ func main() {
 	} else if cBlockFeed, blockFeedErr := blockFeed.Subscribe(0); blockFeedErr != nil {
 		panic(blockFeedErr)
 	} else {
-		var rollbackBatch tmdb.Batch
+		var rollbackBatch dbm.Batch
 		for {
 			feed := <-cBlockFeed
 

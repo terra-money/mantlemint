@@ -2,16 +2,16 @@ package snappy
 
 import (
 	"github.com/golang/snappy"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
-var _ tmdb.Batch = (*SnappyBatch)(nil)
+var _ dbm.Batch = (*SnappyBatch)(nil)
 
 type SnappyBatch struct {
-	batch tmdb.Batch
+	batch dbm.Batch
 }
 
-func NewSnappyBatch(batch tmdb.Batch) *SnappyBatch {
+func NewSnappyBatch(batch dbm.Batch) *SnappyBatch {
 	return &SnappyBatch{
 		batch: batch,
 	}

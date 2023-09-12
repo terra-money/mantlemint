@@ -1,11 +1,11 @@
 package hld
 
 import (
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 type HLD interface {
-	tmdb.DB
+	dbm.DB
 	SetReadHeight(int64)
 	ClearReadHeight() int64
 	SetWriteHeight(int64)
@@ -63,9 +63,9 @@ type HeightLimitEnabledDB interface {
 }
 
 type HeightLimitEnabledIterator interface {
-	tmdb.Iterator
+	dbm.Iterator
 }
 
 type HeightLimitEnabledBatch interface {
-	tmdb.Batch
+	dbm.Batch
 }

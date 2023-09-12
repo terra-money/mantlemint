@@ -3,7 +3,7 @@ package heleveldb
 import (
 	"fmt"
 
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/hld"
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
@@ -74,7 +74,7 @@ func (b *LevelBatch) Close() error {
 	return b.batch.Close()
 }
 
-func (b *LevelBatch) RollbackBatch() tmdb.Batch {
+func (b *LevelBatch) RollbackBatch() dbm.Batch {
 	b.Metric()
 	return b.batch.RollbackBatch
 }
