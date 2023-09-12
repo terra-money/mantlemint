@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime/debug"
@@ -57,7 +56,7 @@ func main() {
 		panic(ldbErr)
 	}
 
-	var hldb = hld.ApplyHeightLimitedDB(
+	hldb := hld.ApplyHeightLimitedDB(
 		ldb,
 		&hld.HeightLimitedDBConfig{
 			Debug: true,
@@ -74,7 +73,7 @@ func main() {
 	vpr := viper.GetViper()
 
 	var wasmOpts []wasm.Option
-	var app = terra.NewTerraApp(
+	app := terra.NewTerraApp(
 		logger,
 		batched,
 		nil,
@@ -92,7 +91,7 @@ func main() {
 	)
 
 	// create app...
-	var appCreator = mantlemint.NewConcurrentQueryClientCreator(app)
+	appCreator := mantlemint.NewConcurrentQueryClientCreator(app)
 	appConns := proxy.NewAppConns(appCreator)
 	appConns.SetLogger(logger)
 	if startErr := appConns.OnStart(); startErr != nil {
@@ -104,8 +103,8 @@ func main() {
 		fmt.Println(a)
 	}()
 
-	var executor = mantlemint.NewMantlemintExecutor(batched, appConns.Consensus())
-	var mm = mantlemint.NewMantlemint(
+	executor := mantlemint.NewMantlemintExecutor(batched, appConns.Consensus())
+	mm := mantlemint.NewMantlemint(
 		batched,
 		appConns,
 		executor,
@@ -253,12 +252,12 @@ func fauxMerkleModeOpt(app *baseapp.BaseApp) {
 }
 
 func getGenesisDoc(genesisPath string) *tendermint.GenesisDoc {
-	jsonBlob, _ := ioutil.ReadFile(genesisPath)
+	jsonBlob, _ := os.ReadFile(genesisPath)
 	shasum := sha1.New()
 	shasum.Write(jsonBlob)
 	sum := hex.EncodeToString(shasum.Sum(nil))
 
-	log.Printf("[v0.34.x/sync] genesis shasum=%s", sum)
+	log.Printf("[sync] genesis shasum=%s", sum)
 
 	if genesis, genesisErr := tendermint.GenesisDocFromFile(genesisPath); genesisErr != nil {
 		panic(genesisErr)

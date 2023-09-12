@@ -33,21 +33,14 @@ const (
 	latestVersionKey = "s/latest"
 	pruneHeightsKey  = "s/pruneheights"
 	commitInfoKeyFmt = "s/%d" // s/<version>
-
-	// Do not change chunk size without new snapshot format (must be uniform across nodes)
-	snapshotChunkSize   = uint64(10e6)
-	snapshotBufferSize  = int(snapshotChunkSize)
-	snapshotMaxItemSize = int(64e6) // SDK has no key/value size limit, so we set an arbitrary limit
 )
-
-const iavlDisablefastNodeDefault = true
 
 // Store is composed of many CommitStores. Name contrasts with
 // cacheMultiStore which is used for branching other MultiStores. It implements
 // the CommitMultiStore interface.
 type Store struct {
-	db             	    dbm.DB
-	logger		    log.Logger
+	db                  dbm.DB
+	logger              log.Logger
 	hldb                *hld.HeightLimitedDB
 	lastCommitInfo      *types.CommitInfo
 	pruningOpts         types.PruningOptions
@@ -60,12 +53,12 @@ type Store struct {
 	pruneHeights        []int64
 	initialVersion      int64
 
-	traceWriter         io.Writer
-	traceContext        types.TraceContext
+	traceWriter  io.Writer
+	traceContext types.TraceContext
 
-	interBlockCache     types.MultiStorePersistentCache
+	interBlockCache types.MultiStorePersistentCache
 
-	listeners           map[types.StoreKey][]types.WriteListener
+	listeners map[types.StoreKey][]types.WriteListener
 }
 
 var (
@@ -80,7 +73,7 @@ var (
 func NewStore(db dbm.DB, logger log.Logger, hldb *hld.HeightLimitedDB) *Store {
 	return &Store{
 		db:            db,
-		logger:	       logger,
+		logger:        logger,
 		hldb:          hldb,
 		pruningOpts:   types.PruneNothing,
 		iavlCacheSize: iavl.DefaultIAVLCacheSize,
@@ -205,7 +198,7 @@ func (rs *Store) loadVersion(ver int64, upgrades *types.StoreUpgrades) error {
 	}
 
 	// load each Store (note this doesn't panic on unmounted keys now)
-	var newStores = make(map[types.StoreKey]types.CommitKVStore)
+	newStores := make(map[types.StoreKey]types.CommitKVStore)
 
 	storesKeys := make([]types.StoreKey, 0, len(rs.storesParams))
 
@@ -383,7 +376,6 @@ func (rs *Store) Commit() types.CommitID {
 		// This case means that no commit has been made in the store, we
 		// start from initialVersion.
 		version = rs.initialVersion
-
 	} else {
 		// This case can means two things:
 		// - either there was already a previous commit in the store, in which
@@ -477,7 +469,7 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 // any store cannot be loaded. This should only be used for querying and
 // iterating at past heights.
 func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStore, error) {
-	var hldb = rs.hldb.BranchHeightLimitedDB(version)
+	hldb := rs.hldb.BranchHeightLimitedDB(version)
 
 	cachedStores := make(map[types.StoreKey]types.CacheWrapper)
 	for key, store := range rs.stores {
@@ -550,8 +542,6 @@ func (rs *Store) GetKVStore(key types.StoreKey) types.KVStore {
 
 	return store
 }
-
-
 
 // GetStoreByName performs a lookup of a StoreKey given a store name typically
 // provided in a path. The StoreKey is then used to perform a lookup and return

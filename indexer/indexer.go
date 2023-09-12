@@ -2,12 +2,13 @@ package indexer
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/gorilla/mux"
 	tm "github.com/tendermint/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/snappy"
 	"github.com/terra-money/mantlemint/mantlemint"
-	"time"
 )
 
 type Indexer struct {

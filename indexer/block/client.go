@@ -3,18 +3,17 @@ package block
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
+
+	"github.com/pkg/errors"
 
 	"github.com/gorilla/mux"
 	tmdb "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
 
-var (
-	EndpointGETBlocksHeight = "/index/blocks/{height}"
-)
+var EndpointGETBlocksHeight = "/index/blocks/{height}"
 
 var (
 	ErrorInvalidHeight = func(height string) string { return fmt.Sprintf("invalid height %s", height) }

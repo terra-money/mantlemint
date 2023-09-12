@@ -2,7 +2,7 @@ package block_feed
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -11,18 +11,18 @@ var _ BlockFeed = (*RPCSubscription)(nil)
 
 type RPCSubscription struct {
 	rpcEndpoints []string
-	cSub     chan *BlockResult
+	cSub         chan *BlockResult
 }
 
 func NewRpcSubscription(rpcEndpoints []string) (*RPCSubscription, error) {
 	return &RPCSubscription{
 		rpcEndpoints: rpcEndpoints,
-		cSub:     make(chan *BlockResult),
+		cSub:         make(chan *BlockResult),
 	}, nil
 }
 
 func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64, rpcIndex int) {
-	var cSub = rpc.cSub
+	cSub := rpc.cSub
 
 	log.Printf("[block_feed/rpc] subscription started, from=%d, to=%d\n", from, to)
 
@@ -35,7 +35,7 @@ func (rpc *RPCSubscription) SyncFromUntil(from int64, to int64, rpcIndex int) {
 			log.Fatalf("block request failed, %v", err)
 		}
 
-		resBytes, err := ioutil.ReadAll(res.Body)
+		resBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			log.Fatalf("block request failed, %v", err)
 		}

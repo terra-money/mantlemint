@@ -2,9 +2,10 @@ package tx
 
 import (
 	"encoding/json"
+	"time"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/terra-money/mantlemint/lib"
-	"time"
 )
 
 type TxRecord struct {
@@ -25,15 +26,19 @@ type TxByHeightRecord struct {
 	Tx        json.RawMessage `json:"tx"`
 }
 
-var txPrefix = []byte("tx/hash:")
-var getKey = func(hash string) []byte {
-	return lib.ConcatBytes(txPrefix, []byte(hash))
-}
+var (
+	txPrefix = []byte("tx/hash:")
+	getKey   = func(hash string) []byte {
+		return lib.ConcatBytes(txPrefix, []byte(hash))
+	}
+)
 
-var byHeightPrefix = []byte("tx/height:")
-var getByHeightKey = func(height uint64) []byte {
-	return lib.ConcatBytes(byHeightPrefix, lib.UintToBigEndian(height))
-}
+var (
+	byHeightPrefix = []byte("tx/height:")
+	getByHeightKey = func(height uint64) []byte {
+		return lib.ConcatBytes(byHeightPrefix, lib.UintToBigEndian(height))
+	}
+)
 
 type ResponseDeliverTx struct {
 	Code      uint32  `json:"code"`

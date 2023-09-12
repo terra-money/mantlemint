@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -65,7 +65,7 @@ func StartRPC(
 	}()
 
 	// start new api server
-	apiSrv := api.New(context, tmlog.NewTMLogger(ioutil.Discard))
+	apiSrv := api.New(context, tmlog.NewTMLogger(io.Discard))
 
 	// register custom routes to default api server
 	registerCustomRoutes(apiSrv.Router)

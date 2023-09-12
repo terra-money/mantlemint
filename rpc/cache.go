@@ -51,7 +51,7 @@ func (cb *CacheBackend) Set(cacheKey string, status int, body []byte) *ResponseC
 		status: status,
 		body:   body,
 	}
-	if evicted := cb.lru.Add(cacheKey, response); evicted != false {
+	if evicted := cb.lru.Add(cacheKey, response); evicted {
 		cb.evictionCount++
 	}
 

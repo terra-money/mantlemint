@@ -39,7 +39,7 @@ func (cdsa commitDBStoreAdapter) SetPruning(_ types.PruningOptions) {}
 func (cdsa commitDBStoreAdapter) GetPruning() types.PruningOptions { return types.PruningOptions{} }
 
 func (cdsa *commitDBStoreAdapter) BranchStoreWithHeightLimitedDB(hldb dbm.DB) types.CommitKVStore {
-	var db = dbm.NewPrefixDB(hldb, cdsa.prefix)
+	db := dbm.NewPrefixDB(hldb, cdsa.prefix)
 
 	return commitDBStoreAdapter{Store: dbadapter.Store{DB: db}, prefix: cdsa.prefix}
 }

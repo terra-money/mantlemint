@@ -25,13 +25,13 @@ func NewAggregateBlockFeed(
 	rpcEndpoints []string,
 	wsEndpoints []string,
 ) *AggregateSubscription {
-	var rpc, rpcErr = NewRpcSubscription(rpcEndpoints)
+	rpc, rpcErr := NewRpcSubscription(rpcEndpoints)
 	if rpcErr != nil {
 		panic(rpcErr)
 	}
 
 	// ws starts with 1st occurrence of ws endpoints
-	var ws, wsErr = NewWSSubscription(wsEndpoints)
+	ws, wsErr := NewWSSubscription(wsEndpoints)
 	if wsErr != nil {
 		panic(wsErr)
 	}
