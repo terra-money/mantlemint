@@ -1,7 +1,8 @@
 
 # docker build . -t cosmwasm/wasmd:latest
 # docker run --rm -it cosmwasm/wasmd:latest /bin/sh
-FROM golang:1.20-alpine3.17 AS go-builder
+ARG GO_VERSION="1.20"
+ARG ALPINE_VERSION="3.17"
 ARG BUILDPLATFORM=linux/amd64
 ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
 FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} as base
