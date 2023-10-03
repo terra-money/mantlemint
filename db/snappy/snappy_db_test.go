@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
-	db "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 func TestSnappyDB(t *testing.T) {
-	snappy := NewSnappyDB(db.NewMemDB(), CompatModeEnabled)
+	snappy := NewSnappyDB(dbm.NewMemDB(), CompatModeEnabled)
 
 	assert.Nil(t, snappy.Set([]byte("test"), []byte("testValue")))
 
@@ -34,7 +34,7 @@ func TestSnappyDB(t *testing.T) {
 	assert.Nil(t, err)
 
 	// iterator is not supported
-	var it db.Iterator
+	var it dbm.Iterator
 	it, err = snappy.Iterator([]byte("start"), []byte("end"))
 	assert.Nil(t, it)
 	assert.Equal(t, errIteratorNotSupported, err)
@@ -44,7 +44,7 @@ func TestSnappyDB(t *testing.T) {
 	assert.Equal(t, errIteratorNotSupported, err)
 
 	// batched store is compressed as well
-	var batch db.Batch
+	var batch dbm.Batch
 	batch = snappy.NewBatch()
 
 	assert.Nil(t, batch.Set([]byte("key"), []byte("batchedValue")))
@@ -66,7 +66,7 @@ func TestSnappyDB(t *testing.T) {
 }
 
 func TestSnappyDBCompat(t *testing.T) {
-	mdb := db.NewMemDB()
+	mdb := dbm.NewMemDB()
 	testKey := []byte("testKey")
 
 	nocompat := NewSnappyDB(mdb, CompatModeDisabled)
@@ -82,7 +82,7 @@ func TestSnappyDBCompat(t *testing.T) {
 	assert.Equal(t, compatResult, nocompatResult2)
 }
 
-func indexSampleTx(mdb db.DB, key []byte) {
+func indexSampleTx(mdb dbm.DB, key []byte) {
 	block := &tendermint.Block{}
 	blockFile, _ := os.Open("../../indexer/fixtures/block_4814775.json")
 	blockJSON, _ := io.ReadAll(blockFile)

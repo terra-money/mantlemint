@@ -9,9 +9,10 @@ import (
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
-
 	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint/db/wrapped"
+
+	dbm "github.com/tendermint/tm-db"
 )
 
 var _ Mantlemint = (*Instance)(nil)
@@ -19,7 +20,7 @@ var _ Mantlemint = (*Instance)(nil)
 type Instance struct {
 	executor   Executor
 	conn       proxy.AppConns
-	db         tmdb.DB
+	db         dbm.DB
 	stateStore state.Store
 	blockStore state.BlockStore
 	mtx        *sync.Mutex
@@ -37,17 +38,18 @@ type Instance struct {
 }
 
 func NewMantlemint(
-	db tmdb.DB,
+	db dbm.DB,
 	conn proxy.AppConns,
 	executor Executor,
 	runBefore MantlemintCallbackBefore,
 	runAfter MantlemintCallbackAfter,
 ) Mantlemint {
+	wdb := wrapped.NewWrappedDB(db)
 	// here we go!
-	stateStore := state.NewStore(db, state.StoreOptions{
+	stateStore := state.NewStore(wdb, state.StoreOptions{
 		DiscardABCIResponses: false,
 	})
-	blockStore := store.NewBlockStore(db)
+	blockStore := store.NewBlockStore(wdb)
 	lastState, err := stateStore.Load()
 	if err != nil {
 		panic(err)

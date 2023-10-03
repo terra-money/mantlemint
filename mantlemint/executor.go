@@ -7,16 +7,18 @@ import (
 	"github.com/tendermint/tendermint/mempool/mock"
 	"github.com/tendermint/tendermint/proxy"
 	"github.com/tendermint/tendermint/state"
-	tmdb "github.com/tendermint/tm-db"
+	"github.com/terra-money/mantlemint/db/wrapped"
+
+	dbm "github.com/tendermint/tm-db"
 )
 
 // NewMantlemintExecutor creates stock tendermint block executor, with stubbed mempool and evidence pool
 func NewMantlemintExecutor(
-	db tmdb.DB,
+	db dbm.DB,
 	conn proxy.AppConnConsensus,
 ) *state.BlockExecutor {
 	return state.NewBlockExecutor(
-		state.NewStore(db, state.StoreOptions{
+		state.NewStore(wrapped.NewWrappedDB(db), state.StoreOptions{
 			DiscardABCIResponses: false,
 		}),
 

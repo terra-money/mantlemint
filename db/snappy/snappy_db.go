@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/snappy"
 	"github.com/pkg/errors"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 const (
@@ -19,7 +19,7 @@ var (
 	errUnknownData          = errors.New("unknown format")
 )
 
-var _ tmdb.DB = (*SnappyDB)(nil)
+var _ dbm.DB = (*SnappyDB)(nil)
 
 // SnappyDB implements a tmdb.DB overlay with snappy compression/decompression
 // Iterator is NOT supported -- main purpose of this library is to support indexer.db,
@@ -27,12 +27,12 @@ var _ tmdb.DB = (*SnappyDB)(nil)
 // NOTE: implement when needed
 // NOTE2: monitor mem pressure, optimize by pre-allocating dst buf when there is bottleneck
 type SnappyDB struct {
-	db         tmdb.DB
+	db         dbm.DB
 	mtx        *sync.Mutex
 	compatMode int
 }
 
-func NewSnappyDB(db tmdb.DB, compatMode int) *SnappyDB {
+func NewSnappyDB(db dbm.DB, compatMode int) *SnappyDB {
 	return &SnappyDB{
 		mtx:        new(sync.Mutex),
 		db:         db,
@@ -91,11 +91,11 @@ func (s *SnappyDB) DeleteSync(key []byte) error {
 	return s.Delete(key)
 }
 
-func (s *SnappyDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
+func (s *SnappyDB) Iterator(start, end []byte) (dbm.Iterator, error) {
 	return nil, errIteratorNotSupported
 }
 
-func (s *SnappyDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
+func (s *SnappyDB) ReverseIterator(start, end []byte) (dbm.Iterator, error) {
 	return nil, errIteratorNotSupported
 }
 
@@ -103,7 +103,7 @@ func (s *SnappyDB) Close() error {
 	return s.db.Close()
 }
 
-func (s *SnappyDB) NewBatch() tmdb.Batch {
+func (s *SnappyDB) NewBatch() dbm.Batch {
 	return NewSnappyBatch(s.db.NewBatch())
 }
 

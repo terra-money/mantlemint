@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tendermint "github.com/tendermint/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/mantlemint"
 )
 
 func TestIndexTx(t *testing.T) {
-	db := tmdb.NewMemDB()
+	db := dbm.NewMemDB()
 	block := &tendermint.Block{}
 	blockFile, _ := os.Open("../fixtures/block_4814775.json")
 	blockJSON, _ := io.ReadAll(blockFile)

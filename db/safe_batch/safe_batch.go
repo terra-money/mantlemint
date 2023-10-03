@@ -3,24 +3,24 @@ package safe_batch
 import (
 	"fmt"
 
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/db/rollbackable"
 )
 
 var (
-	_ tmdb.DB           = (*SafeBatchDB)(nil)
+	_ dbm.DB            = (*SafeBatchDB)(nil)
 	_ SafeBatchDBCloser = (*SafeBatchDB)(nil)
 )
 
 type SafeBatchDBCloser interface {
-	tmdb.DB
+	dbm.DB
 	Open()
-	Flush() (tmdb.Batch, error)
+	Flush() (dbm.Batch, error)
 }
 
 type SafeBatchDB struct {
-	db    tmdb.DB
-	batch tmdb.Batch
+	db    dbm.DB
+	batch dbm.Batch
 }
 
 // open batch
@@ -29,7 +29,7 @@ func (s *SafeBatchDB) Open() {
 }
 
 // flush batch and return rollback batch if rollbackable
-func (s *SafeBatchDB) Flush() (tmdb.Batch, error) {
+func (s *SafeBatchDB) Flush() (dbm.Batch, error) {
 	defer func() {
 		if s.batch != nil {
 			s.batch.Close()
@@ -44,7 +44,7 @@ func (s *SafeBatchDB) Flush() (tmdb.Batch, error) {
 	}
 }
 
-func NewSafeBatchDB(db tmdb.DB) tmdb.DB {
+func NewSafeBatchDB(db dbm.DB) dbm.DB {
 	return &SafeBatchDB{
 		db:    db,
 		batch: nil,
@@ -83,11 +83,11 @@ func (s *SafeBatchDB) DeleteSync(key []byte) error {
 	return s.Delete(key)
 }
 
-func (s *SafeBatchDB) Iterator(start, end []byte) (tmdb.Iterator, error) {
+func (s *SafeBatchDB) Iterator(start, end []byte) (dbm.Iterator, error) {
 	return s.db.Iterator(start, end)
 }
 
-func (s *SafeBatchDB) ReverseIterator(start, end []byte) (tmdb.Iterator, error) {
+func (s *SafeBatchDB) ReverseIterator(start, end []byte) (dbm.Iterator, error) {
 	return s.db.ReverseIterator(start, end)
 }
 
@@ -95,7 +95,7 @@ func (s *SafeBatchDB) Close() error {
 	return s.db.Close()
 }
 
-func (s *SafeBatchDB) NewBatch() tmdb.Batch {
+func (s *SafeBatchDB) NewBatch() dbm.Batch {
 	if s.batch != nil {
 		return NewSafeBatchNullify(s.batch)
 	} else {

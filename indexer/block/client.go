@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/gorilla/mux"
-	tmdb "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/tm-db"
 	"github.com/terra-money/mantlemint/indexer"
 )
 
@@ -20,7 +20,7 @@ var (
 	ErrorBlockNotFound = func(height string) string { return fmt.Sprintf("block %s not found... yet.", height) }
 )
 
-func blockByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, error) {
+func blockByHeightHandler(indexerDB dbm.DB, height string) (json.RawMessage, error) {
 	heightInInt, err := strconv.Atoi(height)
 	if err != nil {
 		return nil, errors.New(ErrorInvalidHeight(height))
@@ -28,7 +28,7 @@ func blockByHeightHandler(indexerDB tmdb.DB, height string) (json.RawMessage, er
 	return indexerDB.Get(getKey(uint64(heightInInt)))
 }
 
-var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB tmdb.DB) {
+var RegisterRESTRoute = indexer.CreateRESTRoute(func(router *mux.Router, indexerDB dbm.DB) {
 	router.HandleFunc(EndpointGETBlocksHeight, func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
 		height, ok := vars["height"]
