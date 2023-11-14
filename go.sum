@@ -1131,6 +1131,8 @@ github.com/terra-money/alliance v0.3.2 h1:MuL3RBw+jXFv4io5PhaBn7jRUBvlJLUzgpD6gx
 github.com/terra-money/alliance v0.3.2/go.mod h1:HDiUexeXRUkLkLRw5jLQcHuVt1Sx43HfyVl0kfwW3JM=
 github.com/terra-money/core/v2 v2.6.0-rc1 h1:e/F5lM9o6LSIXlD8ncWHcrEQMCt+wfyS7d52O6Ar7cY=
 github.com/terra-money/core/v2 v2.6.0-rc1/go.mod h1:0kgHM7CB4gQDm91oGSTnz96KCpRUVJPu94Jg0qXQf78=
+github.com/terra-money/core/v2 v2.6.1 h1:/vPYZ8lJ/8uET/jh/cA6nL+PE64K5dysJwM3gCN6PJo=
+github.com/terra-money/core/v2 v2.6.1/go.mod h1:wiazW+K5Ydbn2U3pVvCcs0BLjtLtp4EPijswaoMf/r0=
 github.com/terra-money/cosmos-sdk v0.47.5-terra.rc.0 h1:b92OMt/p3SbEw7L3Cn5VCJqlEh28RnHwyZJDUTPHcPE=
 github.com/terra-money/cosmos-sdk v0.47.5-terra.rc.0/go.mod h1:EHwCeN9IXonsjKcjpS12MqeStdZvIdxt3VYXhus3G3c=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
