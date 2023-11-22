@@ -492,7 +492,7 @@ func (rs *Store) CacheMultiStore() types.CacheMultiStore {
 // any store cannot be loaded. This should only be used for querying and
 // iterating at past heights.
 func (rs *Store) CacheMultiStoreWithVersion(version int64) (types.CacheMultiStore, error) {
-	var hldb = rs.hldb.BranchHeightLimitedDB(version)
+	hldb := rs.hldb.BranchHeightLimitedDB(version)
 
 	cachedStores := make(map[types.StoreKey]types.CacheWrapper)
 	for key, store := range rs.stores {

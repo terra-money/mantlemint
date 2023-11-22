@@ -33,8 +33,8 @@ func ExportCirculatingSupply(app *app.TerraApp) (sdktypes.Int, error) {
 	ctx := app.NewContext(true, tmproto.Header{Height: height})
 	time := time.Now()
 	totalVesting := sdktypes.NewInt(0)
-	distQuerier := distrikeeper.NewQuerier(app.DistrKeeper)
-	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+	distQuerier := distrikeeper.NewQuerier(app.Keepers.DistrKeeper)
+	app.Keepers.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		switch account.(type) {
 		case *vestingtypes.PeriodicVestingAccount:
 			v := account.(*vestingtypes.PeriodicVestingAccount)
@@ -53,7 +53,7 @@ func ExportCirculatingSupply(app *app.TerraApp) (sdktypes.Int, error) {
 		}
 		return false
 	})
-	totalSupply, err := app.BankKeeper.SupplyOf(sdktypes.WrapSDKContext(ctx), &banktypes.QuerySupplyOfRequest{
+	totalSupply, err := app.Keepers.BankKeeper.SupplyOf(sdktypes.WrapSDKContext(ctx), &banktypes.QuerySupplyOfRequest{
 		Denom: "uluna",
 	})
 	if err != nil {
@@ -77,9 +77,9 @@ func runAccountExportWorker(app *app.TerraApp) {
 	time := time.Now()
 	var accounts []string
 	count := 0
-	distQuerier := distrikeeper.NewQuerier(app.DistrKeeper)
-	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
-		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), "uluna").Amount
+	distQuerier := distrikeeper.NewQuerier(app.Keepers.DistrKeeper)
+	app.Keepers.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+		balance := app.Keepers.BankKeeper.GetBalance(ctx, account.GetAddress(), "uluna").Amount
 		delegationRewards, err := distQuerier.DelegationTotalRewards(sdktypes.WrapSDKContext(ctx), &types.QueryDelegationTotalRewardsRequest{
 			DelegatorAddress: account.GetAddress().String(),
 		})
@@ -110,15 +110,15 @@ func runAccountExportWorker(app *app.TerraApp) {
 			vested := balance.Add(v.DelegatedFree.AmountOf("uluna"))
 			accounts = append(accounts, fmt.Sprintf("%s,%s,%s", v.Address, vested, vesting))
 		case *authtypes.BaseAccount:
-			delegations := app.StakingKeeper.GetAllDelegatorDelegations(ctx, account.GetAddress())
+			delegations := app.Keepers.StakingKeeper.GetAllDelegatorDelegations(ctx, account.GetAddress())
 			for _, d := range delegations {
-				val, ok := app.StakingKeeper.GetValidator(ctx, d.GetValidatorAddr())
+				val, ok := app.Keepers.StakingKeeper.GetValidator(ctx, d.GetValidatorAddr())
 				if ok {
 					balance = balance.Add(val.TokensFromShares(d.GetShares()).TruncateInt())
 				}
 			}
 
-			unbonding := app.StakingKeeper.GetAllUnbondingDelegations(ctx, account.GetAddress())
+			unbonding := app.Keepers.StakingKeeper.GetAllUnbondingDelegations(ctx, account.GetAddress())
 			for _, ub := range unbonding {
 				for _, e := range ub.Entries {
 					balance = balance.Add(e.Balance)
