@@ -113,11 +113,11 @@ func generateRichlistFromState(indexerDB safe_batch.SafeBatchDB, block *tm.Block
 
 	ctx := app.NewContext(true, tmproto.Header{Height: int64(height)})
 
-	app.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
+	app.Keepers.AccountKeeper.IterateAccounts(ctx, func(account authtypes.AccountI) (stop bool) {
 		if _, isModule := account.(*authtypes.ModuleAccount); isModule {
 			return false
 		}
-		balance := app.BankKeeper.GetBalance(ctx, account.GetAddress(), threshold.Denom)
+		balance := app.Keepers.BankKeeper.GetBalance(ctx, account.GetAddress(), threshold.Denom)
 		if err = list.Rank(Ranker{Addresses: []string{account.GetAddress().String()}, Score: balance}); err != nil {
 			return true // stop iteration and return err
 		}

@@ -189,13 +189,13 @@ func (list *Richlist) Apply(changes map[string]sdk.Int, app *terra.TerraApp, hei
 		accAddress, _ := sdk.AccAddressFromBech32(address) // a ranker have only one address
 
 		// skip module accounts
-		account := app.AccountKeeper.GetAccount(ctx, accAddress)
+		account := app.Keepers.AccountKeeper.GetAccount(ctx, accAddress)
 		_, isModule := account.(*authtypes.ModuleAccount)
 		if isModule {
 			continue
 		}
 
-		amountPrev := app.BankKeeper.GetBalance(ctx, accAddress, denom)
+		amountPrev := app.Keepers.BankKeeper.GetBalance(ctx, accAddress, denom)
 		amountAfter := sdk.NewCoin(denom, amountPrev.Amount.Add(amount))
 		//fmt.Printf("[DEBUG] addr:%+v, amountPrev:%+v\n", accAddress, amountPrev)
 
