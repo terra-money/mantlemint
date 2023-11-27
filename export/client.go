@@ -3,8 +3,8 @@ package export
 import (
 	"net/http"
 
+	terra "github.com/TERITORI/teritori-chain/app"
 	"github.com/gorilla/mux"
-	terra "github.com/terra-money/core/v2/app"
 )
 
 func RegisterRESTRoutes(router *mux.Router, app *terra.TerraApp) {

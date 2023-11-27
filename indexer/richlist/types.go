@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
+	terra "github.com/TERITORI/teritori-chain/app"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/google/btree"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/lib"
 )
 

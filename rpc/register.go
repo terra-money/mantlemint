@@ -11,14 +11,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 
+	terra "github.com/TERITORI/teritori-chain/app"
+	"github.com/TERITORI/teritori-chain/app/params"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	terra "github.com/terra-money/core/v2/app"
-	"github.com/terra-money/core/v2/app/params"
 	mconfig "github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/export"
 )

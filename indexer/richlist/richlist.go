@@ -7,10 +7,10 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tm "github.com/tendermint/tendermint/types"
 
+	terra "github.com/TERITORI/teritori-chain/app"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	terra "github.com/terra-money/core/v2/app"
 	"github.com/terra-money/mantlemint/config"
 	"github.com/terra-money/mantlemint/db/safe_batch"
 	"github.com/terra-money/mantlemint/indexer"

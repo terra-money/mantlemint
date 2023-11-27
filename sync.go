@@ -10,6 +10,9 @@ import (
 	"runtime/debug"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	terra "github.com/TERITORI/teritori-chain/app"
+	coreconfig "github.com/TERITORI/teritori-chain/app/config"
+	wasmconfig "github.com/TERITORI/teritori-chain/app/wasmconfig"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
@@ -17,9 +20,6 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/proxy"
 	tendermint "github.com/tendermint/tendermint/types"
-	terra "github.com/terra-money/core/v2/app"
-	coreconfig "github.com/terra-money/core/v2/app/config"
-	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
 
 	"github.com/terra-money/mantlemint/config"
