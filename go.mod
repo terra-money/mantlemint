@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/CosmWasm/wasmd v0.30.0
-	github.com/classic-terra/core/v2 v2.3.0
+	github.com/classic-terra/core/v2 v2.3.2
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-sdk v0.46.14
 	github.com/cosmos/iavl v0.19.7
