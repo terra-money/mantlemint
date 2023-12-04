@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime/debug"
 
+	wasm "github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	tmlog "github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/proxy"
@@ -19,7 +20,6 @@ import (
 	"github.com/spf13/viper"
 	terra "github.com/terra-money/core/v2/app"
 	coreconfig "github.com/terra-money/core/v2/app/config"
-	wasmconfig "github.com/terra-money/core/v2/app/wasmconfig"
 	blockFeeder "github.com/terra-money/mantlemint/block_feed"
 
 	"github.com/terra-money/mantlemint/config"
@@ -87,6 +87,11 @@ func main() {
 	cms := rootmulti.NewStore(batched, hldb, logger)
 	vpr := viper.GetViper()
 
+	wasmConfig, err := wasm.ReadWasmConfig(vpr)
+	if err != nil {
+		panic(err)
+	}
+
 	var app = terra.NewTerraApp(
 		logger,
 		batched,
@@ -97,7 +102,7 @@ func main() {
 		0,
 		codec,
 		vpr,
-		wasmconfig.GetConfig(vpr),
+		wasmConfig,
 		fauxMerkleModeOpt,
 		func(ba *baseapp.BaseApp) {
 			ba.SetCMS(cms)
