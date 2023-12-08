@@ -1,6 +1,6 @@
 module github.com/terra-money/mantlemint
 
-go 1.20
+go 1.21
 
 require (
 	github.com/CosmWasm/wasmd v0.45.0
