@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
 var _ BlockFeed = (*WSSubscription)(nil)
@@ -97,6 +98,8 @@ func handleInitialHandhake(ws *websocket.Conn) error {
 func receiveBlockEvents(ws *websocket.Conn, c chan *BlockResult) {
 	defer close(c)
 	for {
+		// There should be a block every ~6s so 20 seconds would mean the connection is faulty
+		ws.SetReadDeadline(time.Now().Add(time.Second * 20))
 		_, message, err := ws.ReadMessage()
 
 		// if read message failed,
