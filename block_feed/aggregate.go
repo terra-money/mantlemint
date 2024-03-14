@@ -70,6 +70,13 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	// if not, the local blockchain is behind, in such case we would need to sync from Rpc.
 	if firstBlock := <-cWS; firstBlock.Block.Header.Height != ags.lastKnownBlock+1 {
 		log.Printf("[block_feed/aggregate] received the first block(%d), but local blockchain is at (%d)\n", firstBlock.Block.Header.Height, ags.lastKnownBlock)
+		if ags.lastKnownBlock >= firstBlock.Block.Header.Height {
+			log.Printf("[block_feed/aggregate] local blockchain is ahead, reconnecting to another node. \n")
+			ags.setSyncState(false)
+			ags.Close()
+			ags.Reconnect()
+			return ags.aggregateBlockChannel, nil
+		}
 		go func() {
 			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height, rpcIndex)
 			for {
@@ -82,7 +89,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				}
 			}
 
-			log.Printf("[block_feed/aggregate] switching to ws...")
+			log.Printf("[block_feed/aggregate] switching to ws at height %d...", ags.lastKnownBlock)
 
 			// patch ws to aggregate
 			for {
@@ -99,6 +106,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				} else {
 					// if block feeder got upto this point,
 					// it is relatively safe that mantle is synced
+					log.Printf("[block_feed/aggregate] received block at height %d...", r.Block.Height)
 					ags.setSyncState(true)
 					ags.aggregateBlockChannel <- r
 					ags.lastKnownBlock = r.Block.Height
