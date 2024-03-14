@@ -89,7 +89,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				}
 			}
 
-			log.Printf("[block_feed/aggregate] switching to ws...")
+			log.Printf("[block_feed/aggregate] switching to ws at height %d...", ags.lastKnownBlock)
 
 			// patch ws to aggregate
 			for {
@@ -106,6 +106,7 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 				} else {
 					// if block feeder got upto this point,
 					// it is relatively safe that mantle is synced
+					log.Printf("[block_feed/aggregate] received block at height %d...", r.Block.Height)
 					ags.setSyncState(true)
 					ags.aggregateBlockChannel <- r
 					ags.lastKnownBlock = r.Block.Height
