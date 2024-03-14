@@ -70,6 +70,13 @@ func (ags *AggregateSubscription) Subscribe(rpcIndex int) (chan *BlockResult, er
 	// if not, the local blockchain is behind, in such case we would need to sync from Rpc.
 	if firstBlock := <-cWS; firstBlock.Block.Header.Height != ags.lastKnownBlock+1 {
 		log.Printf("[block_feed/aggregate] received the first block(%d), but local blockchain is at (%d)\n", firstBlock.Block.Header.Height, ags.lastKnownBlock)
+		if ags.lastKnownBlock >= firstBlock.Block.Header.Height {
+			log.Printf("[block_feed/aggregate] local blockchain is ahead, reconnecting to another node. \n")
+			ags.setSyncState(false)
+			ags.Close()
+			ags.Reconnect()
+			return ags.aggregateBlockChannel, nil
+		}
 		go func() {
 			go ags.rpc.SyncFromUntil(ags.lastKnownBlock+1, firstBlock.Block.Header.Height, rpcIndex)
 			for {
