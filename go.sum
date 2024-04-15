@@ -221,8 +221,8 @@ github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v0.3.0/go.mod h1:tPaiy8S5bQ
 github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 h1:UQHMgLO+TxOElx5B5HZ4hJQsoJ/PvUvKRhJHDQXO8P8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d h1:nalkkPQcITbvhmL4+C4cKA87NW0tfm3Kl9VXRoPywFg=
-github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
+github.com/ChainSafe/go-schnorrkel v1.0.0 h1:3aDA67lAykLaG1y3AOjs88dMxC88PgUuHRrLeDnvGIM=
+github.com/ChainSafe/go-schnorrkel v1.0.0/go.mod h1:dpzHYVxLZcp8pjlV+O+UR8K0Hp/z7vcchBSbMBEhCw4=
 github.com/CosmWasm/wasmd v0.45.0 h1:9zBqrturKJwC2kVsfHvbrA++EN0PS7UTXCffCGbg6JI=
 github.com/CosmWasm/wasmd v0.45.0/go.mod h1:RnSAiqbNIZu4QhO+0pd7qGZgnYAMBPGmXpzTADag944=
 github.com/CosmWasm/wasmvm v1.5.2 h1:+pKB1Mz9GZVt1vadxB+EDdD1FOz3dMNjIKq/58/lrag=
@@ -1152,8 +1152,8 @@ github.com/terra-money/alliance v0.3.6 h1:FWfix+mKcCrXvdk29MgfXGj0JThOsBxzK81OiS
 github.com/terra-money/alliance v0.3.6/go.mod h1:gyenuDQEwyN6mfiOEkaRBaokgk9ryBeU3eCAiZpVKZg=
 github.com/terra-money/core/v2 v2.11.0 h1:VcdmRfjw0b7B5FHKpJICF9fybHflXHg3CPcyQeEsD+8=
 github.com/terra-money/core/v2 v2.11.0/go.mod h1:Yr8+ecugKXEwQYkpw7pf9cc68iAz7o/v04iv9qfk/Bs=
-github.com/terra-money/cosmos-sdk v0.47.6-terra.0 h1:BrK2cq8W5HsMT5siVdJCFDx1vcEMm+BGN5713FEm84g=
-github.com/terra-money/cosmos-sdk v0.47.6-terra.0/go.mod h1:xTc1chW8HyUWCfrgGbjS5jNu9RzlPVrBNfbL9RmZUio=
+github.com/terra-money/cosmos-sdk v0.47.10-terra.0 h1:vpod9zXeBp8S8JfP0++YzwCvCEMkJnz3qRmz0pciEQI=
+github.com/terra-money/cosmos-sdk v0.47.10-terra.0/go.mod h1:UWpgWkhcsBIATS68uUC0del7IiBN4hPv/vqg8Zz23uw=
 github.com/terra-money/ibc-go/v7 v7.3.1-terra.0 h1:CF+iicqyI4BJsW2zjUrUrTxRRrPWFZC30VqvlRyVl28=
 github.com/terra-money/ibc-go/v7 v7.3.1-terra.0/go.mod h1:wvx4pPBofe5ZdMNV3OFRxSI4auEP5Qfqf8JXLLNV04g=
 github.com/terra-money/ledger-terra-go v0.11.2 h1:BVXZl+OhJOri6vFNjjVaTabRLApw9MuG7mxWL4V718c=
