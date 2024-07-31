@@ -19,7 +19,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
-	github.com/terra-money/core/v2 v2.11.1
+	github.com/terra-money/core/v2 v2.11.5
 )
 
 require (
@@ -63,7 +63,7 @@ require (
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240228213828-cce7f56d000b // indirect
 	github.com/cosmos/ibc-apps/modules/async-icq/v7 v7.0.0 // indirect
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230803181732-7c8f814d3b79 // indirect
-	github.com/cosmos/ibc-go/v7 v7.3.1 // indirect
+	github.com/cosmos/ibc-go/v7 v7.4.1 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/cosmos/ledger-go v0.9.3 // indirect
@@ -193,7 +193,6 @@ require (
 
 replace (
 	github.com/cosmos/cosmos-sdk => github.com/terra-money/cosmos-sdk v0.47.10-terra.0
-	github.com/cosmos/ibc-go/v7 => github.com/terra-money/ibc-go/v7 v7.3.1-terra.0
 	github.com/cosmos/ledger-cosmos-go => github.com/terra-money/ledger-terra-go v0.11.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
