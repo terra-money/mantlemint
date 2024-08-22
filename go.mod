@@ -3,7 +3,7 @@ module github.com/terra-money/mantlemint
 go 1.20
 
 require (
-	github.com/CosmWasm/wasmd v0.45.0
+	github.com/CosmWasm/wasmd v0.46.0
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-sdk v0.47.10
@@ -19,7 +19,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
-	github.com/terra-money/core/v2 v2.11.8
+	github.com/terra-money/core/v2 v2.11.10
 )
 
 require (
